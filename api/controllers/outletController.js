@@ -355,3 +355,13 @@ export const verifyOutlet = async (req, res) => {
     });
   }
 };
+
+export const getOutletProducts = async (req, res) => {
+  
+}
+export const getAllOutlets = async (req, res) => {
+  
+}
+export const getPendingOutlets = async (req, res) => {
+  
+}
