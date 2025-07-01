@@ -59,3 +59,18 @@ export const adminUserValidator = [
   check('email', 'Please include a valid email').isEmail(),
   check('password', 'Password must be at least 6 characters').isLength({ min: 6 })
 ];
+
+// Order validation
+export const orderValidator = [
+  check('orderItems', 'Order items are required').isArray({ min: 1 }),
+  check('orderItems.*.product', 'Product ID is required for each item').not().isEmpty(),
+  check('orderItems.*.quantity', 'Quantity must be at least 1 for each item').isInt({ min: 1 }),
+  check('shipping.fullName', 'Full name is required for shipping').not().isEmpty(),
+  check('shipping.address', 'Address is required for shipping').not().isEmpty(),
+  check('shipping.city', 'City is required for shipping').not().isEmpty(),
+  check('shipping.state', 'State is required for shipping').not().isEmpty(),
+  check('shipping.phone', 'Phone number is required for shipping').not().isEmpty(),
+  check('payment.method', 'Payment method is required').isIn(['paystack', 'cash_on_delivery']),
+  check('itemsPrice', 'Items price is required').isFloat({ min: 0 }),
+  check('totalPrice', 'Total price is required').isFloat({ min: 0 })
+];

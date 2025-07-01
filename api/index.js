@@ -10,6 +10,7 @@ import userRoutes from './routes/users.js';
 import outletRoutes from './routes/outlets.js';
 import productRoutes from './routes/products.js';
 import adminRoutes from './routes/admin.js';
+import orderRoutes from './routes/orders.js';
  
 // Configure dotenv
 dotenv.config();
@@ -33,6 +34,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/outlets', outletRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

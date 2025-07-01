@@ -364,4 +364,4 @@ export const getAllOutlets = async (req, res) => {
 }
 export const getPendingOutlets = async (req, res) => {
   
-}
+} 
