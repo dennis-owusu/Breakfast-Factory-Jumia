@@ -10,7 +10,7 @@ import userRoutes from './routes/users.js';
 import outletRoutes from './routes/outlets.js';
 import productRoutes from './routes/products.js';
 import adminRoutes from './routes/admin.js';
-
+ 
 // Configure dotenv
 dotenv.config();
 
