@@ -1,70 +1,76 @@
 import React, { useState, useEffect } from 'react';
+import {Input} from '../../components/ui/input'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select'
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { X, Plus, Upload, Loader as LoaderIcon } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice } from '../../utils/helpers';
+import { outletAPI, categoriesAPI } from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
-// This would be imported from an API utility file in a real app
+// Fetch product data from the API
 const fetchProduct = async (productId) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      if (productId === 'new') {
-        resolve(null);
-        return;
-      }
-      
-      resolve({
-        _id: productId,
-        name: 'Bluetooth Speaker',
-        description: 'High-quality portable Bluetooth speaker with 20 hours of battery life.',
-        price: 25000,
-        discountPrice: 19999,
-        stock: 45,
-        category: 'Electronics',
-        images: ['https://via.placeholder.com/500x500?text=Speaker'],
-        specifications: [
-          { key: 'Brand', value: 'SoundMax' },
-          { key: 'Model', value: 'BT-500' },
-          { key: 'Battery Life', value: '20 hours' },
-          { key: 'Connectivity', value: 'Bluetooth 5.0' },
-          { key: 'Weight', value: '500g' }
-        ],
-        featured: true
-      });
-    }, 1000);
-  });
+  try {
+    if (productId === 'new') {
+      return null;
+    }
+    
+    const response = await outletAPI.getProductById(productId);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    throw error;
+  }
 };
 
+
 const saveProduct = async (productData) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        product: {
-          ...productData,
-          _id: productData._id || `prod${Math.floor(Math.random() * 1000)}`
-        }
-      });
-    }, 1500);
-  });
+  try {
+    // Log the product data being sent to the API
+    console.log('Saving product data:', productData);
+    
+    let response;
+    
+    if (productData._id) {
+      // Update existing product
+      response = await outletAPI.updateProduct(productData._id, productData);
+    } else {
+      // Create new product
+      response = await outletAPI.addProduct(productData);
+    }
+    
+    console.log('API response:', response);
+    
+    return {
+      success: true,
+      product: response.data.product
+    };
+  } catch (error) {
+    console.error('Error saving product:', error);
+    throw error;
+  }
 };
 
 const fetchCategories = async () => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { _id: 'cat1', name: 'Electronics' },
-        { _id: 'cat2', name: 'Accessories' },
-        { _id: 'cat3', name: 'Gadgets' },
-        { _id: 'cat4', name: 'Home & Kitchen' },
-        { _id: 'cat5', name: 'Fashion' }
-      ]);
-    }, 800);
-  });
+  try {
+    // Since there's no categories API endpoint, return hardcoded categories from Product model
+    return [
+      { _id: 'electronics', name: 'Electronics' },
+      { _id: 'clothing', name: 'Clothing' },
+      { _id: 'food', name: 'Food' },
+      { _id: 'furniture', name: 'Furniture' },
+      { _id: 'beauty', name: 'Beauty' },
+      { _id: 'health', name: 'Health' },
+      { _id: 'sports', name: 'Sports' },
+      { _id: 'books', name: 'Books' },
+      { _id: 'toys', name: 'Toys' },
+      { _id: 'other', name: 'Other' }
+    ];
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
 };
 
 const ProductForm = () => {
@@ -79,7 +85,7 @@ const ProductForm = () => {
   
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
+    title: '',  // Changed from name to title to match Product model
     description: '',
     price: '',
     discountPrice: '',
@@ -105,6 +111,7 @@ const ProductForm = () => {
     const loadData = async () => {
       try {
         setIsLoading(true);
+       
         
         // Load categories
         const categoriesData = await fetchCategories();
@@ -121,19 +128,24 @@ const ProductForm = () => {
               stock: productData.stock.toString()
             });
             setImagePreviewUrls(productData.images);
+            
+            // Log the loaded product data to help with debugging
+            console.log('Loaded product data:', productData);
           }
         }
         
         setError(null);
       } catch (err) {
-        setError('Failed to load data. Please try again later.');
+        const errorMessage = err.response?.data?.message || 'Failed to load data. Please try again later.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
     };
     
     loadData();
-  }, [id]);
+  }, [id, navigate]);
   
   // Handle form input changes
   const handleChange = (e) => {
@@ -247,7 +259,7 @@ const ProductForm = () => {
   const validateForm = () => {
     const errors = {};
     
-    if (!formData.name.trim()) errors.name = 'Product name is required';
+    if (!formData.title.trim()) errors.title = 'Product title is required';
     if (!formData.description.trim()) errors.description = 'Description is required';
     if (!formData.price) errors.price = 'Price is required';
     if (!formData.stock) errors.stock = 'Stock quantity is required';
@@ -284,9 +296,9 @@ const ProductForm = () => {
       // Prepare data for API
       const productData = {
         ...formData,
-        price: parseInt(formData.price),
-        discountPrice: formData.discountPrice ? parseInt(formData.discountPrice) : null,
-        stock: parseInt(formData.stock)
+        price: parseFloat(formData.price),
+        discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : null,
+        stock: parseInt(formData.stock, 10)
       };
       
       // If editing, include the ID
@@ -294,22 +306,28 @@ const ProductForm = () => {
         productData._id = id;
       }
       
+      console.log('Form data before submission:', formData);
+      console.log('Prepared product data:', productData);
+      
       // Save product
       const result = await saveProduct(productData);
       
       if (result.success) {
+        // Show success toast
+        toast.success(`Product ${id === 'new' ? 'created' : 'updated'} successfully!`);
+        
         // Navigate back to products list
-        navigate('/outlet/products', { 
-          state: { 
-            message: `Product ${id === 'new' ? 'created' : 'updated'} successfully!`,
-            type: 'success'
-          } 
-        });
+        navigate('/outlet/products');
       } else {
-        setError('Failed to save product. Please try again.');
+        const errorMessage = 'Failed to save product. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
-      setError('An error occurred. Please try again later.');
+      console.error('Error details:', err);
+      const errorMessage = err.response?.data?.message || 'An error occurred. Please try again later.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -368,22 +386,22 @@ const ProductForm = () => {
             </div>
             <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
               <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                {/* Product Name */}
+                {/* Product Title */}
                 <div className="sm:col-span-4">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    Product Name *
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                    Product Title *
                   </label>
                   <div className="mt-1">
-                    <input
+                    <Input
                       type="text"
-                      name="name"
-                      id="name"
-                      value={formData.name}
+                      name="title"
+                      id="title"
+                      value={formData.title}
                       onChange={handleChange}
-                      className={`shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-md ${formErrors.name ? 'border-red-300' : ''}`}
+                      className={`shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-md ${formErrors.title ? 'border-red-300' : ''}`}
                     />
-                    {formErrors.name && (
-                      <p className="mt-2 text-sm text-red-600 error-message">{formErrors.name}</p>
+                    {formErrors.title && (
+                      <p className="mt-2 text-sm text-red-600 error-message">{formErrors.title}</p>
                     )}
                   </div>
                 </div>
@@ -394,20 +412,25 @@ const ProductForm = () => {
                     Category *
                   </label>
                   <div className="mt-1">
-                    <select
-                      id="category"
-                      name="category"
+                    <Select
+                      onValueChange={(value) => handleChange({target: {name: 'category', value}})}
                       value={formData.category}
-                      onChange={handleChange}
-                      className={`shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-md ${formErrors.category ? 'border-red-300' : ''}`}
+                      required
                     >
-                      <option value="">Select a category</option>
-                      {categories.map(category => (
-                        <option key={category._id} value={category.name}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className={`w-full ${formErrors.category ? 'border-red-300' : ''}`}>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem 
+                            key={category._id}
+                            value={category._id}
+                          >
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {formErrors.category && (
                       <p className="mt-2 text-sm text-red-600 error-message">{formErrors.category}</p>
                     )}
@@ -446,7 +469,7 @@ const ProductForm = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <span className="text-gray-500 sm:text-sm">₦</span>
                     </div>
-                    <input
+                    <Input
                       type="text"
                       name="price"
                       id="price"
@@ -470,7 +493,7 @@ const ProductForm = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <span className="text-gray-500 sm:text-sm">₦</span>
                     </div>
-                    <input
+                    <Input
                       type="text"
                       name="discountPrice"
                       id="discountPrice"
@@ -494,7 +517,7 @@ const ProductForm = () => {
                     Stock Quantity *
                   </label>
                   <div className="mt-1">
-                    <input
+                    <Input
                       type="text"
                       name="stock"
                       id="stock"
@@ -513,7 +536,7 @@ const ProductForm = () => {
                 <div className="sm:col-span-6">
                   <div className="flex items-start">
                     <div className="flex items-center h-5">
-                      <input
+                      <Input
                         id="featured"
                         name="featured"
                         type="checkbox"
@@ -565,7 +588,7 @@ const ProductForm = () => {
                           className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
                         >
                           <span>Upload files</span>
-                          <input
+                          <Input
                             id="file-upload"
                             name="file-upload"
                             type="file"
@@ -631,7 +654,7 @@ const ProductForm = () => {
                       Specification
                     </label>
                     <div className="mt-1">
-                      <input
+                      <Input
                         type="text"
                         id="spec-key"
                         name="key"
@@ -648,7 +671,7 @@ const ProductForm = () => {
                       Value
                     </label>
                     <div className="mt-1">
-                      <input
+                      <Input
                         type="text"
                         id="spec-value"
                         name="value"

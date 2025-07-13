@@ -4,138 +4,44 @@ import { Link } from 'react-router-dom';
 import { Search, Filter, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
+import { outletAPI } from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
-// This would be imported from an API utility file in a real app
+// Function to fetch outlet orders from API
 const fetchOutletOrders = async (page = 1, limit = 10, search = '', filters = {}) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate mock orders
-      const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-      const mockOrders = Array.from({ length: 25 }, (_, i) => {
-        const orderDate = new Date();
-        orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 30));
-        
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-        const totalAmount = Math.floor(Math.random() * 100000) + 5000;
-        
-        return {
-          _id: `ord${i + 100}`,
-          orderNumber: `ORD-${100000 + i}`,
-          createdAt: orderDate.toISOString(),
-          customer: {
-            _id: `user${i + 100}`,
-            name: [
-              'John Doe',
-              'Jane Smith',
-              'Michael Johnson',
-              'Emily Davis',
-              'Robert Wilson'
-            ][Math.floor(Math.random() * 5)],
-            email: `customer${i}@example.com`
-          },
-          items: [
-            {
-              product: {
-                _id: `prod${i + 100}`,
-                name: [
-                  'Bluetooth Speaker',
-                  'Wireless Mouse',
-                  'USB-C Cable',
-                  'Laptop Sleeve',
-                  'Smartphone Case'
-                ][Math.floor(Math.random() * 5)],
-                price: Math.floor(Math.random() * 20000) + 2000,
-                images: [`https://via.placeholder.com/150?text=Product${i}`]
-              },
-              quantity: Math.floor(Math.random() * 3) + 1,
-              price: Math.floor(Math.random() * 20000) + 2000
-            }
-          ],
-          shippingAddress: {
-            street: `${Math.floor(Math.random() * 100) + 1} Main Street`,
-            city: ['Lagos', 'Abuja', 'Port Harcourt', 'Ibadan', 'Kano'][Math.floor(Math.random() * 5)],
-            state: ['Lagos', 'FCT', 'Rivers', 'Oyo', 'Kano'][Math.floor(Math.random() * 5)],
-            country: 'Nigeria',
-            zipCode: `${Math.floor(Math.random() * 900) + 100}`
-          },
-          paymentMethod: 'Cash on Delivery',
-          paymentStatus: status === 'delivered' ? 'paid' : 'pending',
-          totalAmount,
-          status
-        };
-      });
-      
-      // Filter by search term if provided
-      let filteredOrders = mockOrders;
-      if (search) {
-        const searchLower = search.toLowerCase();
-        filteredOrders = mockOrders.filter(order => 
-          order.orderNumber.toLowerCase().includes(searchLower) || 
-          order.customer.name.toLowerCase().includes(searchLower) ||
-          order.customer.email.toLowerCase().includes(searchLower)
-        );
-      }
-      
-      // Apply status filter if provided
-      if (filters.status && filters.status !== 'all') {
-        filteredOrders = filteredOrders.filter(order => order.status === filters.status);
-      }
-      
-      // Apply date filter if provided
-      if (filters.dateRange) {
-        const today = new Date();
-        let startDate;
-        
-        switch (filters.dateRange) {
-          case 'today':
-            startDate = new Date(today);
-            startDate.setHours(0, 0, 0, 0);
-            filteredOrders = filteredOrders.filter(order => new Date(order.createdAt) >= startDate);
-            break;
-          case 'yesterday':
-            startDate = new Date(today);
-            startDate.setDate(today.getDate() - 1);
-            startDate.setHours(0, 0, 0, 0);
-            const endDate = new Date(today);
-            endDate.setHours(0, 0, 0, 0);
-            filteredOrders = filteredOrders.filter(order => 
-              new Date(order.createdAt) >= startDate && new Date(order.createdAt) < endDate
-            );
-            break;
-          case 'last7days':
-            startDate = new Date(today);
-            startDate.setDate(today.getDate() - 7);
-            filteredOrders = filteredOrders.filter(order => new Date(order.createdAt) >= startDate);
-            break;
-          case 'last30days':
-            startDate = new Date(today);
-            startDate.setDate(today.getDate() - 30);
-            filteredOrders = filteredOrders.filter(order => new Date(order.createdAt) >= startDate);
-            break;
-          default:
-            break;
-        }
-      }
-      
-      // Calculate pagination
-      const totalOrders = filteredOrders.length;
-      const totalPages = Math.ceil(totalOrders / limit);
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
-      
-      resolve({
-        orders: paginatedOrders,
-        pagination: {
-          page,
-          limit,
-          totalOrders,
-          totalPages
-        }
-      });
-    }, 1000);
-  });
+  try {
+    // Prepare query parameters
+    const params = {
+      page,
+      limit,
+      search: search || undefined
+    };
+    
+    // Add status filter if provided and not 'all'
+    if (filters.status && filters.status !== 'all') {
+      params.status = filters.status;
+    }
+    
+    // Add date range filter if provided
+    if (filters.dateRange) {
+      params.dateRange = filters.dateRange;
+    }
+    
+    // Make API call
+    const response = await outletAPI.getOutletOrders(params);
+    return {
+      orders: response.data.orders,
+      pagination: {
+        page: response.data.page,
+        limit: response.data.limit,
+        totalOrders: response.data.totalOrders,
+        totalPages: response.data.totalPages,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching outlet orders:', error);
+    throw new Error(error.response?.data?.message || 'Failed to fetch orders');
+  }
 };
 
 const OutletOrders = () => {
@@ -162,14 +68,28 @@ const OutletOrders = () => {
   // Load orders
   useEffect(() => {
     const loadOrders = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        setIsLoading(true);
-        const data = await fetchOutletOrders(pagination.page, pagination.limit, search, filters);
-        setOrders(data.orders);
-        setPagination(data.pagination);
-        setError(null);
+        const result = await fetchOutletOrders(
+          pagination.page,
+          pagination.limit,
+          search,
+          filters
+        );
+        
+        setOrders(result.orders);
+        setPagination(prev => ({
+          ...prev,
+          totalOrders: result.pagination.totalOrders,
+          totalPages: result.pagination.totalPages,
+        }));
       } catch (err) {
-        setError('Failed to load orders. Please try again later.');
+        const errorMessage = err.message || 'Failed to load orders. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        console.error(err);
       } finally {
         setIsLoading(false);
       }

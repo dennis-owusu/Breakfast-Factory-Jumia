@@ -18,8 +18,20 @@ export const fetchProducts = createAsyncThunk(
       if (sort) queryParams += `&sort=${sort}`;
       
       const response = await axios.get(`${API_URL}/products${queryParams}`);
-      return response.data;
+      
+      // Check if the response has the expected structure
+      if (!response.data.success) {
+        return rejectWithValue('Failed to fetch products: Invalid response format');
+      }
+      
+      return {
+        products: response.data.products || [],
+        totalProducts: response.data.totalProducts || 0,
+        totalPages: response.data.totalPages || 0,
+        currentPage: response.data.currentPage || page
+      };
     } catch (error) {
+      console.error('Error fetching products:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch products');
     }
   }

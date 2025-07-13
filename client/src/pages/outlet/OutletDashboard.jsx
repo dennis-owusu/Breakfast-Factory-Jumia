@@ -4,50 +4,19 @@ import { Link } from 'react-router-dom';
 import { ShoppingBag, Package, BarChart2, Settings, ChevronRight, DollarSign, TrendingUp, Users } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
+import { outletAPI } from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
-// This would be imported from an API utility file in a real app
+// Fetch outlet dashboard statistics from the API
 const fetchOutletStats = async () => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        totalSales: 125000,
-        totalOrders: 48,
-        totalProducts: 25,
-        pendingOrders: 5,
-        recentOrders: [
-          {
-            _id: 'ord789',
-            orderNumber: 'ORD-78901',
-            createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-            totalAmount: 15000,
-            status: 'pending',
-            customer: { name: 'John Doe' },
-            items: [
-              { product: { name: 'Bluetooth Speaker', images: ['https://via.placeholder.com/150'] }, quantity: 1 }
-            ]
-          },
-          {
-            _id: 'ord456',
-            orderNumber: 'ORD-45678',
-            createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-            totalAmount: 22000,
-            status: 'processing',
-            customer: { name: 'Jane Smith' },
-            items: [
-              { product: { name: 'Wireless Mouse', images: ['https://via.placeholder.com/150'] }, quantity: 2 }
-            ]
-          }
-        ],
-        topProducts: [
-          { _id: 'prod123', name: 'Bluetooth Speaker', sold: 15, revenue: 45000, image: 'https://via.placeholder.com/150' },
-          { _id: 'prod456', name: 'Wireless Mouse', sold: 12, revenue: 36000, image: 'https://via.placeholder.com/150' },
-          { _id: 'prod789', name: 'USB-C Cable', sold: 10, revenue: 15000, image: 'https://via.placeholder.com/150' }
-        ]
-      });
-    }, 1000);
-  });
-};
+  try { 
+    const response = await outletAPI.getDashboardStats();
+    return response.data.data; // Access the data property from our new API response
+  } catch (error) {
+    console.error('Error fetching outlet stats:', error);
+    throw error;
+  }
+}; 
 
 const OutletDashboard = () => {
   const { user } = useSelector((state) => state.auth);
@@ -65,7 +34,9 @@ const OutletDashboard = () => {
         setStats(data);
         setError(null);
       } catch (err) {
-        setError('Failed to load outlet statistics. Please try again later.');
+        const errorMessage = err.response?.data?.message || 'Failed to load outlet statistics. Please try again later.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -92,14 +63,14 @@ const OutletDashboard = () => {
     }
   };
   
-  if (isLoading) {
+ /*  if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Loader size="lg" />
       </div>
     );
-  }
-  
+  } */
+/*    
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -125,7 +96,7 @@ const OutletDashboard = () => {
         </button>
       </div>
     );
-  }
+  } */
   
   return (
     <div className="bg-gray-50 min-h-screen">

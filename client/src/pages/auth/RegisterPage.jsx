@@ -29,7 +29,7 @@ const RegisterPage = () => {
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (user.role === 'outlet') {
-        navigate('/outlet/dashboard');
+        navigate('/outlet/register');
       } else {
         navigate('/');
       }

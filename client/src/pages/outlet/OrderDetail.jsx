@@ -4,77 +4,31 @@ import { useSelector } from 'react-redux';
 import { ChevronLeft, Truck, Package, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
+import { outletAPI } from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
-// This would be imported from an API utility file in a real app
+// Function to fetch order details from API
 const fetchOrderDetails = async (orderId) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        _id: orderId,
-        orderNumber: `ORD-${100000 + parseInt(orderId.replace(/\D/g, ''))}`,
-        createdAt: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString(),
-        customer: {
-          _id: 'user123',
-          name: 'John Doe',
-          email: 'john.doe@example.com',
-          phone: '+234 123 456 7890'
-        },
-        items: [
-          {
-            product: {
-              _id: 'prod123',
-              name: 'Bluetooth Speaker',
-              price: 25000,
-              images: ['https://via.placeholder.com/150?text=Speaker']
-            },
-            quantity: 1,
-            price: 25000
-          },
-          {
-            product: {
-              _id: 'prod456',
-              name: 'Wireless Mouse',
-              price: 12000,
-              images: ['https://via.placeholder.com/150?text=Mouse']
-            },
-            quantity: 2,
-            price: 12000
-          }
-        ],
-        shippingAddress: {
-          street: '123 Main Street',
-          city: 'Lagos',
-          state: 'Lagos',
-          country: 'Nigeria',
-          zipCode: '100001'
-        },
-        paymentMethod: 'Cash on Delivery',
-        paymentStatus: 'pending',
-        subtotal: 49000,
-        shippingCost: 2000,
-        totalAmount: 51000,
-        status: 'processing',
-        statusHistory: [
-          { status: 'pending', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), note: 'Order placed' },
-          { status: 'processing', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), note: 'Payment confirmed' }
-        ],
-        notes: 'Please deliver in the evening.'
-      });
-    }, 1000);
-  });
+  try {
+    const response = await outletAPI.getOrderById(orderId);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching order details:', error);
+    throw new Error(error.response?.data?.message || 'Failed to fetch order details');
+  }
 };
 
 const updateOrderStatus = async (orderId, status, note) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: `Order status updated to ${status}`
-      });
-    }, 1000);
-  });
+  try {
+    const response = await outletAPI.updateOrderStatus(orderId, { status, note });
+    return {
+      success: true,
+      message: response.data.message || `Order status updated to ${status}`
+    };
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw new Error(error.response?.data?.message || 'Failed to update order status');
+  }
 };
 
 const OrderDetail = () => {
@@ -98,7 +52,10 @@ const OrderDetail = () => {
         setOrder(data);
         setError(null);
       } catch (err) {
-        setError('Failed to load order details. Please try again later.');
+        const errorMessage = err.message || 'Failed to load order details. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        console.error(err);
       } finally {
         setIsLoading(false);
       }
@@ -129,6 +86,7 @@ const OrderDetail = () => {
         }));
         
         setSuccessMessage(result.message);
+        toast.success(result.message);
         setStatusNote('');
         
         // Clear success message after 3 seconds
@@ -136,10 +94,15 @@ const OrderDetail = () => {
           setSuccessMessage('');
         }, 3000);
       } else {
-        setError('Failed to update order status. Please try again.');
+        const errorMessage = 'Failed to update order status. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
-      setError('An error occurred. Please try again later.');
+      const errorMessage = err.message || 'An error occurred. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      console.error(err);
     } finally {
       setStatusUpdateLoading(false);
     }

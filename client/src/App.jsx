@@ -7,7 +7,8 @@ import { fetchCart } from './redux/slices/cartSlice';
 // Layout Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import ProtectedRoute from './components/ProtectedRoute';
+import DashboardLayout from './components/layouts/DashboardLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -46,6 +47,13 @@ const LoadingFallback = () => (
   </div>
 );
 
+// Wrapper component for outlet routes with DashboardLayout
+const OutletRouteWithLayout = ({ element }) => (
+  <DashboardLayout>
+    {element}
+  </DashboardLayout>
+);
+
 function App() {
   const dispatch = useDispatch();
   const { isAuthenticated, user, isLoading: authLoading } = useSelector((state) => state.auth);
@@ -76,103 +84,114 @@ function App() {
             <Route 
               path="/user/dashboard" 
               element={
-                <ProtectedRoute allowedRoles={['user']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <UserDashboard />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <UserDashboard />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/user/orders" 
               element={
-                <ProtectedRoute allowedRoles={['user']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <UserOrders />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <UserOrders />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/user/profile" 
               element={
-                <ProtectedRoute allowedRoles={['user']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <UserProfile />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <UserProfile />
+                </React.Suspense>
               } 
             />
             
             {/* Outlet Routes */}
+           
             <Route 
               path="/outlet/dashboard" 
               element={
-                <ProtectedRoute allowedRoles={['outlet']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <OutletDashboard />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OutletDashboard />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/outlet/products" 
               element={
-                <ProtectedRoute allowedRoles={['outlet']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <OutletProducts />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <OutletRouteWithLayout 
+                  element={
+                    <ErrorBoundary>
+                      <React.Suspense fallback={<LoadingFallback />}>
+                        <OutletProducts />
+                      </React.Suspense>
+                    </ErrorBoundary>
+                  }
+                />
               } 
             />
             <Route 
               path="/outlet/products/new" 
               element={
-                <ProtectedRoute allowedRoles={['outlet']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <ProductForm />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <ProductForm />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/outlet/products/:id" 
               element={
-                <ProtectedRoute allowedRoles={['outlet']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <ProductForm />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <ProductForm />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/outlet/orders" 
               element={
-                <ProtectedRoute allowedRoles={['outlet']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <OutletOrders />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OutletOrders />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/outlet/orders/:id" 
               element={
-                <ProtectedRoute allowedRoles={['outlet']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <OrderDetail />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OrderDetail />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/outlet/profile" 
               element={
-                <ProtectedRoute allowedRoles={['outlet']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <OutletProfile />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OutletProfile />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             
@@ -180,101 +199,81 @@ function App() {
             <Route 
               path="/admin/dashboard" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <AdminDashboard />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <AdminDashboard />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/admin/users" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <UsersManagement />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <UsersManagement />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/admin/outlets" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <OutletsManagement />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <OutletsManagement />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/admin/products" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <ProductsManagement />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <ProductsManagement />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/admin/orders" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <OrdersManagement />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <OrdersManagement />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/admin/orders/:id" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <AdminOrderDetail />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <AdminOrderDetail />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/admin/analytics" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <Analytics />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <Analytics />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/admin/categories" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <CategoriesManagement />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <CategoriesManagement />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/admin/categories/:id" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <CategoryForm />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <CategoryForm />
+                </React.Suspense>
               } 
             />
             <Route 
               path="/admin/categories/new" 
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <React.Suspense fallback={<LoadingFallback />}>
-                    <CategoryForm />
-                  </React.Suspense>
-                </ProtectedRoute>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <CategoryForm />
+                </React.Suspense>
               } 
             />
             

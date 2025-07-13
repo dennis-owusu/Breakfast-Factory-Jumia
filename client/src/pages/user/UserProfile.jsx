@@ -2,33 +2,73 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { User, Mail, Phone, MapPin, Lock, Save, Plus, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
+import { Input } from '../../components/ui/input';
+import { Button } from '../../components/ui/button';
+import { Textarea } from '../../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Checkbox } from '../../components/ui/checkbox';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '../../components/ui/form';
+import { useForm } from 'react-hook-form';
+import { userAPI } from '../../utils/api';
+import { toast } from 'react-hot-toast';
 
-// This would be imported from an API utility file in a real app
+// Import API functions from the API utility file
+import { userAPI } from '../../utils/api';
+
+// Use the real API functions instead of simulations
 const updateUserProfile = async (userData) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, data: userData });
-    }, 1000);
-  });
+  try {
+    const response = await userAPI.updateProfile(userData);
+    return response;
+  } catch (error) {
+    throw error;
+  }
 };
 
 const updateUserPassword = async (passwordData) => {
-  // Simulate API call
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Simulate validation
-      if (passwordData.newPassword !== passwordData.confirmPassword) {
-        reject({ message: 'New passwords do not match' });
-        return;
-      }
-      if (passwordData.newPassword.length < 6) {
-        reject({ message: 'Password must be at least 6 characters' });
-        return;
-      }
-      resolve({ success: true });
-    }, 1000);
-  });
+  try {
+    const response = await userAPI.updatePassword(passwordData);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Address management API functions
+const fetchUserAddresses = async () => {
+  try {
+    const response = await userAPI.getAddresses();
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const addUserAddress = async (addressData) => {
+  try {
+    const response = await userAPI.addAddress(addressData);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const deleteUserAddress = async (addressId) => {
+  try {
+    const response = await userAPI.deleteAddress(addressId);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const setUserDefaultAddress = async (addressId) => {
+  try {
+    const response = await userAPI.setDefaultAddress(addressId);
+    return response;
+  } catch (error) {
+    throw error;
+  }
 };
 
 const UserProfile = () => {
@@ -42,11 +82,29 @@ const UserProfile = () => {
     phone: '',
   });
   
+  // Initialize react-hook-form for profile
+  const profileFormMethods = useForm({
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: ''
+    }
+  });
+  
   // Password form state
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
+  });
+  
+  // Initialize react-hook-form for password
+  const passwordFormMethods = useForm({
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    }
   });
   
   // Addresses state
@@ -61,6 +119,19 @@ const UserProfile = () => {
     isDefault: false
   });
   const [showAddressForm, setShowAddressForm] = useState(false);
+  
+  // Initialize react-hook-form for address
+  const addressFormMethods = useForm({
+    defaultValues: {
+      title: '',
+      street: '',
+      city: '',
+      state: '',
+      postalCode: '',
+      country: 'Nigeria',
+      isDefault: false
+    }
+  });
   
   // UI state
   const [activeTab, setActiveTab] = useState('profile');
@@ -80,54 +151,51 @@ const UserProfile = () => {
     address: null
   });
   
-  // Initialize form with user data
+  // Initialize form with user data and fetch addresses
   useEffect(() => {
     if (user) {
+      // Set state for backward compatibility
       setProfileForm({
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || ''
       });
       
-      // Simulate fetching addresses
-      setAddresses([
-        {
-          id: '1',
-          title: 'Home',
-          street: '123 Main Street',
-          city: 'Lagos',
-          state: 'Lagos State',
-          postalCode: '100001',
-          country: 'Nigeria',
-          isDefault: true
-        },
-        {
-          id: '2',
-          title: 'Work',
-          street: '456 Office Avenue',
-          city: 'Abuja',
-          state: 'FCT',
-          postalCode: '900001',
-          country: 'Nigeria',
-          isDefault: false
+      // Set react-hook-form values
+      profileFormMethods.reset({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || ''
+      });
+      
+      // Fetch addresses from API
+      const fetchAddresses = async () => {
+        try {
+          const response = await userAPI.getAddresses();
+          setAddresses(response.data || []);
+        } catch (error) {
+          console.error('Failed to fetch addresses:', error);
+          toast.error('Failed to load your saved addresses');
         }
-      ]);
+      };
+      
+      fetchAddresses();
     }
-  }, [user]);
+  }, [user, profileFormMethods]);
   
-  // Handle profile form changes
+  // Handle profile form changes - kept for backward compatibility
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfileForm(prev => ({ ...prev, [name]: value }));
   };
   
-  // Handle password form changes
+  // Handle password form changes - kept for backward compatibility
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordForm(prev => ({ ...prev, [name]: value }));
   };
   
-  // Handle address form changes
+  // Handle address form changes - kept for backward compatibility
   const handleAddressChange = (e) => {
     const { name, value, type, checked } = e.target;
     setNewAddress(prev => ({
@@ -137,88 +205,97 @@ const UserProfile = () => {
   };
   
   // Submit profile form
-  const handleProfileSubmit = async (e) => {
-    e.preventDefault();
+  const handleProfileSubmit = async (data) => {
     setLoading(prev => ({ ...prev, profile: true }));
     setError(prev => ({ ...prev, profile: null }));
     setSuccess(prev => ({ ...prev, profile: false }));
     
     try {
-      await updateUserProfile(profileForm);
-      setSuccess(prev => ({ ...prev, profile: true }));
-      // In a real app, you would dispatch an action to update the Redux store
-      // dispatch(updateUserInStore(profileForm));
+      // Call the API to update profile
+      const response = await userAPI.updateProfile(data);
       
-      // Clear success message after 3 seconds
+      // Update user in Redux store (in a real app)
+      // dispatch(updateUserAction(response.data));
+      
+      setLoading(prev => ({ ...prev, profile: false }));
+      setSuccess(prev => ({ ...prev, profile: true }));
+      toast.success('Profile updated successfully');
+      
+      // Hide success message after 3 seconds
       setTimeout(() => {
         setSuccess(prev => ({ ...prev, profile: false }));
       }, 3000);
-    } catch (err) {
-      setError(prev => ({ ...prev, profile: err.message || 'Failed to update profile' }));
-    } finally {
+    } catch (error) {
       setLoading(prev => ({ ...prev, profile: false }));
+      setError(prev => ({ ...prev, profile: error.response?.data?.message || 'Failed to update profile' }));
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     }
   };
   
   // Submit password form
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
+  const handlePasswordSubmit = async (data) => {
     setLoading(prev => ({ ...prev, password: true }));
     setError(prev => ({ ...prev, password: null }));
     setSuccess(prev => ({ ...prev, password: false }));
     
+    // Validate passwords match
+    if (data.newPassword !== data.confirmPassword) {
+      setError(prev => ({ ...prev, password: 'New passwords do not match' }));
+      setLoading(prev => ({ ...prev, password: false }));
+      toast.error('New passwords do not match');
+      return;
+    }
+    
     try {
-      await updateUserPassword(passwordForm);
+      // Call the API to update password
+      const passwordData = {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword
+      };
+      
+      await userAPI.updatePassword(passwordData);
+      
+      // Success case
+      setLoading(prev => ({ ...prev, password: false }));
       setSuccess(prev => ({ ...prev, password: true }));
-      setPasswordForm({
+      toast.success('Password updated successfully');
+      
+      // Reset form
+      passwordFormMethods.reset({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
       
-      // Clear success message after 3 seconds
+      // Hide success message after 3 seconds
       setTimeout(() => {
         setSuccess(prev => ({ ...prev, password: false }));
       }, 3000);
-    } catch (err) {
-      setError(prev => ({ ...prev, password: err.message || 'Failed to update password' }));
-    } finally {
+    } catch (error) {
       setLoading(prev => ({ ...prev, password: false }));
+      setError(prev => ({ ...prev, password: error.response?.data?.message || 'Failed to update password' }));
+      toast.error(error.response?.data?.message || 'Failed to update password');
     }
   };
   
   // Submit address form
-  const handleAddressSubmit = (e) => {
-    e.preventDefault();
+  const handleAddressSubmit = async (data) => {
     setLoading(prev => ({ ...prev, address: true }));
     setError(prev => ({ ...prev, address: null }));
     
     try {
-      // Validate form
-      if (!newAddress.title || !newAddress.street || !newAddress.city || !newAddress.state) {
-        throw new Error('Please fill all required fields');
-      }
+      // Call the API to add the address
+      const response = await userAPI.addAddress(data);
       
-      // Create new address with ID
-      const addressToAdd = {
-        ...newAddress,
-        id: Date.now().toString()
-      };
+      // Refresh addresses from API to ensure we have the latest data
+      const addressesResponse = await userAPI.getAddresses();
+      setAddresses(addressesResponse.data || []);
       
-      // If this is the default address, update other addresses
-      let updatedAddresses = [...addresses];
-      if (addressToAdd.isDefault) {
-        updatedAddresses = updatedAddresses.map(addr => ({
-          ...addr,
-          isDefault: false
-        }));
-      }
-      
-      // Add the new address
-      setAddresses([...updatedAddresses, addressToAdd]);
+      // Hide the form
+      setShowAddressForm(false);
       
       // Reset form
-      setNewAddress({
+      addressFormMethods.reset({
         title: '',
         street: '',
         city: '',
@@ -228,31 +305,52 @@ const UserProfile = () => {
         isDefault: false
       });
       
-      setShowAddressForm(false);
+      // Show success message
       setSuccess(prev => ({ ...prev, address: true }));
+      toast.success('Address added successfully');
       
-      // Clear success message after 3 seconds
+      // Hide success message after 3 seconds
       setTimeout(() => {
         setSuccess(prev => ({ ...prev, address: false }));
       }, 3000);
-    } catch (err) {
-      setError(prev => ({ ...prev, address: err.message || 'Failed to add address' }));
+    } catch (error) {
+      setError(prev => ({ ...prev, address: error.response?.data?.message || 'Failed to add address' }));
+      toast.error(error.response?.data?.message || 'Failed to add address');
     } finally {
       setLoading(prev => ({ ...prev, address: false }));
     }
   };
   
   // Delete address
-  const handleDeleteAddress = (id) => {
-    setAddresses(addresses.filter(addr => addr.id !== id));
+  const handleDeleteAddress = async (id) => {
+    try {
+      // Call API to delete address
+      await userAPI.deleteAddress(id);
+      
+      // Refresh addresses from API
+      const response = await userAPI.getAddresses();
+      setAddresses(response.data || []);
+      
+      toast.success('Address deleted successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete address');
+    }
   };
   
   // Set address as default
-  const handleSetDefaultAddress = (id) => {
-    setAddresses(addresses.map(addr => ({
-      ...addr,
-      isDefault: addr.id === id
-    })));
+  const handleSetDefaultAddress = async (id) => {
+    try {
+      // Call API to set default address
+      await userAPI.setDefaultAddress(id);
+      
+      // Refresh addresses from API
+      const response = await userAPI.getAddresses();
+      setAddresses(response.data || []);
+      
+      toast.success('Default address updated');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update default address');
+    }
   };
   
   return (
@@ -292,213 +390,242 @@ const UserProfile = () => {
           {/* Personal Information */}
           {activeTab === 'profile' && (
             <div>
-              <form onSubmit={handleProfileSubmit}>
-                {error.profile && (
-                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start">
-                    <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
-                    <span className="text-red-700">{error.profile}</span>
-                  </div>
-                )}
-                
-                {success.profile && (
-                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                    <span className="text-green-700">Profile updated successfully!</span>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 gap-6 mb-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name
-                    </label>
-                    <div className="relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={profileForm.name}
-                        onChange={handleProfileChange}
-                        className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                        placeholder="Your full name"
-                        required
-                      />
+              <Form {...profileFormMethods}>
+                <form onSubmit={profileFormMethods.handleSubmit(handleProfileSubmit)}>
+                  {error.profile && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start">
+                      <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+                      <span className="text-red-700">{error.profile}</span>
                     </div>
+                  )}
+                  
+                  {success.profile && (
+                    <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md flex items-start">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                      <span className="text-green-700">Profile updated successfully!</span>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 gap-6 mb-6">
+                    <FormField
+                      control={profileFormMethods.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name</FormLabel>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <User className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                className="pl-10" 
+                                placeholder="Your full name" 
+                                required 
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={profileFormMethods.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Address</FormLabel>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Mail className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                type="email" 
+                                className="pl-10" 
+                                placeholder="your.email@example.com" 
+                                required 
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={profileFormMethods.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Phone className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                type="tel" 
+                                className="pl-10" 
+                                placeholder="+234 123 456 7890" 
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email Address
-                    </label>
-                    <div className="relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Mail className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={profileForm.email}
-                        onChange={handleProfileChange}
-                        className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                        placeholder="your.email@example.com"
-                        required
-                      />
-                    </div>
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      disabled={loading.profile}
+                      className="bg-orange-600 hover:bg-orange-700 focus:ring-orange-500"
+                    >
+                      {loading.profile ? (
+                        <>
+                          <Loader className="animate-spin h-4 w-4" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
                   </div>
-                  
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone Number
-                    </label>
-                    <div className="relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Phone className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={profileForm.phone}
-                        onChange={handleProfileChange}
-                        className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                        placeholder="+234 123 456 7890"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={loading.profile}
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading.profile ? (
-                      <>
-                        <Loader className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="-ml-1 mr-2 h-4 w-4" />
-                        Save Changes
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
+                </form>
+              </Form>
             </div>
           )}
           
           {/* Security */}
           {activeTab === 'security' && (
             <div>
-              <form onSubmit={handlePasswordSubmit}>
-                {error.password && (
-                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start">
-                    <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
-                    <span className="text-red-700">{error.password}</span>
-                  </div>
-                )}
-                
-                {success.password && (
-                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                    <span className="text-green-700">Password updated successfully!</span>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 gap-6 mb-6">
-                  <div>
-                    <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                      Current Password
-                    </label>
-                    <div className="relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="password"
-                        id="currentPassword"
-                        name="currentPassword"
-                        value={passwordForm.currentPassword}
-                        onChange={handlePasswordChange}
-                        className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                        placeholder="Enter your current password"
-                        required
-                      />
+              <Form {...passwordFormMethods}>
+                <form onSubmit={passwordFormMethods.handleSubmit(handlePasswordSubmit)}>
+                  {error.password && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start">
+                      <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+                      <span className="text-red-700">{error.password}</span>
                     </div>
+                  )}
+                  
+                  {success.password && (
+                    <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md flex items-start">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                      <span className="text-green-700">Password updated successfully!</span>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 gap-6 mb-6">
+                    <FormField
+                      control={passwordFormMethods.control}
+                      name="currentPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Current Password</FormLabel>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Lock className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                type="password" 
+                                className="pl-10" 
+                                placeholder="Enter your current password" 
+                                required 
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={passwordFormMethods.control}
+                      name="newPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>New Password</FormLabel>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Lock className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                type="password" 
+                                className="pl-10" 
+                                placeholder="Enter new password" 
+                                required 
+                                minLength={6}
+                              />
+                            </FormControl>
+                          </div>
+                          <FormDescription>
+                            Password must be at least 6 characters long
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={passwordFormMethods.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Confirm New Password</FormLabel>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Lock className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                type="password" 
+                                className="pl-10" 
+                                placeholder="Confirm new password" 
+                                required 
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   
-                  <div>
-                    <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                      New Password
-                    </label>
-                    <div className="relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="password"
-                        id="newPassword"
-                        name="newPassword"
-                        value={passwordForm.newPassword}
-                        onChange={handlePasswordChange}
-                        className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                        placeholder="Enter new password"
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">Password must be at least 6 characters long</p>
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      disabled={loading.password}
+                      className="bg-orange-600 hover:bg-orange-700 focus:ring-orange-500"
+                    >
+                      {loading.password ? (
+                        <>
+                          <Loader className="animate-spin h-4 w-4" />
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          Update Password
+                        </>
+                      )}
+                    </Button>
                   </div>
-                  
-                  <div>
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                      Confirm New Password
-                    </label>
-                    <div className="relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="password"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        value={passwordForm.confirmPassword}
-                        onChange={handlePasswordChange}
-                        className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                        placeholder="Confirm new password"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={loading.password}
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading.password ? (
-                      <>
-                        <Loader className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
-                        Updating...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="-ml-1 mr-2 h-4 w-4" />
-                        Update Password
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
+                </form>
+              </Form>
             </div>
           )}
           
@@ -523,14 +650,14 @@ const UserProfile = () => {
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-medium text-gray-900">Your Addresses</h3>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setShowAddressForm(true)}
-                    className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                    className="bg-orange-600 hover:bg-orange-700 focus:ring-orange-500"
                   >
-                    <Plus className="-ml-1 mr-1 h-4 w-4" />
+                    <Plus className="h-4 w-4 mr-2" />
                     Add New Address
-                  </button>
+                  </Button>
                 </div>
                 
                 {addresses.length === 0 ? (
@@ -561,21 +688,23 @@ const UserProfile = () => {
                         </div>
                         <div className="mt-4 flex justify-end space-x-2">
                           {!address.isDefault && (
-                            <button
+                            <Button
                               type="button"
+                              variant="link"
                               onClick={() => handleSetDefaultAddress(address.id)}
-                              className="text-xs text-orange-600 hover:text-orange-800"
+                              className="text-xs text-orange-600 hover:text-orange-800 p-0 h-auto"
                             >
                               Set as Default
-                            </button>
+                            </Button>
                           )}
-                          <button
+                          <Button
                             type="button"
+                            variant="link"
                             onClick={() => handleDeleteAddress(address.id)}
-                            className="text-xs text-red-600 hover:text-red-800"
+                            className="text-xs text-red-600 hover:text-red-800 p-0 h-auto"
                           >
                             Delete
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -587,148 +716,174 @@ const UserProfile = () => {
               {showAddressForm && (
                 <div className="mt-6 border-t border-gray-200 pt-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Address</h3>
-                  <form onSubmit={handleAddressSubmit}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                          Address Title *
-                        </label>
-                        <input
-                          type="text"
-                          id="title"
+                  <Form {...addressFormMethods}>
+                    <form onSubmit={addressFormMethods.handleSubmit(handleAddressSubmit)}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <FormField
+                          control={addressFormMethods.control}
                           name="title"
-                          value={newAddress.title}
-                          onChange={handleAddressChange}
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                          placeholder="Home, Work, etc."
-                          required
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Address Title *</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="Home, Work, etc." 
+                                  required 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-1">
-                          Street Address *
-                        </label>
-                        <input
-                          type="text"
-                          id="street"
+                        
+                        <FormField
+                          control={addressFormMethods.control}
                           name="street"
-                          value={newAddress.street}
-                          onChange={handleAddressChange}
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                          placeholder="123 Main St"
-                          required
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Street Address *</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="123 Main St" 
+                                  required 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                          City *
-                        </label>
-                        <input
-                          type="text"
-                          id="city"
+                        
+                        <FormField
+                          control={addressFormMethods.control}
                           name="city"
-                          value={newAddress.city}
-                          onChange={handleAddressChange}
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                          placeholder="Lagos"
-                          required
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>City *</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="Lagos" 
+                                  required 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-                          State/Province *
-                        </label>
-                        <input
-                          type="text"
-                          id="state"
+                        
+                        <FormField
+                          control={addressFormMethods.control}
                           name="state"
-                          value={newAddress.state}
-                          onChange={handleAddressChange}
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                          placeholder="Lagos State"
-                          required
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>State/Province *</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="Lagos State" 
+                                  required 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
-                          Postal/ZIP Code
-                        </label>
-                        <input
-                          type="text"
-                          id="postalCode"
+                        
+                        <FormField
+                          control={addressFormMethods.control}
                           name="postalCode"
-                          value={newAddress.postalCode}
-                          onChange={handleAddressChange}
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                          placeholder="100001"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Postal/ZIP Code</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="100001" 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={addressFormMethods.control}
+                          name="country"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Country *</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select Country" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Nigeria">Nigeria</SelectItem>
+                                  <SelectItem value="Ghana">Ghana</SelectItem>
+                                  <SelectItem value="Kenya">Kenya</SelectItem>
+                                  <SelectItem value="South Africa">South Africa</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
                       </div>
                       
-                      <div>
-                        <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
-                          Country *
-                        </label>
-                        <select
-                          id="country"
-                          name="country"
-                          value={newAddress.country}
-                          onChange={handleAddressChange}
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                          required
-                        >
-                          <option value="Nigeria">Nigeria</option>
-                          <option value="Ghana">Ghana</option>
-                          <option value="Kenya">Kenya</option>
-                          <option value="South Africa">South Africa</option>
-                        </select>
+                      <div className="flex items-center mb-6">
+                        <FormField
+                          control={addressFormMethods.control}
+                          name="isDefault"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox 
+                                  checked={field.value} 
+                                  onCheckedChange={field.onChange} 
+                                  id="isDefault" 
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel htmlFor="isDefault">
+                                  Set as default address
+                                </FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center mb-6">
-                      <input
-                        type="checkbox"
-                        id="isDefault"
-                        name="isDefault"
-                        checked={newAddress.isDefault}
-                        onChange={handleAddressChange}
-                        className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="isDefault" className="ml-2 block text-sm text-gray-700">
-                        Set as default address
-                      </label>
-                    </div>
-                    
-                    <div className="flex justify-end space-x-3">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddressForm(false)}
-                        className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={loading.address}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {loading.address ? (
-                          <>
-                            <Loader className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="-ml-1 mr-2 h-4 w-4" />
-                            Save Address
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
+                      
+                      <div className="flex justify-end space-x-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowAddressForm(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={loading.address}
+                          className="bg-orange-600 hover:bg-orange-700 focus:ring-orange-500"
+                        >
+                          {loading.address ? (
+                            <>
+                              <Loader className="animate-spin h-4 w-4 mr-2" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 mr-2" />
+                              Save Address
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
                 </div>
               )}
             </div>

@@ -4,95 +4,38 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
+import { outletAPI } from '../../utils/api';
 
-// This would be imported from an API utility file in a real app
+// Real API call to fetch outlet products
 const fetchOutletProducts = async (page = 1, limit = 10, search = '', filters = {}) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate mock products
-      const mockProducts = Array.from({ length: 15 }, (_, i) => ({
-        _id: `prod${i + 1}`,
-        name: [
-          'Bluetooth Speaker',
-          'Wireless Mouse',
-          'USB-C Cable',
-          'Laptop Sleeve',
-          'Smartphone Case',
-          'Wireless Earbuds',
-          'Power Bank',
-          'HDMI Cable',
-          'Keyboard',
-          'Webcam',
-          'Desk Lamp',
-          'External Hard Drive',
-          'Wireless Charger',
-          'Monitor Stand',
-          'Laptop Cooling Pad'
-        ][i],
-        description: 'Product description goes here. This is a sample description for the product.',
-        price: Math.floor(Math.random() * 50000) + 5000, // Random price between 5000 and 55000
-        discountPrice: Math.random() > 0.5 ? Math.floor(Math.random() * 50000) : null,
-        stock: Math.floor(Math.random() * 100),
-        category: ['Electronics', 'Accessories', 'Gadgets'][Math.floor(Math.random() * 3)],
-        images: [`https://via.placeholder.com/150?text=Product${i + 1}`],
-        createdAt: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString(),
-        sold: Math.floor(Math.random() * 50),
-        rating: (Math.random() * 5).toFixed(1)
-      }));
-      
-      // Filter by search term if provided
-      let filteredProducts = mockProducts;
-      if (search) {
-        const searchLower = search.toLowerCase();
-        filteredProducts = mockProducts.filter(p => 
-          p.name.toLowerCase().includes(searchLower) || 
-          p.description.toLowerCase().includes(searchLower) ||
-          p.category.toLowerCase().includes(searchLower)
-        );
-      }
-      
-      // Apply category filter if provided
-      if (filters.category) {
-        filteredProducts = filteredProducts.filter(p => 
-          p.category.toLowerCase() === filters.category.toLowerCase()
-        );
-      }
-      
-      // Apply stock filter if provided
-      if (filters.stock === 'in-stock') {
-        filteredProducts = filteredProducts.filter(p => p.stock > 0);
-      } else if (filters.stock === 'out-of-stock') {
-        filteredProducts = filteredProducts.filter(p => p.stock === 0);
-      }
-      
-      // Calculate pagination
-      const totalProducts = filteredProducts.length;
-      const totalPages = Math.ceil(totalProducts / limit);
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-      
-      resolve({
-        products: paginatedProducts,
-        pagination: {
-          page,
-          limit,
-          totalProducts,
-          totalPages
-        }
-      });
-    }, 1000);
-  });
+  try {
+    // Prepare query parameters
+    const params = {
+      page,
+      limit,
+      search: search || undefined,
+      category: filters.category || undefined,
+      inStock: filters.stock === 'in-stock' ? true : 
+               filters.stock === 'out-of-stock' ? false : undefined
+    };
+    
+    // Make API call
+    const response = await outletAPI.getOutletProducts(params);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching outlet products:', error);
+    throw new Error('Failed to fetch products. Please try again.');
+  }
 };
 
 const deleteProduct = async (productId) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, message: 'Product deleted successfully' });
-    }, 1000);
-  });
+  try {
+    const response = await outletAPI.deleteProduct(productId);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    throw new Error('Failed to delete product. Please try again.');
+  }
 };
 
 const OutletProducts = () => {
@@ -123,8 +66,8 @@ const OutletProducts = () => {
       try {
         setIsLoading(true);
         const data = await fetchOutletProducts(pagination.page, pagination.limit, search, filters);
-        setProducts(data.products);
-        setPagination(data.pagination);
+        setProducts(data?.products || []);
+        setPagination(data?.pagination || { page: 1, limit: 10, totalProducts: 0, totalPages: 1 });
         setError(null);
       } catch (err) {
         setError('Failed to load products. Please try again later.');
@@ -135,7 +78,7 @@ const OutletProducts = () => {
     
     loadProducts();
   }, [pagination.page, pagination.limit, search, filters]);
-  
+
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();

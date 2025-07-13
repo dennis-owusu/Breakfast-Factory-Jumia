@@ -1,57 +1,52 @@
-import dotenv from 'dotenv';
-import express from 'express';
 import mongoose from 'mongoose';
+import express from 'express'; 
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+import productRoute from './routes/product.route.js';
+import userRoute from './routes/users.route.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Import routes
-import authRoutes from './routes/auth.js';
-import userRoutes from './routes/users.js';
-import outletRoutes from './routes/outlets.js';
-import productRoutes from './routes/products.js';
-import adminRoutes from './routes/admin.js';
-import orderRoutes from './routes/orders.js';
- 
-// Configure dotenv
-dotenv.config();
+dotenv.config(); 
 
+const PORT = 3000;
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// ES module __dirname fix
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middlewares
+app.use(cors({
+  methods: ['GET', 'DELETE', 'PUT', 'POST'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI).then(()=>{
-  console.log('MongoDB connected') 
-})
+// MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection failed:', err));
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/outlets', outletRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/orders', orderRoutes);
+app.use('/api/route', productRoute); 
+app.use('/api/auth', userRoute); 
 
-// Error handling middleware
+
+// Global error handler
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
-  return res.status(statusCode).json({
+  res.status(statusCode).json({
     success: false,
     statusCode,
-    message,
+    message
   });
 });
 
 // Start server
-
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-  
-
-//Modesty@111
+app.listen(PORT, () => {
+  console.log(`Server is running at ${PORT}`);
+});
