@@ -1,21 +1,32 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { fetchFeaturedProducts, fetchCategories } from '../redux/slices/productSlice';
 import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
 import Loader from '../components/ui/Loader';
 import { ChevronRight } from 'lucide-react';
 
+// Mock data to replace Redux state
+const mockCategories = [
+  { _id: '1', name: 'Electronics', image: 'https://via.placeholder.com/150' },
+  { _id: '2', name: 'Fashion', image: 'https://via.placeholder.com/150' },
+  { _id: '3', name: 'Home & Garden', image: 'https://via.placeholder.com/150' },
+  { _id: '4', name: 'Sports', image: 'https://via.placeholder.com/150' },
+  { _id: '5', name: 'Books', image: 'https://via.placeholder.com/150' },
+  { _id: '6', name: 'Toys', image: 'https://via.placeholder.com/150' },
+];
+
+const mockFeaturedProducts = [
+  { _id: '1', name: 'Smartphone', price: 599.99, image: 'https://via.placeholder.com/300' },
+  { _id: '2', name: 'Laptop', price: 999.99, image: 'https://via.placeholder.com/300' },
+  { _id: '3', name: 'Headphones', price: 99.99, image: 'https://via.placeholder.com/300' },
+  { _id: '4', name: 'Smartwatch', price: 199.99, image: 'https://via.placeholder.com/300' },
+  { _id: '5', name: 'Tablet', price: 349.99, image: 'https://via.placeholder.com/300' },
+  { _id: '6', name: 'Camera', price: 499.99, image: 'https://via.placeholder.com/300' },
+  { _id: '7', name: 'Speaker', price: 79.99, image: 'https://via.placeholder.com/300' },
+  { _id: '8', name: 'Gaming Console', price: 399.99, image: 'https://via.placeholder.com/300' },
+];
+
 const HomePage = () => {
-  const dispatch = useDispatch();
-  const { featuredProducts, categories, isLoading, error } = useSelector((state) => state.products);
-
-  useEffect(() => {
-    dispatch(fetchFeaturedProducts());
-    dispatch(fetchCategories());
-  }, [dispatch]);
-
   // Hero banner section
   const HeroBanner = () => (
     <div className="relative bg-gradient-to-r from-orange-500 to-orange-600 text-white">
@@ -61,22 +72,14 @@ const HomePage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Shop by Category</h2>
-          <Link to="/products" className="text-orange-500 hover:text-orange-600 flex items-center">
+          <Link to="/products" className="text-orange-600 flex items-center">
             View All <ChevronRight className="h-4 w-4 ml-1" />
           </Link>
         </div>
 
-        {error ? (
-          <div className="text-center py-12 text-red-600">
-            Error loading categories: {error}
-          </div>
-        ) : isLoading && (!Array.isArray(categories) || categories.length === 0) ? (
-          <div className="flex justify-center py-12">
-            <Loader size="lg" />
-          </div>
-        ) : Array.isArray(categories) && categories.length > 0 ? (
+        {mockCategories.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {categories.slice(0, 6).map((category) => (
+            {mockCategories.slice(0, 6).map((category) => (
               <CategoryCard key={category._id} category={category} />
             ))}
           </div>
@@ -95,22 +98,14 @@ const HomePage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Featured Products</h2>
-          <Link to="/products" className="text-orange-500 hover:text-orange-600 flex items-center">
+          <Link to="/products" className="text-orange-600 flex items-center">
             View All <ChevronRight className="h-4 w-4 ml-1" />
           </Link>
         </div>
 
-        {error ? (
-          <div className="text-center py-12 text-red-600">
-            Error loading products: {error}
-          </div>
-        ) : isLoading && (!Array.isArray(featuredProducts) || featuredProducts.length === 0) ? (
-          <div className="flex justify-center py-12">
-            <Loader size="lg" />
-          </div>
-        ) : Array.isArray(featuredProducts) && featuredProducts.length > 0 ? (
+        {mockFeaturedProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {featuredProducts.slice(0, 8).map((product) => (
+            {mockFeaturedProducts.slice(0, 8).map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
           </div>
@@ -174,7 +169,7 @@ const HomePage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="flex flex-col items-center text-center p-6 border border-gray-200 rounded-lg">
             <div className="bg-orange-100 p-3 rounded-full mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
               </svg>
             </div>
@@ -183,7 +178,7 @@ const HomePage = () => {
           </div>
           <div className="flex flex-col items-center text-center p-6 border border-gray-200 rounded-lg">
             <div className="bg-orange-100 p-3 rounded-full mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
@@ -192,7 +187,7 @@ const HomePage = () => {
           </div>
           <div className="flex flex-col items-center text-center p-6 border border-gray-200 rounded-lg">
             <div className="bg-orange-100 p-3 rounded-full mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>

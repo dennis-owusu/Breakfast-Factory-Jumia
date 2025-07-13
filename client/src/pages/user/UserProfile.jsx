@@ -12,9 +12,6 @@ import { useForm } from 'react-hook-form';
 import { userAPI } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 
-// Import API functions from the API utility file
-import { userAPI } from '../../utils/api';
-
 // Use the real API functions instead of simulations
 const updateUserProfile = async (userData) => {
   try {

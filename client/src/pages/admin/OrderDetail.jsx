@@ -17,37 +17,17 @@ import {
 import { formatDate, formatPrice } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
 
-// This would be imported from an API utility file in a real app
+import { adminAPI } from '../../utils/api';
+
+// Use the real API function from our API utility
 const fetchOrderDetails = async (orderId) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const orderDate = new Date(Date.now() - (Math.random() * 30 * 24 * 60 * 60 * 1000));
-      const orderStatus = [
-        'pending', 'processing', 'shipped', 'delivered', 'cancelled'
-      ][Math.floor(Math.random() * 5)];
-      
-      const paymentStatus = orderStatus === 'cancelled' ? 'refunded' : 
-        (orderStatus === 'delivered' ? 'paid' : 
-          (Math.random() > 0.3 ? 'paid' : 'pending'));
-      
-      const paymentMethod = ['cash_on_delivery', 'card', 'bank_transfer'][Math.floor(Math.random() * 3)];
-      
-      const itemsCount = Math.floor(Math.random() * 5) + 1;
-      const subtotal = Math.floor(Math.random() * 100000) + 5000;
-      const shippingFee = Math.floor(Math.random() * 2000) + 500;
-      const tax = Math.floor(subtotal * 0.075);
-      const totalAmount = subtotal + shippingFee + tax;
-      
-      // Generate status history
-      const statusHistory = [];
-      
-      // Always add created status
-      statusHistory.push({
-        status: 'created',
-        timestamp: new Date(orderDate.getTime() - (Math.random() * 2 * 24 * 60 * 60 * 1000)).toISOString(),
-        note: 'Order created successfully'
-      });
+  try {
+    const response = await adminAPI.getOrderById(orderId);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
       
       // Add pending status if not cancelled
       if (orderStatus !== 'cancelled') {
@@ -143,15 +123,19 @@ const fetchOrderDetails = async (orderId) => {
 };
 
 const updateOrderStatus = async (orderId, status, note) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: `Order status updated to ${status}`
-      });
-    }, 500);
-  });
+  try {
+    const response = await adminAPI.updateOrderStatus(orderId, { status, note });
+    return {
+      success: true,
+      message: response.data.message || `Order status updated to ${status}`
+    };
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Failed to update order status'
+    };
+  }
 };
 
 const OrderDetail = () => {

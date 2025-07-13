@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { register } from '../../redux/slices/authSlice';
-import { Eye, EyeOff, AlertCircle, User, Store, ShieldCheck } from 'lucide-react';
+import { registerStart, registerSuccess, registerFailure } from '../../redux/slices/authSlice';
+import { Eye, EyeOff, AlertCircle, User, Store } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
+
+import { authAPI } from '../../utils/api';
 
 const RegisterPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  const { isAuthenticated, user, isLoading, error } = useSelector((state) => state.auth);
-  
+
+  const { currentUser, loading, error } = useSelector((state) => state.user);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,99 +23,103 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formError, setFormError] = useState('');
-  
-  useEffect(() => {
+
+  /* useEffect(() => {
     // If user is already authenticated, redirect
-    if (isAuthenticated && user) {
+    if (currentUser) {
       // Redirect based on user role
-      if (user.role === 'admin') {
+      if (currentUser.role === 'admin') {
         navigate('/admin/dashboard');
-      } else if (user.role === 'outlet') {
-        navigate('/outlet/register');
+      } else if (currentUser.role === 'outlet') {
+        navigate('/outlet/dashboard'); // Changed from '/outlet/register' to '/outlet/dashboard'
       } else {
         navigate('/');
       }
     }
-  }, [isAuthenticated, user, navigate]);
-  
+  }, [currentUser, navigate]); */
+
   const validateForm = () => {
     if (!name.trim()) {
       setFormError('Name is required');
       return false;
     }
-    
+
     if (!email.trim()) {
       setFormError('Email is required');
       return false;
     }
-    
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setFormError('Please enter a valid email address');
       return false;
     }
-    
+
     if (!password) {
       setFormError('Password is required');
       return false;
     }
-    
+
     if (password.length < 6) {
       setFormError('Password must be at least 6 characters long');
       return false;
     }
-    
+
     if (password !== confirmPassword) {
       setFormError('Passwords do not match');
       return false;
     }
-    
+
     // Validate outlet fields if role is 'outlet'
     if (role === 'outlet') {
       if (!outletName.trim()) {
         setFormError('Outlet name is required');
         return false;
       }
-      
+
       if (!outletDescription.trim()) {
         setFormError('Outlet description is required');
         return false;
       }
     }
-    
+
     setFormError('');
     return true;
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     const userData = {
       name,
       email,
       password,
-      role
+      usersRole: role, // Changed from 'role' to 'usersRole' to match backend expectation
     };
-    
+
     // Add outlet data if role is 'outlet'
     if (role === 'outlet') {
-      userData.outlet = {
-        name: outletName,
-        description: outletDescription
-      };
+      userData.storeName = outletName;
+      userData.description = outletDescription;
     }
-    
+
     try {
-      await dispatch(register(userData)).unwrap();
-      // Redirect happens in useEffect
+      dispatch(registerStart());
+      // Use the actual API call from our API utility
+      const response = await authAPI.register(userData);
+      dispatch(registerSuccess(response.data));
+      
+      // Navigate to login page after successful registration
+      navigate('/login');
     } catch (err) {
-      // Error is handled by the auth slice
+      dispatch(registerFailure(err.response?.data?.message || 'Failed to register'));
     }
   };
-  
+
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -135,24 +141,22 @@ const RegisterPage = () => {
                   <AlertCircle className="h-5 w-5 text-red-500" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm text-red-700">
-                    {formError || error}
-                  </p>
+                  <p className="text-sm text-red-700">{formError || error}</p>
                 </div>
               </div>
             </div>
           )}
-          
+
           {/* Role selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              I want to register as:
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">I want to register as:</label>
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
                 onClick={() => setRole('user')}
-                className={`flex items-center justify-center p-4 border rounded-md ${role === 'user' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                className={`flex items-center justify-center p-4 border rounded-md ${
+                  role === 'user' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
               >
                 <User className="h-5 w-5 mr-2" />
                 <span>Customer</span>
@@ -160,14 +164,16 @@ const RegisterPage = () => {
               <button
                 type="button"
                 onClick={() => setRole('outlet')}
-                className={`flex items-center justify-center p-4 border rounded-md ${role === 'outlet' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                className={`flex items-center justify-center p-4 border rounded-md ${
+                  role === 'outlet' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
               >
                 <Store className="h-5 w-5 mr-2" />
                 <span>Outlet/Seller</span>
               </button>
             </div>
           </div>
-          
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -327,10 +333,10 @@ const RegisterPage = () => {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={loading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
               >
-                {isLoading ? <Loader size="sm" color="white" /> : 'Create Account'}
+                {loading ? <Loader size="sm" color="white" /> : 'Create Account'}
               </button>
             </div>
           </form>

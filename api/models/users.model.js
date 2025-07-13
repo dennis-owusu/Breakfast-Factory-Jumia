@@ -20,12 +20,20 @@ const usersSchema = new mongoose.Schema({
     },
     profilePicture: { 
         type: String,
-        required: true
+        required: false
      },
      usersRole: {
         type: String,
         enum: ['outlet', 'admin', 'user'],
         required: true
+     },
+     description: {
+        type: String,
+        required: false
+     },
+     storeName: {
+        type: String,
+        required: false
      },
 }, {timestamp: {new: true}})
 

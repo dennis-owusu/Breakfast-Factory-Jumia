@@ -13,43 +13,18 @@ import {
 } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 
-// This would be imported from an API utility file in a real app
+import { adminAPI } from '../../utils/api';
+
+// Use the real API function from our API utility
 const fetchCategories = async (params) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const { search, page = 1, limit = 10 } = params;
-      
-      // Generate mock categories
-      const allCategories = Array.from({ length: 50 }, (_, i) => ({
-        id: `cat${i + 1}`,
-        name: [
-          'Electronics', 'Smartphones', 'Laptops', 'Fashion', 'Men\'s Clothing',
-          'Women\'s Clothing', 'Home & Kitchen', 'Furniture', 'Appliances', 'Beauty',
-          'Health', 'Books', 'Sports', 'Toys', 'Automotive', 'Jewelry', 'Watches',
-          'Baby Products', 'Pet Supplies', 'Office Supplies', 'Garden & Outdoors',
-          'Groceries', 'Musical Instruments', 'Art Supplies', 'Craft Supplies'
-        ][i % 25],
-        slug: [
-          'electronics', 'smartphones', 'laptops', 'fashion', 'mens-clothing',
-          'womens-clothing', 'home-kitchen', 'furniture', 'appliances', 'beauty',
-          'health', 'books', 'sports', 'toys', 'automotive', 'jewelry', 'watches',
-          'baby-products', 'pet-supplies', 'office-supplies', 'garden-outdoors',
-          'groceries', 'musical-instruments', 'art-supplies', 'craft-supplies'
-        ][i % 25],
-        description: `Description for category ${i + 1}`,
-        image: `https://picsum.photos/seed/cat${i + 1}/200/200`,
-        parent: i % 5 === 0 ? null : `cat${Math.floor(i / 5) * 5 + 1}`,
-        parentName: i % 5 === 0 ? null : [
-          'Electronics', 'Fashion', 'Home & Kitchen', 'Beauty & Health', 'Books & Media',
-          'Sports & Outdoors', 'Toys & Games', 'Automotive', 'Jewelry & Accessories', 'Baby & Kids'
-        ][Math.floor(i / 5) % 10],
-        featured: i % 7 === 0,
-        status: ['active', 'inactive'][i % 10 === 0 ? 1 : 0],
-        productCount: Math.floor(Math.random() * 500) + 10,
-        createdAt: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString(),
-        updatedAt: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toISOString()
-      }));
+  try {
+    const response = await adminAPI.getCategories(params);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
+};
       
       // Filter by search term
       let filteredCategories = allCategories;

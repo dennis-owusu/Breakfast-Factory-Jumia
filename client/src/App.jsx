@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCurrentUser } from './redux/slices/authSlice';
-import { fetchCart } from './redux/slices/cartSlice';
 
 // Layout Components
 import Navbar from './components/Navbar';
@@ -55,16 +53,7 @@ const OutletRouteWithLayout = ({ element }) => (
 );
 
 function App() {
-  const dispatch = useDispatch();
-  const { isAuthenticated, user, isLoading: authLoading } = useSelector((state) => state.auth);
   
-  useEffect(() => {
-    // Check if user is logged in on app load
-    dispatch(getCurrentUser());
-    
-    // Fetch cart items
-    dispatch(fetchCart());
-  }, [dispatch]);
   
   return (
     <Router>
@@ -281,17 +270,11 @@ function App() {
             <Route 
               path="/dashboard" 
               element={
-                isAuthenticated ? (
-                  user?.role === 'admin' ? (
-                    <Navigate to="/admin/dashboard" replace />
-                  ) : user?.role === 'outlet' ? (
-                    <Navigate to="/outlet/dashboard" replace />
-                  ) : (
-                    <Navigate to="/user/dashboard" replace />
-                  )
-                ) : (
-                  <Navigate to="/login" replace />
-                )
+                <OutletRouteWithLayout 
+                  element={
+                    <OutletDashboard />
+                  }
+                />
               } 
             />
             

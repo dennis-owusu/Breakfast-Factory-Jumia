@@ -1,6 +1,57 @@
 import Users from "../models/users.model.js";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+
+export const createUser = async(req, res, next) => {
+  const { name, email, password, phoneNumber, storeName, profilePicture, usersRole } = req.body;
+  try {
+    const user = await Users.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new Users({
+      name,
+      email,
+      password: hashedPassword,
+      phoneNumber,
+      storeName,
+      profilePicture,
+      usersRole: usersRole || 'user'
+    });
+    await newUser.save();
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const login = async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    const user = await Users.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+    const token = jwt.sign(
+      { id: user._id, role: user.usersRole },
+      process.env.JWT_SECRET
+    );
+    res
+      .status(200)
+      .cookie('access_token', token, {
+        httpOnly: true,
+      })
+      .json(user);
+  } catch (error) {
+    next(error);
+  } 
+}
+
 export const google = async (req, res, next) => {
     const { email, name, password, phoneNumber, profilePicture, usersRole } = req.body;
     try {

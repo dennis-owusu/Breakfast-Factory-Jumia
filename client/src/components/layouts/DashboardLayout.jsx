@@ -5,7 +5,7 @@ import { ShoppingBag, Package, BarChart2, User, Settings } from 'lucide-react';
 import Sidebar from '../Sidebar';
 
 const DashboardLayout = ({ children }) => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.user);
   const location = useLocation();
   const role = user?.role || 'outlet';
   

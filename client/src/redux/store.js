@@ -1,40 +1,28 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
+import userReducer from './slices/authSlice';
+import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import authReducer from './slices/authSlice';
-import cartReducer from './slices/cartSlice';
-import productReducer from './slices/productSlice';
+import { cartReducer } from './slices/cartSlice';
+
+const rootReducer = combineReducers({
+  user: userReducer,
+  cart:cartReducer
+});
 
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth', 'cart', 'products'], // Specify which reducers to persist
-  version: 1
+  version: 1,
+  blacklist: import.meta.env.MODE === 'production' ? ['sensitiveReducer'] : [], // blacklist sensitive data
 };
-
-const rootReducer = combineReducers({
-  auth: authReducer,
-  cart: cartReducer,
-  products: productReducer,
-});
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        // Ignore these field paths in all actions
-        ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
-        // Ignore these paths in the state
-        ignoredPaths: ['items.dates'],
-      },
-    }),
-  devTools: process.env.NODE_ENV !== 'production',
+    getDefaultMiddleware({ serializableCheck: false }),
+  devTools: import.meta.env.MODE === 'development', // Enable only in development
 });
 
 export const persistor = persistStore(store);
-
-export default store;

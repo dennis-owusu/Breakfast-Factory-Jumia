@@ -4,46 +4,18 @@ import { Link } from 'react-router-dom';
 import { ShoppingBag, Package, BarChart2, Settings, ChevronRight, DollarSign, TrendingUp, Users } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
-import { outletAPI } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 
 // Fetch outlet dashboard statistics from the API
-const fetchOutletStats = async () => {
-  try { 
-    const response = await outletAPI.getDashboardStats();
-    return response.data.data; // Access the data property from our new API response
-  } catch (error) {
-    console.error('Error fetching outlet stats:', error);
-    throw error;
-  }
-}; 
 
 const OutletDashboard = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.user);
   const outlet = user?.outlet || {};
   
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchOutletStats();
-        setStats(data);
-        setError(null);
-      } catch (err) {
-        const errorMessage = err.response?.data?.message || 'Failed to load outlet statistics. Please try again later.';
-        setError(errorMessage);
-        toast.error(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadStats();
-  }, []);
   
   // Helper function to get status badge color
   const getStatusBadgeColor = (status) => {

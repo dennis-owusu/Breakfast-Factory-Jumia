@@ -1,98 +1,99 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { fetchCart, updateCartItem, removeCartItem, clearCart } from '../redux/slices/cartSlice';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, ChevronRight } from 'lucide-react';
 import Loader from '../components/ui/Loader';
 import { formatPrice } from '../utils/helpers';
 
+// Mock cart data to replace Redux state
+const initialCartItems = [
+  {
+    _id: '1',
+    product: {
+      _id: 'p1',
+      name: 'Smartphone',
+      images: ['https://via.placeholder.com/150'],
+      price: 599.99,
+      discountPrice: 499.99,
+      outlet: { name: 'Tech Outlet' },
+    },
+    quantity: 2,
+  },
+  {
+    _id: '2',
+    product: {
+      _id: 'p2',
+      name: 'Headphones',
+      images: ['https://via.placeholder.com/150'],
+      price: 99.99,
+      discountPrice: null,
+      outlet: { name: 'Audio Store' },
+    },
+    quantity: 1,
+  },
+];
+
 const CartPage = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { cartItems, subtotal, totalItems, isLoading, error } = useSelector((state) => state.cart);
-  const { isAuthenticated } = useSelector((state) => state.auth);
-  
+  const [cartItems, setCartItems] = useState(initialCartItems);
   const [processingItem, setProcessingItem] = useState(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  
-  useEffect(() => {
-    dispatch(fetchCart());
-  }, [dispatch]);
-  
-  const handleQuantityChange = (itemId, currentQuantity, change) => {
-    const newQuantity = currentQuantity + change;
-    if (newQuantity < 1) return;
-    if (newQuantity > 10) return;
-    
+
+  // Calculate subtotal and total items
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + (item.product.discountPrice || item.product.price) * item.quantity,
+    0
+  );
+
+  // Adapted from cartSlice: incrementQuantity
+  const handleIncrementQuantity = (itemId) => {
     setProcessingItem(itemId);
-    dispatch(updateCartItem({ itemId, quantity: newQuantity }))
-      .unwrap()
-      .finally(() => {
-        setProcessingItem(null);
-      });
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item._id === itemId && item.quantity < 10
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      )
+    );
+    setTimeout(() => setProcessingItem(null), 500); // Simulate async delay
   };
-  
+
+  // Adapted from cartSlice: decrementQuantity
+  const handleDecrementQuantity = (itemId) => {
+    setProcessingItem(itemId);
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item._id === itemId && item.quantity > 1
+          ? { ...item, quantity: item.quantity - 1 }
+          : item
+      )
+    );
+    setTimeout(() => setProcessingItem(null), 500); // Simulate async delay
+  };
+
+  // Adapted from cartSlice: removeItem
   const handleRemoveItem = (itemId) => {
     setProcessingItem(itemId);
-    dispatch(removeCartItem(itemId))
-      .unwrap()
-      .finally(() => {
-        setProcessingItem(null);
-      });
+    setCartItems((prevItems) => prevItems.filter((item) => item._id !== itemId));
+    setTimeout(() => setProcessingItem(null), 500); // Simulate async delay
   };
-  
+
+  // Adapted from cartSlice: clearCart
   const handleClearCart = () => {
     if (window.confirm('Are you sure you want to clear your cart?')) {
-      dispatch(clearCart());
+      setCartItems([]);
     }
   };
-  
+
+  // Simplified checkout without auth check
   const handleCheckout = () => {
-    if (!isAuthenticated) {
-      navigate('/login?redirect=checkout');
-      return;
-    }
-    
     setCheckoutLoading(true);
-    // In a real app, you would navigate to checkout page or process payment
     setTimeout(() => {
       setCheckoutLoading(false);
       navigate('/checkout');
     }, 1000);
   };
-  
-  if (isLoading && cartItems.length === 0) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader size="lg" />
-      </div>
-    );
-  }
-  
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">
-                {error}
-              </p>
-            </div>
-          </div>
-        </div>
-        <Link to="/" className="text-orange-500 hover:text-orange-600 flex items-center">
-          <ChevronRight className="h-4 w-4 mr-1 rotate-180" /> Continue Shopping
-        </Link>
-      </div>
-    );
-  }
-  
+
   if (cartItems.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -110,7 +111,7 @@ const CartPage = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -169,7 +170,7 @@ const CartPage = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <button 
-                            onClick={() => handleQuantityChange(item._id, item.quantity, -1)}
+                            onClick={() => handleDecrementQuantity(item._id)}
                             disabled={processingItem === item._id || item.quantity <= 1}
                             className="p-1 border border-gray-300 rounded-l-md disabled:opacity-50"
                           >
@@ -183,7 +184,7 @@ const CartPage = () => {
                             )}
                           </span>
                           <button 
-                            onClick={() => handleQuantityChange(item._id, item.quantity, 1)}
+                            onClick={() => handleIncrementQuantity(item._id)}
                             disabled={processingItem === item._id || item.quantity >= 10}
                             className="p-1 border border-gray-300 rounded-r-md disabled:opacity-50"
                           >
