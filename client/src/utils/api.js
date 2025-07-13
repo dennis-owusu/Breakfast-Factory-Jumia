@@ -144,5 +144,14 @@ export const orderAPI = {
   cancelOrder: (id) => api.put(`/orders/${id}/cancel`),
 };
 
+// Categories API endpoints
+export const categoriesAPI = {
+  getCategories: (params) => api.get('/categories', { params }),
+  getCategoryById: (id) => api.get(`/categories/${id}`),
+  createCategory: (categoryData) => api.post('/categories', categoryData),
+  updateCategory: (id, categoryData) => api.put(`/categories/${id}`, categoryData),
+  deleteCategory: (id) => api.delete(`/categories/${id}`),
+};
+
 // Export the base API instance for custom calls
 export default api;

@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import DashboardLayout from './components/layouts/DashboardLayout';
-import ErrorBoundary from './components/ErrorBoundary';
+
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -114,17 +114,16 @@ function App() {
               element={
                 <OutletRouteWithLayout 
                   element={
-                    <ErrorBoundary>
-                      <React.Suspense fallback={<LoadingFallback />}>
+                   
                         <OutletProducts />
-                      </React.Suspense>
-                    </ErrorBoundary>
+                     
                   }
                 />
               } 
             />
+           
             <Route 
-              path="/outlet/products/new" 
+              path="/outlet/product/new" 
               element={
                 <OutletRouteWithLayout 
                   element={

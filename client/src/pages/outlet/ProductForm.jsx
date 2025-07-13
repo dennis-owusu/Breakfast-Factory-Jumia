@@ -6,82 +6,31 @@ import { useSelector } from 'react-redux';
 import { X, Plus, Upload, Loader as LoaderIcon } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice } from '../../utils/helpers';
-import { outletAPI, categoriesAPI } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 
-// Fetch product data from the API
-const fetchProduct = async (productId) => {
-  try {
-    if (productId === 'new') {
-      return null;
-    }
-    
-    const response = await outletAPI.getProductById(productId);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching product:', error);
-    throw error;
-  }
-};
-
-
-const saveProduct = async (productData) => {
-  try {
-    // Log the product data being sent to the API
-    console.log('Saving product data:', productData);
-    
-    let response;
-    
-    if (productData._id) {
-      // Update existing product
-      response = await outletAPI.updateProduct(productData._id, productData);
-    } else {
-      // Create new product
-      response = await outletAPI.addProduct(productData);
-    }
-    
-    console.log('API response:', response);
-    
-    return {
-      success: true,
-      product: response.data.product
-    };
-  } catch (error) {
-    console.error('Error saving product:', error);
-    throw error;
-  }
-};
-
-const fetchCategories = async () => {
-  try {
-    // Since there's no categories API endpoint, return hardcoded categories from Product model
-    return [
-      { _id: 'electronics', name: 'Electronics' },
-      { _id: 'clothing', name: 'Clothing' },
-      { _id: 'food', name: 'Food' },
-      { _id: 'furniture', name: 'Furniture' },
-      { _id: 'beauty', name: 'Beauty' },
-      { _id: 'health', name: 'Health' },
-      { _id: 'sports', name: 'Sports' },
-      { _id: 'books', name: 'Books' },
-      { _id: 'toys', name: 'Toys' },
-      { _id: 'other', name: 'Other' }
-    ];
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    throw error;
-  }
-};
+// Sample categories for UI design
+const sampleCategories = [
+  { _id: 'electronics', name: 'Electronics' },
+  { _id: 'clothing', name: 'Clothing' },
+  { _id: 'food', name: 'Food' },
+  { _id: 'furniture', name: 'Furniture' },
+  { _id: 'beauty', name: 'Beauty' },
+  { _id: 'health', name: 'Health' },
+  { _id: 'sports', name: 'Sports' },
+  { _id: 'books', name: 'Books' },
+  { _id: 'toys', name: 'Toys' },
+  { _id: 'other', name: 'Other' }
+];
 
 const ProductForm = () => {
   const { id } = useParams(); // 'new' for new product or product ID for editing
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.user);
   
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [categories, setCategories] = useState([]);
+  const [categories] = useState(sampleCategories);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -106,46 +55,31 @@ const ProductForm = () => {
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState([]);
   
-  // Load product data and categories
+  // Load sample product data for editing mode
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-       
-        
-        // Load categories
-        const categoriesData = await fetchCategories();
-        setCategories(categoriesData);
-        
-        // If editing an existing product, load its data
-        if (id !== 'new') {
-          const productData = await fetchProduct(id);
-          if (productData) {
-            setFormData({
-              ...productData,
-              price: productData.price.toString(),
-              discountPrice: productData.discountPrice ? productData.discountPrice.toString() : '',
-              stock: productData.stock.toString()
-            });
-            setImagePreviewUrls(productData.images);
-            
-            // Log the loaded product data to help with debugging
-            console.log('Loaded product data:', productData);
-          }
-        }
-        
-        setError(null);
-      } catch (err) {
-        const errorMessage = err.response?.data?.message || 'Failed to load data. Please try again later.';
-        setError(errorMessage);
-        toast.error(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadData();
-  }, [id, navigate]);
+    // If editing an existing product, load sample data
+    if (id !== 'new') {
+      // This would normally fetch from API, but we're using sample data
+      const sampleProduct = {
+        _id: id,
+        title: 'Sample Product',
+        description: 'This is a sample product description for editing.',
+        price: '99.99',
+        discountPrice: '79.99',
+        stock: '50',
+        category: 'electronics',
+        images: ['https://via.placeholder.com/400'],
+        specifications: [
+          { key: 'Brand', value: 'Sample Brand' },
+          { key: 'Weight', value: '500g' }
+        ],
+        featured: true
+      };
+      
+      setFormData(sampleProduct);
+      setImagePreviewUrls(sampleProduct.images);
+    }
+  }, [id]);
   
   // Handle form input changes
   const handleChange = (e) => {
@@ -278,7 +212,7 @@ const ProductForm = () => {
   };
   
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -290,47 +224,34 @@ const ProductForm = () => {
       return;
     }
     
-    try {
-      setIsSaving(true);
-      
-      // Prepare data for API
-      const productData = {
-        ...formData,
-        price: parseFloat(formData.price),
-        discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : null,
-        stock: parseInt(formData.stock, 10)
-      };
-      
-      // If editing, include the ID
-      if (id !== 'new') {
-        productData._id = id;
-      }
-      
-      console.log('Form data before submission:', formData);
-      console.log('Prepared product data:', productData);
-      
-      // Save product
-      const result = await saveProduct(productData);
-      
-      if (result.success) {
-        // Show success toast
-        toast.success(`Product ${id === 'new' ? 'created' : 'updated'} successfully!`);
-        
-        // Navigate back to products list
-        navigate('/outlet/products');
-      } else {
-        const errorMessage = 'Failed to save product. Please try again.';
-        setError(errorMessage);
-        toast.error(errorMessage);
-      }
-    } catch (err) {
-      console.error('Error details:', err);
-      const errorMessage = err.response?.data?.message || 'An error occurred. Please try again later.';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsSaving(false);
+    // Simulate form submission
+    setIsSaving(true);
+    
+    // Prepare data (this would normally be sent to an API)
+    const productData = {
+      ...formData,
+      price: parseFloat(formData.price),
+      discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : null,
+      stock: parseInt(formData.stock, 10)
+    };
+    
+    // If editing, include the ID
+    if (id !== 'new') {
+      productData._id = id;
     }
+    
+    console.log('Form data for submission:', productData);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      // Show success toast
+      toast.success(`Product ${id === 'new' ? 'created' : 'updated'} successfully!`);
+      
+      // Navigate back to products list
+      navigate('/outlet/products');
+      
+      setIsSaving(false);
+    }, 1000);
   };
   
   if (isLoading) {
@@ -396,7 +317,6 @@ const ProductForm = () => {
                       type="text"
                       name="title"
                       id="title"
-                      value={formData.title}
                       onChange={handleChange}
                       className={`shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-md ${formErrors.title ? 'border-red-300' : ''}`}
                     />

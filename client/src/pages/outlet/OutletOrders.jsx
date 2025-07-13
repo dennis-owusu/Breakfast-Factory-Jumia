@@ -45,7 +45,7 @@ const fetchOutletOrders = async (page = 1, limit = 10, search = '', filters = {}
 };
 
 const OutletOrders = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.user);
   const outlet = user?.outlet || {};
   
   const [orders, setOrders] = useState([]);
