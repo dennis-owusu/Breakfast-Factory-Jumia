@@ -25,7 +25,7 @@ import { outletAPI } from '../../utils/api';
 
 
 const OutletProfile = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.user);
   
   // UI state
   const [activeTab, setActiveTab] = useState('basic');
