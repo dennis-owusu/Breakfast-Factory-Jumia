@@ -18,7 +18,7 @@ export const newProducts = async (req, res, next) => {
             productPrice,
             productImage, // Use the productImage from req.body
             description,
-            specifications,
+            specifications,   
             featured,
             discountPrice,
             author
