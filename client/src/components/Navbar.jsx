@@ -1,15 +1,28 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, ShoppingCart, User, Menu, X, LogOut } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { signoutSuccess } from '../redux/slices/authSlice';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // This will be replaced with Redux state
-  const [userRole, setUserRole] = useState('user'); // This will be replaced with Redux state
+  const { currentUser } = useSelector((state) => state.user);
+  const { cart } = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const handleLogout = () => {
+    // Clear user data from Redux store
+    dispatch(signoutSuccess());
+    navigate('/');
+  };
+
+  // Calculate total items in cart
+  const cartItemCount = cart?.reduce((total, item) => total + item.quantity, 0) || 0;
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -40,23 +53,23 @@ const Navbar = () => {
             <Link to="/cart" className="text-gray-600 hover:text-orange-500 px-3 py-2 rounded-md font-medium relative">
               <ShoppingCart className="h-6 w-6" />
               <span className="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
-                0
+                {cartItemCount}
               </span>
             </Link>
             
-            {isLoggedIn ? (
+            {currentUser ? (
               <div className="relative group">
                 <button className="flex items-center text-gray-600 hover:text-orange-500 px-3 py-2 rounded-md font-medium">
                   <User className="h-6 w-6 mr-1" />
-                  <span>Account</span>
+                  <span>{currentUser.name || 'Account'}</span>
                 </button>
                 <div className="absolute right-0 w-48 mt-2 py-2 bg-white rounded-md shadow-xl hidden group-hover:block">
-                  {userRole === 'admin' && (
+                  {currentUser.usersRole === 'admin' && (
                     <Link to="/admin/dashboard" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
                       Admin Dashboard
                     </Link>
                   )}
-                  {userRole === 'outlet' && (
+                  {currentUser.usersRole === 'outlet' && (
                     <Link to="/outlet/dashboard" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
                       Outlet Dashboard
                     </Link>
@@ -67,7 +80,11 @@ const Navbar = () => {
                   <Link to="/orders" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
                     My Orders
                   </Link>
-                  <button className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
+                  <button 
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white flex items-center"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
                     Logout
                   </button>
                 </div>
@@ -130,13 +147,13 @@ const Navbar = () => {
               <ShoppingCart className="h-5 w-5 mr-2" />
               Cart
               <span className="ml-2 bg-orange-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
-                0
+                {cartItemCount}
               </span>
             </Link>
             
-            {isLoggedIn ? (
+            {currentUser ? (
               <>
-                {userRole === 'admin' && (
+                {currentUser.usersRole === 'admin' && (
                   <Link 
                     to="/admin/dashboard" 
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50"
@@ -145,7 +162,7 @@ const Navbar = () => {
                     Admin Dashboard
                   </Link>
                 )}
-                {userRole === 'outlet' && (
+                {currentUser.usersRole === 'outlet' && (
                   <Link 
                     to="/outlet/dashboard" 
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50"
@@ -169,9 +186,13 @@ const Navbar = () => {
                   My Orders
                 </Link>
                 <button 
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50"
-                  onClick={() => setIsMenuOpen(false)}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50 flex items-center"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleLogout();
+                  }}
                 >
+                  <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </button>
               </>
