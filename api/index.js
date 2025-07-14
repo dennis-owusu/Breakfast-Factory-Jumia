@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import productRoute from './routes/product.route.js';
 import userRoute from './routes/users.route.js';
+import imageRoute from './routes/image.route.js'
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -24,6 +25,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
  
 // MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -33,6 +37,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use('/api/route', productRoute); 
 app.use('/api/auth', userRoute); 
+app.use('/api/route', imageRoute)
 
 
 // Global error handler

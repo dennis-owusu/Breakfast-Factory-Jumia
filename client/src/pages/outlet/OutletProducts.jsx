@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { AlertCircle, ShoppingBag, Plus, Search, Filter, Trash2, Edit, Eye, ArrowUpDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AlertCircle, ShoppingBag, Plus, Search, ArrowUpDown, Trash2, Edit, Eye } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-
+import { toast } from 'react-hot-toast';
 
 const OutletProducts = () => {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -20,56 +21,106 @@ const OutletProducts = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
 
+  const ITEMS_PER_PAGE = 10;
 
-  // Sample data for UI design
-  const sampleProducts = [
-    { _id: '1', name: 'Organic Bananas', price: 29.99, image: 'https://via.placeholder.com/150', description: 'Fresh organic bananas from local farms.', category: 'Fruits', countInStock: 50, createdAt: '2023-05-15T10:30:00Z' },
-    { _id: '2', name: 'Premium Coffee Beans', price: 49.99, image: 'https://via.placeholder.com/150', description: 'Premium arabica coffee beans, freshly roasted.', category: 'Beverages', countInStock: 25, createdAt: '2023-06-20T14:45:00Z' },
-    { _id: '3', name: 'Whole Grain Bread', price: 19.99, image: 'https://via.placeholder.com/150', description: 'Nutritious whole grain bread, baked daily.', category: 'Bakery', countInStock: 15, createdAt: '2023-07-05T09:15:00Z' },
-    { _id: '4', name: 'Free-Range Eggs', price: 99.99, image: 'https://via.placeholder.com/150', description: 'Farm-fresh free-range eggs from happy chickens.', category: 'Dairy', countInStock: 100, createdAt: '2023-08-10T16:20:00Z' },
-  ];
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/route/categories');
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to fetch categories');
+        }
+        setCategories(result.categories);
+      } catch (err) {
+        setError(err.message);
+        toast.error(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  // Sample categories for UI design
-  const sampleCategories = [
-    { _id: '1', name: 'Fruits' },
-    { _id: '2', name: 'Vegetables' },
-    { _id: '3', name: 'Bakery' },
-    { _id: '4', name: 'Dairy' },
-    { _id: '5', name: 'Beverages' },
-  ];
-  
-  // UI handlers
+  // Fetch products with search, sort, and filter
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const queryParams = new URLSearchParams({
+          page: currentPage,
+          limit: ITEMS_PER_PAGE,
+          search: searchTerm,
+          sort: sortBy,
+          category: categoryFilter === 'all' ? '' : categoryFilter
+        });
+        const response = await fetch(`/api/route/allproducts`);
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to fetch products');
+        }
+        setProducts(result.products);
+        setTotalPages(result.totalPages);
+      } catch (err) {
+        setError(err.message);
+        toast.error(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [searchTerm, sortBy, categoryFilter, currentPage]);
+
+  // Handlers
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    // In a real implementation, this would trigger API call with search params
+    setCurrentPage(1); // Reset to first page on search
   };
-  
+
   const handleSortChange = (value) => {
     setSortBy(value);
-    // In a real implementation, this would trigger API call with sort params
+    setCurrentPage(1); // Reset to first page on sort
   };
-  
+
   const handleCategoryFilter = (value) => {
     setCategoryFilter(value);
-    // In a real implementation, this would trigger API call with category filter
+    setCurrentPage(1); // Reset to first page on filter
   };
-  
+
   const handlePageChange = (page) => {
-    setCurrentPage(page);
-    // In a real implementation, this would trigger API call with pagination params
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
-  
+
   const handleDeleteClick = (product) => {
     setProductToDelete(product);
     setIsDeleteModalOpen(true);
   };
-  
-  const confirmDelete = () => {
-    // In a real implementation, this would call the delete API
-    setIsDeleteModalOpen(false);
-    setProductToDelete(null);
+
+  const confirmDelete = async () => {
+    try {
+      const response = await fetch(`/api/route/products/${productToDelete._id}`, {
+        method: 'DELETE'
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to delete product');
+      }
+      setProducts(products.filter(p => p._id !== productToDelete._id));
+      toast.success('Product deleted successfully');
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+    } catch (err) {
+      setError(err.message);
+      toast.error(err.message);
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+    }
   };
-  
+
   const cancelDelete = () => {
     setIsDeleteModalOpen(false);
     setProductToDelete(null);
@@ -88,7 +139,7 @@ const OutletProducts = () => {
             Add New Product
           </Button>
         </div>
-        
+
         {/* Filters and Search */}
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -102,19 +153,19 @@ const OutletProducts = () => {
               />
               <Search className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
             </div>
-            
             <Select value={categoryFilter} onValueChange={handleCategoryFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {sampleCategories.map(category => (
-                  <SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category._id} value={category._id.toString()}>
+                    {category.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            
             <Select value={sortBy} onValueChange={handleSortChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
@@ -130,7 +181,7 @@ const OutletProducts = () => {
             </Select>
           </div>
         </div>
-        
+
         {/* Error Display */}
         {error && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
@@ -144,14 +195,14 @@ const OutletProducts = () => {
             </div>
           </div>
         )}
-        
+
         {/* Products Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <Loader size="lg" />
             </div>
-          ) : sampleProducts.length > 0 ? (
+          ) : products.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -186,15 +237,15 @@ const OutletProducts = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {sampleProducts.map((product) => (
+                  {products.map((product) => (
                     <tr key={product._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
-                            <img className="h-10 w-10 rounded-md object-cover" src={product.image} alt={product.name} />
+                            <img className="h-10 w-10 rounded-md object-cover" src={`${product.productImage}`} alt={product.productName} />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                            <div className="text-sm font-medium text-gray-900">{product.productName}</div>
                             <div className="text-sm text-gray-500 truncate max-w-xs">{product.description}</div>
                           </div>
                         </div>
@@ -205,11 +256,11 @@ const OutletProducts = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${product.price.toFixed(2)}
+                        ${product.productPrice.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.countInStock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {product.countInStock > 0 ? `${product.countInStock} in stock` : 'Out of stock'}
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.numberOfProductsAvailable > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {product.numberOfProductsAvailable > 0 ? `${product.numberOfProductsAvailable} in stock` : 'Out of stock'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -259,79 +310,85 @@ const OutletProducts = () => {
               </Button>
             </div>
           )}
-          
+
           {/* Pagination */}
-          {sampleProducts.length > 0 && (
+          {products.length > 0 && (
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm text-gray-700">
-                    Showing <span className="font-medium">1</span> to <span className="font-medium">{sampleProducts.length}</span> of{' '}
-                    <span className="font-medium">{sampleProducts.length}</span> results
+                    Showing <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{' '}
+                    <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, products.length)}</span> of{' '}
+                    <span className="font-medium">{totalPages * ITEMS_PER_PAGE}</span> results
                   </p>
                 </div>
                 <div>
                   <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button
+                    <Button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
+                      variant="outline"
                       className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                     >
                       <span className="sr-only">Previous</span>
                       <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                    </button>
-                    <button
-                      onClick={() => handlePageChange(1)}
-                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-orange-600 bg-orange-50' : 'text-gray-700 hover:bg-gray-50'}`}
-                    >
-                      1
-                    </button>
-                    <button
+                    </Button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <Button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === page ? 'text-orange-600 bg-orange-50' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                    <Button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
+                      variant="outline"
                       className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                     >
                       <span className="sr-only">Next</span>
                       <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                       </svg>
-                    </button>
+                    </Button>
                   </nav>
                 </div>
               </div>
             </div>
           )}
         </div>
-      </div>
-      
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to delete <span className="font-medium">{productToDelete?.name}</span>? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <Button 
-                onClick={cancelDelete} 
-                variant="outline" 
-                className="border-gray-300 text-gray-700"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={confirmDelete} 
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Delete
-              </Button>
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to delete <span className="font-medium">{productToDelete?.productName}</span>? This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <Button 
+                  onClick={cancelDelete} 
+                  variant="outline" 
+                  className="border-gray-300 text-gray-700"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={confirmDelete} 
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
