@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import productRoute from './routes/product.route.js';
 import userRoute from './routes/users.route.js';
 import imageRoute from './routes/image.route.js'
+import categoryRoute from './routes/categories.route.js'
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -38,6 +39,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/api/route', productRoute); 
 app.use('/api/auth', userRoute); 
 app.use('/api/route', imageRoute)
+app.use('/api/route', categoryRoute)
 
 
 // Global error handler

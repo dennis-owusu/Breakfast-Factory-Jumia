@@ -14,6 +14,6 @@ router.put('/update/:id', updateProduct);
 // Other routes
 router.get('/allproducts', getProducts)
 router.put('/purchase/:id', purchaseProducts);
-router.delete('/delete/:productId', verifyToken, deleteProduct)
+router.delete('/delete/:productId', deleteProduct)
  
 export default router

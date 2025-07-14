@@ -25,6 +25,7 @@ router.post('/upload', upload.array('images', 10), async (req, res) => {
 
     }));
 
+
     const savedImages = await Image.insertMany(images);
     res.status(201).json({ success: true, images: savedImages });
   } catch (err) {

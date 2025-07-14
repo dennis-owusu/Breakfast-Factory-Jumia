@@ -18,54 +18,91 @@ const OutletProducts = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
 
   const ITEMS_PER_PAGE = 10;
 
+  // Fallback categories
+  const fallbackCategories = [
+    { _id: '1', name: 'Electronics', stringId: 'electronics' },
+    { _id: '2', name: 'Clothing', stringId: 'clothing' },
+    { _id: '3', name: 'Food', stringId: 'food' },
+    { _id: '4', name: 'Furniture', stringId: 'furniture' },
+    { _id: '5', name: 'Beauty', stringId: 'beauty' },
+    { _id: '6', name: 'Health', stringId: 'health' },
+    { _id: '7', name: 'Sports', stringId: 'sports' },
+    { _id: '8', name: 'Books', stringId: 'books' },
+    { _id: '9', name: 'Toys', stringId: 'toys' },
+    { _id: '10', name: 'Other', stringId: 'other' }
+  ];
+
   // Fetch categories
-  useEffect(() => {
+ /*  useEffect(() => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/route/categories');
-        const result = await response.json();
+        const response = await fetch('/api/route/allcategories');
         if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid response: Expected JSON, received HTML or other content');
+        }
+        const result = await response.json();
+        if (!result.success) {
           throw new Error(result.message || 'Failed to fetch categories');
         }
-        setCategories(result.categories);
+        setCategories(Array.isArray(result.categories) ? result.categories : fallbackCategories);
       } catch (err) {
+        console.error('Fetch categories error:', err.message);
         setError(err.message);
         toast.error(err.message);
+        setCategories(fallbackCategories);
       } finally {
         setLoading(false);
       }
     };
     fetchCategories();
   }, []);
-
+ */
   // Fetch products with search, sort, and filter
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const queryParams = new URLSearchParams({
-          page: currentPage,
+          startIndex: (currentPage - 1) * ITEMS_PER_PAGE,
           limit: ITEMS_PER_PAGE,
-          search: searchTerm,
-          sort: sortBy,
+          searchTerm: searchTerm,
+          order: sortBy.includes('asc') ? 'asc' : 'desc',
+          sort: sortBy.includes('price') ? 'productPrice' : sortBy.includes('name') ? 'productName' : sortBy.includes('category') ? 'category' : 'updatedAt',
           category: categoryFilter === 'all' ? '' : categoryFilter
         });
         const response = await fetch(`/api/route/allproducts`);
-        const result = await response.json();
         if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid response: Expected JSON, received HTML or other content');
+        }
+        const result = await response.json();
+        if (!result.success) {
           throw new Error(result.message || 'Failed to fetch products');
         }
-        setProducts(result.products);
-        setTotalPages(result.totalPages);
+        setProducts(Array.isArray(result.products) ? result.products : []);
+        setTotalProducts(result.totalProducts || 0);
+        setTotalPages(Math.ceil(result.totalProducts / ITEMS_PER_PAGE) || 1);
       } catch (err) {
+        console.error('Fetch products error:', err.message);
         setError(err.message);
         toast.error(err.message);
+        setProducts([]);
+        setTotalProducts(0);
+        setTotalPages(1);
       } finally {
         setLoading(false);
       }
@@ -102,11 +139,18 @@ const OutletProducts = () => {
 
   const confirmDelete = async () => {
     try {
-      const response = await fetch(`/api/route/products/${productToDelete._id}`, {
+      const response = await fetch(`/api/route/delete/${productToDelete._id}`, {
         method: 'DELETE'
       });
-      const result = await response.json();
       if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      }
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid response: Expected JSON, received HTML or other content');
+      }
+      const result = await response.json();
+      if (!result.success) {
         throw new Error(result.message || 'Failed to delete product');
       }
       setProducts(products.filter(p => p._id !== productToDelete._id));
@@ -114,6 +158,7 @@ const OutletProducts = () => {
       setIsDeleteModalOpen(false);
       setProductToDelete(null);
     } catch (err) {
+      console.error('Delete product error:', err.message);
       setError(err.message);
       toast.error(err.message);
       setIsDeleteModalOpen(false);
@@ -159,7 +204,7 @@ const OutletProducts = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(category => (
+                {Array.isArray(categories) && categories.map(category => (
                   <SelectItem key={category._id} value={category._id.toString()}>
                     {category.name}
                   </SelectItem>
@@ -177,6 +222,10 @@ const OutletProducts = () => {
                 <SelectItem value="price-desc">Price: High to Low</SelectItem>
                 <SelectItem value="name-asc">Name: A to Z</SelectItem>
                 <SelectItem value="name-desc">Name: Z to A</SelectItem>
+                <SelectItem value="category-asc">Category: A to Z</SelectItem>
+                <SelectItem value="category-desc">Category: Z to A</SelectItem>
+                <SelectItem value="stock-asc">Stock: Low to High</SelectItem>
+                <SelectItem value="stock-desc">Stock: High to Low</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -242,7 +291,7 @@ const OutletProducts = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
-                            <img className="h-10 w-10 rounded-md object-cover" src={`${product.productImage}`} alt={product.productName} />
+                            <img className="h-10 w-10 rounded-md object-cover" src={product.productImage} alt={product.productName} />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{product.productName}</div>
@@ -256,7 +305,7 @@ const OutletProducts = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${product.productPrice.toFixed(2)}
+                        ₦{product.productPrice.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.numberOfProductsAvailable > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -318,8 +367,8 @@ const OutletProducts = () => {
                 <div>
                   <p className="text-sm text-gray-700">
                     Showing <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{' '}
-                    <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, products.length)}</span> of{' '}
-                    <span className="font-medium">{totalPages * ITEMS_PER_PAGE}</span> results
+                    <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, totalProducts)}</span> of{' '}
+                    <span className="font-medium">{totalProducts}</span> results
                   </p>
                 </div>
                 <div>
@@ -364,7 +413,7 @@ const OutletProducts = () => {
 
         {/* Delete Confirmation Modal */}
         {isDeleteModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/80 bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
               <p className="text-sm text-gray-500 mb-6">
