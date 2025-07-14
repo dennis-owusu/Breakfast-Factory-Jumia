@@ -171,6 +171,18 @@ const OutletProducts = () => {
     setProductToDelete(null);
   };
 
+  useEffect(()=>{
+    const fetchOneProduct = async() => {
+      const res = await fetch(`/api/route/product/${productToDelete._id}`);
+      const data = await res.json();
+      setProductToDelete(data.product);
+    }
+
+    if(productToDelete){
+      fetchOneProduct();
+    }
+  }, [productToDelete])
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -315,7 +327,7 @@ const OutletProducts = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <Button 
-                            onClick={() => navigate(`/product/${product._id}`)} 
+                            onClick={() => navigate(`/outlet/product/${product._id}`)} 
                             variant="outline" 
                             size="sm" 
                             className="text-blue-600 hover:text-blue-800"

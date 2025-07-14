@@ -31,6 +31,17 @@ export const newProducts = async (req, res, next) => {
     }
 };
 
+export const oneProduct = async (req, res, next) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            return next(errorHandler(404, 'Product not found'));
+        }
+        res.status(200).json({ success: true, product });
+    } catch (error) {
+        next(error);
+    }
+};
 export const getProducts = async (req, res, next) => {
     try {
         const startIndex = parseInt(req.query.startIndex) || 0;

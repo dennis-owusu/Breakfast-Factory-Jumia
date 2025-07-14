@@ -1,5 +1,5 @@
 import express from 'express'; 
-import { newProducts, getProducts, deleteProduct, updateProduct, purchaseProducts, } from '../controllers/product.controller.js';
+import { newProducts, getProducts, oneProduct, deleteProduct, updateProduct, purchaseProducts, } from '../controllers/product.controller.js';
 import { verifyToken } from '../utils/verifyUser.js';
 import { upload } from '../utils/multer.js';
 
@@ -10,6 +10,7 @@ router.post('/products', newProducts)
 
 // Route for updating a product with image upload
 router.put('/update/:id', updateProduct);
+router.get('/product/:id', oneProduct)
 
 // Other routes
 router.get('/allproducts', getProducts)
