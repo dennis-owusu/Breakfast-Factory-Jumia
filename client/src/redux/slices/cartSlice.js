@@ -8,50 +8,48 @@ const cartSlice = createSlice({
   },
   reducers: {
     addToCart: (state, action) => {
-      const itemInCart = state.cart.find(
-        (item) => item._id === action.payload._id
-      );
+      const { _id, ...product } = action.payload;
+      const itemInCart = state.cart.find((item) => item.product._id === _id);
+      const price = Number(product.discountPrice || product.productPrice || product.price);
 
       if (itemInCart) {
-        // If item exists, increment the quantity and update the price
-        itemInCart.quantity++;
-        itemInCart.productPrice = Number(itemInCart.productPrice); // Ensure price is a number
-        state.totalPrice += itemInCart.productPrice; // Update total price
+        if (itemInCart.quantity < 10) {
+          itemInCart.quantity++;
+          state.totalPrice += price;
+        }
       } else {
-        // If item does not exist, add it to the cart
-        const newItem = {
-          ...action.payload,
+        const cartItemId = `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        state.cart.push({
+          _id: cartItemId,
+          product: { _id, ...product },
           quantity: 1,
-          productPrice: Number(action.payload.productPrice), // Ensure price is a number
-        };
-        state.cart.push(newItem);
-        state.totalPrice += newItem.productPrice; // Update total price
+        });
+        state.totalPrice += price;
       }
     },
     incrementQuantity: (state, action) => {
       const item = state.cart.find((item) => item._id === action.payload);
-      if (item) {
+      if (item && item.quantity < 10) {
         item.quantity++;
-        state.totalPrice += item.productPrice; //
+        const price = Number(item.product.discountPrice || item.product.productPrice || item.product.price);
+        state.totalPrice += price;
       }
     },
     decrementQuantity: (state, action) => {
       const item = state.cart.find((item) => item._id === action.payload);
       if (item && item.quantity > 1) {
         item.quantity--;
-        state.totalPrice -= item.productPrice;
+        const price = Number(item.product.discountPrice || item.product.productPrice || item.product.price);
+        state.totalPrice -= price;
       }
     },
     removeItem: (state, action) => {
-      const itemToRemove = state.cart.find((item) => item._id === action.payload);
-      if (itemToRemove) {
-        state.totalPrice -= itemToRemove.productPrice * itemToRemove.quantity; 
+      const item = state.cart.find((item) => item._id === action.payload);
+      if (item) {
+        const price = Number(item.product.discountPrice || item.product.productPrice || item.product.price);
+        state.totalPrice -= price * item.quantity;
         state.cart = state.cart.filter((item) => item._id !== action.payload);
       }
-    },
-    resetCart: (state) => {
-      state.cart = [];
-      state.totalPrice = 0;
     },
     clearCart: (state) => {
       state.cart = [];
@@ -60,12 +58,5 @@ const cartSlice = createSlice({
   },
 });
 
+export const { addToCart, incrementQuantity, decrementQuantity, removeItem, clearCart } = cartSlice.actions;
 export const cartReducer = cartSlice.reducer;
-export const {
-  addToCart,
-  incrementQuantity,
-  decrementQuantity,
-  removeItem,
-  resetCart,
-  clearCart,
-} = cartSlice.actions;
