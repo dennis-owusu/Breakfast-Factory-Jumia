@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import productRoute from './routes/product.route.js';
 import userRoute from './routes/users.route.js';
 import imageRoute from './routes/image.route.js'  
+import analyticsRoute from './routes/analytics.route.js'
 import orderRoute from './routes/order.route.js'
 import categoryRoute from './routes/categories.route.js'
 import path from 'path';
@@ -42,6 +43,7 @@ app.use('/api/auth', userRoute);
 app.use('/api/route', imageRoute);
 app.use('/api/route', orderRoute);
 app.use('/api/route', categoryRoute)
+app.use('/api/route', analyticsRoute)
 
 
 // Global error handler

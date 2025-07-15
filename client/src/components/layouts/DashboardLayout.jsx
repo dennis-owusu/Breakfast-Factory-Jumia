@@ -14,6 +14,7 @@ const DashboardLayout = ({ children }) => {
     if (role === 'outlet') {
       return [
         { to: '/outlet/dashboard', icon: <BarChart2 size={20} />, label: 'Dashboard' },
+        { to: '/outlet/analytics', icon: <BarChart2 size={20} />, label: 'Analytics' },
         { to: '/outlet/products', icon: <Package size={20} />, label: 'Products' },
         { to: '/outlet/orders', icon: <ShoppingBag size={20} />, label: 'Orders' },
         { to: '/outlet/profile', icon: <User size={20} />, label: 'Profile' },
