@@ -1,24 +1,10 @@
-import express from 'express'
-import {
-  getAnalytics,
-  getAnalyticsForOutlet,
-  getAnalyticsForPeriod,
-  getAnalyticsForOutletAndPeriod,
-  getAnalyticsForOutletAndPeriodAndDate,
-} from '../controllers/analytics.controller.js'
+import express from 'express';
+import { getAnalytics, getSales } from '../controllers/analytics.controller.js';
+import { verifyToken } from '../utils/verifyUser.js';
 
+const router = express.Router();
 
+router.get('/analytics', getAnalytics);
+router.get('/sales', getSales);
 
-
-const router = express.Router()
-
-router.get('/', getAnalytics)
-router.get('/outlet/:outletId', getAnalyticsForOutlet)
-router.get('/period/:period', getAnalyticsForPeriod)
-router
-  .get('/outlet/:outletId/period/:period', getAnalyticsForOutletAndPeriod)
-router.get('/outlet/:outletId/period/:period/date/:date', getAnalyticsForOutletAndPeriodAndDate)
-
-
-
-export default router
+export default router;

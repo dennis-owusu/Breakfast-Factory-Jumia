@@ -194,6 +194,46 @@ const OutletAnalytics = () => {
     }
   }, [period, outlet._id]);
 
+
+  //Main analytics data from the server
+ /*  useEffect(() => {
+  const loadAnalyticsData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
+      };
+      const response = await fetch(`/api/route/analytics?period=${period}&outletId=${outlet._id}`, { headers });
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      }
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid response: Expected JSON');
+      }
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to fetch analytics data');
+      }
+      setData(result.data);
+    } catch (err) {
+      console.error('Failed to load analytics data:', err.message);
+      setError('Failed to load analytics data. Please try again later.');
+      toast.error('Failed to load analytics data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  if (outlet._id) {
+    loadAnalyticsData();
+  } else {
+    setError('No outlet found. Please ensure you are logged in.');
+    setIsLoading(false);
+  }
+}, [period, outlet._id, currentUser?.token]); */
+
   // Handle period change
   const handlePeriodChange = (e) => {
     setPeriod(e.target.value);

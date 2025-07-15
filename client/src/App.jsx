@@ -26,6 +26,7 @@ const OutletProducts = React.lazy(() => import('./pages/outlet/OutletProducts'))
 const OutletOrders = React.lazy(() => import('./pages/outlet/OutletOrders'));
 const OutletProfile = React.lazy(() => import('./pages/outlet/OutletProfile'));
 const OutletAnalytics = React.lazy(() => import('./pages/outlet/OutletAnalytics'));
+const OutletSales = React.lazy(() => import('./pages/outlet/OutletSales'));
 const ProductForm = React.lazy(() => import('./pages/outlet/ProductForm'));
 const ProductView = React.lazy(() => import('./pages/outlet/ProductView'));
 const ProductEdit = React.lazy(() => import('./pages/outlet/ProductEdit'));
@@ -204,6 +205,18 @@ function App() {
                   element={
                     <React.Suspense fallback={<LoadingFallback />}>
                       <OutletAnalytics />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+<Route 
+              path="/outlet/sales" 
+              element={
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OutletSales />
                     </React.Suspense>
                   }
                 />
