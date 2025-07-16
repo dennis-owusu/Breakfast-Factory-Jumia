@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Star } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
 import Loader from '../components/ui/Loader';
 import { Button } from '../components/ui/button';
 import { toast } from 'react-hot-toast';
+import { addToCart } from '../redux/slices/cartSlice';
 
 // Hero banner carousel images
 const heroBanners = [
@@ -33,6 +35,7 @@ const heroBanners = [
 ];
 
 const HomePage = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -46,7 +49,7 @@ const HomePage = () => {
     const fetchCategories = async () => {
       try {
         setLoading((prev) => ({ ...prev, categories: true }));
-        const response = await fetch('/api/route/allcategories');
+        const response = await fetch('http://localhost:3000/api/route/allcategories');
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -77,7 +80,7 @@ const HomePage = () => {
     const fetchFeaturedProducts = async () => {
       try {
         setLoading((prev) => ({ ...prev, featured: true }));
-        const response = await fetch('/api/route/allproducts?featured=true');
+        const response = await fetch('http://localhost:3000/api/route/allproducts?featured=true');
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -103,12 +106,12 @@ const HomePage = () => {
     fetchFeaturedProducts();
   }, []);
 
-  // Fetch best sellers (mocked as products with high stock for simplicity)
-     useEffect(() => {
+  // Fetch best sellers
+  useEffect(() => {
     const fetchBestSellers = async () => {
       try {
         setLoading((prev) => ({ ...prev, bestSellers: true }));
-        const response = await fetch('/api/route/allproducts?sort=numberOfProductsAvailable&order=desc');
+        const response = await fetch('http://localhost:3000/api/route/allproducts?sort=numberOfProductsAvailable&order=desc');
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -142,27 +145,21 @@ const HomePage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle purchase (simplified for demo)
-  const handlePurchase = async (productId, quantity = 1) => {
+  // Add to cart
+  const handleAddToCart = (product) => {
     try {
-      const response = await fetch(`/api/route/purchase/${productId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
-      }
-      const data = await response.json();
-      if (data.success) {
-        toast.success('Product added to order!');
-        navigate('/checkout'); // Redirect to a checkout page
-      } else {
-        throw new Error(data.message || 'Purchase failed');
-      }
+      dispatch(addToCart({
+        _id: product._id,
+        productName: product.productName,
+        productPrice: product.productPrice,
+        images: [product.productImage],
+        outlet: product.outlet || { name: 'Unknown Outlet' },
+        quantity: 1,
+      }));
+      toast.success(`${product.productName} added to cart!`);
     } catch (err) {
-      console.error('Purchase error:', err.message);
-      toast.error(err.message);
+      console.error('Add to cart error:', err.message);
+      toast.error('Failed to add product to cart');
     }
   };
 
@@ -280,20 +277,15 @@ const HomePage = () => {
             {featuredProducts.slice(0, 8).map((product) => (
               <div key={product._id} className="relative">
                 <ProductCard
-                  product={{
-                    _id: product._id,
-                    name: product.productName,
-                    price: product.productPrice,
-                    images: [product.productImage], // Convert single image string to array
-                    discountPrice: product.discountPrice,
-                  }}
-                />
-                <Button
-                  onClick={() => handlePurchase(product._id)}
-                  className="absolute bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white"
-                >
-                  Add to Cart
-                </Button>
+                product={{
+                  _id: product._id,
+                  productName: product.productName,
+                  productPrice: product.productPrice,
+                  images: [product.productImage],
+                  discountPrice: product.discountPrice,
+                }}
+                onAddToCart={() => handleAddToCart(product)}
+              />
               </div>
             ))}
           </div>
@@ -331,18 +323,13 @@ const HomePage = () => {
                 <ProductCard
                   product={{
                     _id: product._id,
-                    name: product.productName,
-                    price: product.productPrice,
-                    images: [product.productImage], // Convert single image string to array
+                    productName: product.productName,
+                    productPrice: product.productPrice,
+                    images: [product.productImage],
                     discountPrice: product.discountPrice,
                   }}
+                  onAddToCart={() => handleAddToCart(product)}
                 />
-                <Button
-                  onClick={() => handlePurchase(product._id)}
-                  className="absolute bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white"
-                >
-                  Add to Cart
-                </Button>
               </div>
             ))}
           </div>
@@ -354,60 +341,6 @@ const HomePage = () => {
       </div>
     </section>
   );
-
-  // Customer reviews section
-  const CustomerReviewsSection = () => {
-    const reviews = [
-      {
-        name: 'Jane D.',
-        rating: 5,
-        comment: 'Amazing selection and fast delivery! My go-to store for electronics.',
-        avatar: 'https://via.placeholder.com/50',
-      },
-      {
-        name: 'Michael S.',
-        rating: 4,
-        comment: 'Great prices and quality products. Customer service was very helpful.',
-        avatar: 'https://via.placeholder.com/50',
-      },
-      {
-        name: 'Sarah K.',
-        rating: 5,
-        comment: 'Loved the flash sale! Got a fantastic deal on a new laptop.',
-        avatar: 'https://via.placeholder.com/50',
-      },
-    ];
-
-    return (
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">What Our Customers Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {reviews.map((review, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <div className="flex items-center mb-4">
-                  <img
-                    src={review.avatar}
-                    alt={`${review.name}'s avatar`}
-                    className="h-10 w-10 rounded-full mr-3"
-                  />
-                  <div>
-                    <h3 className="text-lg font-semibold">{review.name}</h3>
-                    <div className="flex">
-                      {[...Array(review.rating)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <p className="text-gray-600">{review.comment}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  };
 
   // Promotional banners section
   const PromotionalBanners = () => (
@@ -552,7 +485,6 @@ const HomePage = () => {
       <CategoriesSection />
       <FeaturedProductsSection />
       <BestSellersSection />
-      <CustomerReviewsSection />
       <PromotionalBanners />
       <FeaturesSection />
     </div>
