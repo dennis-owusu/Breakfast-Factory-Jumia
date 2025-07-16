@@ -5,8 +5,13 @@ const orderSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Users",
       required: [true, "User is required"],
+    },
+    userInfo: {
+      name: { type: String },
+      email: { type: String },
+      phoneNumber: { type: String }
     },
     products: [
       {

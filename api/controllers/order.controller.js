@@ -30,8 +30,18 @@ export const createOrder = async (req, res) => {
       })
     );
 
+    const userDoc = await User.findById(user);
+    if (!userDoc) {
+      throw new Error('User not found');
+    }
+
     const order = new Order({
       user,
+      userInfo: {
+        name: userDoc.name,
+        email: userDoc.email,
+        phoneNumber: userDoc.phoneNumber
+      },
       products: populatedProducts,
       totalPrice,
       address,
@@ -59,7 +69,7 @@ export const getOrders = async (req, res) => {
 
 export const getOrder = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('user', 'name email phoneNumber');
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
@@ -98,9 +108,66 @@ export const deleteOrder = async (req, res) => {
 
 export const getOrdersByUser = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.params.id });
+    const orders = await Order.find({ user: req.params.id }).populate('user', 'name email phoneNumber');
     res.status(200).json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to fetch user orders' });
+  }
+};
+
+export const getOutletOrders = async (req, res) => {
+  const outletId = req.params.outletId;
+  const startIndex = parseInt(req.query.startIndex) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+  const searchTerm = req.query.searchTerm || '';
+  const status = req.query.status;
+  const dateRange = req.query.dateRange;
+
+  let query = { 'products.product.outlet': outletId };
+
+  if (status && status !== 'all') {
+    query.status = status;
+  }
+
+  if (searchTerm) {
+    query.orderNumber = { $regex: searchTerm, $options: 'i' };
+  }
+
+  let dateFilter = {};
+  if (dateRange) {
+    const now = new Date();
+    switch (dateRange) {
+      case 'today':
+        dateFilter = { createdAt: { $gte: new Date(now.setHours(0,0,0,0)) } };
+        break;
+      case 'yesterday':
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        dateFilter = { createdAt: { $gte: new Date(yesterday.setHours(0,0,0,0)), $lt: new Date(now.setHours(0,0,0,0)) } };
+        break;
+      case 'last7days':
+        const last7 = new Date(now);
+        last7.setDate(last7.getDate() - 7);
+        dateFilter = { createdAt: { $gte: last7 } };
+        break;
+      case 'last30days':
+        const last30 = new Date(now);
+        last30.setDate(last30.getDate() - 30);
+        dateFilter = { createdAt: { $gte: last30 } };
+        break;
+    }
+    query = { ...query, ...dateFilter };
+  }
+
+  try {
+    const totalOrders = await Order.countDocuments(query);
+    const orders = await Order.find(query)
+      .populate('user', 'name email phoneNumber')
+      .sort({ createdAt: -1 })
+      .skip(startIndex)
+      .limit(limit);
+    res.status(200).json({ orders, totalOrders });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to fetch outlet orders' });
   }
 };

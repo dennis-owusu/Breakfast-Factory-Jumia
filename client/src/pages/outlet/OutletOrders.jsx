@@ -9,7 +9,7 @@ import { toast } from 'react-hot-toast';
 
 const OutletOrders = () => {
   const navigate = useNavigate();
-  const { currentUser } = useSelector((state) => state.user); // Get token from Redux
+  const { currentUser } = useSelector((state) => state.user);
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,7 +31,7 @@ const OutletOrders = () => {
   };
 
   const getStatusBadgeColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'processing':
@@ -60,12 +60,12 @@ const OutletOrders = () => {
           ...(filters.dateRange && { dateRange: filters.dateRange }),
         });
 
+        // Temporarily removed token verification as requested
         const headers = {
           'Content-Type': 'application/json',
-          ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
         };
 
-        const response = await fetch(`/api/route/getOrders?${queryParams}`, { headers });
+        const response = await fetch(`/api/route/getOrdersByUser/${currentUser._id}`, { headers });
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -76,16 +76,30 @@ const OutletOrders = () => {
         }
 
         const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.message || 'Failed to fetch orders');
+        console.log('Fetched orders:', data); // Debug: Log API response
+        if (!data) {
+          setOrders([]);
+          setError('No orders found');
+          return;
         }
 
-        setOrders(Array.isArray(data.orders) ? data.orders : []);
-        setPagination({
-          ...pagination,
-          totalOrders: data.totalOrders || 0,
-          totalPages: Math.ceil(data.totalOrders / pagination.limit) || 1,
-        });
+        // Check if data has orders property (from getOutletOrders endpoint)
+        if (data.orders) {
+          setOrders(data.orders);
+          setPagination({
+            ...pagination,
+            totalOrders: data.totalOrders || 0,
+            totalPages: Math.ceil(data.totalOrders / pagination.limit) || 1,
+          });
+        } else {
+          // Handle case where data is directly an array of orders
+          setOrders(Array.isArray(data) ? data : []);
+          setPagination({
+            ...pagination,
+            totalOrders: Array.isArray(data) ? data.length : 0,
+            totalPages: Math.ceil((Array.isArray(data) ? data.length : 0) / pagination.limit) || 1,
+          });
+        }
         setError(null);
       } catch (err) {
         console.error('Fetch orders error:', err.message);
@@ -98,7 +112,12 @@ const OutletOrders = () => {
       }
     };
 
-    fetchOrders();
+    if (currentUser) {
+      fetchOrders();
+    } else {
+      setError('Please log in to view orders');
+      setIsLoading(false);
+    }
   }, [pagination.page, searchInput, filters, currentUser?.token]);
 
   // Handle search
@@ -138,7 +157,7 @@ const OutletOrders = () => {
     try {
       const headers = {
         'Content-Type': 'application/json',
-        ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
+        ...(currentUser && { Authorization: `Bearer ${currentUser}` }),
       };
 
       const response = await fetch(`/api/route/deleteOrder/${orderToDelete._id}`, {
@@ -364,28 +383,29 @@ const OutletOrders = () => {
                           <div className="flex-shrink-0 h-10 w-10">
                             <img
                               className="h-10 w-10 rounded-full object-cover"
-                              src={order.products[0]?.product.productImage || 'https://via.placeholder.com/150'}
-                              alt={order.products[0]?.product.productName || 'Order'}
+                              src={order.products?.[0]?.product?.images?.[0] || 'https://via.placeholder.com/150'}
+                              alt={order.products?.[0]?.product?.name || 'Order'}
                             />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{order._id}</div>
+                            <div className="text-sm font-medium text-gray-900">{order.orderNumber || order._id || 'N/A'}</div>
                             <div className="text-sm text-gray-500">
-                              {order.products.length} {order.products.length === 1 ? 'item' : 'items'}
+                              {order.products?.length || 0} {order.products?.length === 1 ? 'item' : 'items'}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{order.user?.username || 'Unknown'}</div>
-                        <div className="text-sm text-gray-500">{order.user?.email || 'No email'}</div>
+                        <div className="text-sm font-medium text-gray-900">{order.user?.name || order.userInfo?.name || 'Unknown'}</div>
+                        <div className="text-sm text-gray-500">{order.user?.email || order.userInfo?.email || 'No email'}</div>
+                        <div className="text-sm text-gray-500">{order.user?.phoneNumber || order.userInfo?.phoneNumber || order.phoneNumber || 'No phone'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatDate(order.createdAt)}</div>
+                        <div className="text-sm text-gray-900">{order.createdAt ? formatDate(order.createdAt) : 'N/A'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <select
-                          value={order.status}
+                          value={order.status || 'pending'}
                           onChange={async (e) => {
                             try {
                               const headers = {
@@ -422,7 +442,7 @@ const OutletOrders = () => {
                         </select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatPrice(order.totalPrice)}
+                        {order.totalPrice ? formatPrice(order.totalPrice) : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
@@ -530,7 +550,7 @@ const OutletOrders = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
               <p className="text-sm text-gray-500 mb-6">
                 Are you sure you want to delete order{' '}
-                <span className="font-medium">{orderToDelete?._id}</span>? This action cannot be undone.
+                <span className="font-medium">{orderToDelete?._id || 'N/A'}</span>? This action cannot be undone.
               </p>
               <div className="flex justify-end space-x-3">
                 <Button

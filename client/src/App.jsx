@@ -34,7 +34,7 @@ const OutletSales = React.lazy(() => import('./pages/outlet/OutletSales'));
 const ProductForm = React.lazy(() => import('./pages/outlet/ProductForm'));
 const ProductView = React.lazy(() => import('./pages/outlet/ProductView'));
 const ProductEdit = React.lazy(() => import('./pages/outlet/ProductEdit'));
-const OrderDetail = React.lazy(() => import('./pages/outlet/OrderDetail'));
+const OutletOrderDetail = React.lazy(() => import('./pages/outlet/OutletOrderDetail'));
 
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
 const UsersManagement = React.lazy(() => import('./pages/admin/UsersManagement'));
@@ -212,7 +212,7 @@ function App() {
                 <OutletRouteWithLayout 
                   element={
                     <React.Suspense fallback={<LoadingFallback />}>
-                      <OrderDetail />
+                      <OutletOrderDetail />
                     </React.Suspense>
                   }
                 />
