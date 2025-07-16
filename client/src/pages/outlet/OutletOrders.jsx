@@ -412,7 +412,7 @@ const OutletOrders = () => {
                                 'Content-Type': 'application/json',
                                 ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
                               };
-                              const response = await fetch(`/api/route/updateOrder/${order._id}`, {
+                              const response = await fetch(`http://localhost:3000/api/route/updateOrder/${order._id}`, {
                                 method: 'PUT',
                                 headers,
                                 body: JSON.stringify({ status: e.target.value }),

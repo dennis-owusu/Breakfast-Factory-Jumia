@@ -11,7 +11,7 @@ export const createOrder = async (req, res) => {
     }
 
     // Fetch product details and embed them
-    const populatedProducts = await Promise.all(
+    const populatedProducts = await Promise.all( 
       products.map(async (item) => {
         const product = await Product.findById(item.product);
         if (!product) {
@@ -85,8 +85,18 @@ export const updateOrder = async (req, res) => {
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
-    order.status = req.body.status || order.status;
-    await order.save();
+    const newStatus = req.body.status || order.status;
+    if (order.status !== newStatus) {
+      order.status = newStatus;
+      await order.save();
+      // Emit Socket.IO event for real-time notification
+      const io = req.app.get('io');
+      io.to(order.user.toString()).emit('orderStatusUpdated', {
+        orderId: order._id,
+        newStatus: order.status,
+        message: `Your order ${order.orderNumber} status has been updated to ${order.status}`
+      });
+    }
     res.status(200).json(order);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to update order' });

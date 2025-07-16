@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { Search, Filter, ChevronLeft, ChevronRight, Eye, Package } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
+import io from 'socket.io-client';
+import { toast } from 'react-hot-toast';
 
 // This would be imported from an API utility file in a real app
 const fetchUserOrders = async (page = 1, limit = 10, search = '', filters = {}) => {
@@ -100,7 +102,7 @@ const fetchUserOrders = async (page = 1, limit = 10, search = '', filters = {}) 
 };
 
 const UserOrders = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { currentUser } = useSelector((state) => state.user);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -120,6 +122,27 @@ const UserOrders = () => {
     dateFrom: '',
     dateTo: ''
   });
+
+  useEffect(() => {
+    if (currentUser && currentUser.token) {
+      const socket = io('http://localhost:5000', {
+        auth: { token: currentUser.token }
+      });
+
+      socket.on('orderStatusUpdated', (data) => {
+        setOrders(prevOrders =>
+          prevOrders.map(order =>
+            order._id === data.orderId ? { ...order, status: data.newStatus } : order
+          )
+        );
+        toast.success(data.message);
+      });
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [currentUser]);
   
   // Fetch orders on component mount and when filters change
   useEffect(() => {

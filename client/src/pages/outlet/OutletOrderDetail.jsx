@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'react-hot-toast';
 import Loader from '../../components/ui/Loader';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 
 const OutletOrderDetail = () => {
   const { id } = useParams();
@@ -44,6 +45,28 @@ const OutletOrderDetail = () => {
   if (error) return <div className="text-red-500">{error}</div>;
   if (!order) return <div>Order not found</div>;
 
+  const [selectedStatus, setSelectedStatus] = useState(order.status);
+
+  const handleStatusChange = async () => {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${currentUser.token}`,
+      };
+      const response = await fetch(`/api/route/updateOrder/${id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ status: selectedStatus }),
+      });
+      if (!response.ok) throw new Error('Failed to update status');
+      const updatedOrder = await response.json();
+      setOrder(updatedOrder);
+      toast.success('Order status updated successfully');
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
@@ -70,6 +93,21 @@ const OutletOrderDetail = () => {
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">Order Details</h2>
         <p><strong>Status:</strong> <Badge>{order.status}</Badge></p>
+        <div className="mt-2">
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Update Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="processing">Processing</SelectItem>
+              <SelectItem value="shipped">Shipped</SelectItem>
+              <SelectItem value="delivered">Delivered</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={handleStatusChange} className="ml-2">Update Status</Button>
+        </div>
         <p><strong>Date:</strong> {formatDate(order.createdAt)}</p>
         <p><strong>Payment Method:</strong> {order.paymentMethod}</p>
         <p><strong>Total:</strong> {formatPrice(order.totalPrice)}</p>
