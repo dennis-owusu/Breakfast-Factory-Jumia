@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { Star, ShoppingCart, Heart, ChevronLeft } from 'lucide-react';
+import { Star, ShoppingCart, Heart, ChevronLeft, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import Loader from '../components/ui/Loader';
 import { toast } from 'react-hot-toast';
 import { addToCart } from '../redux/slices/cartSlice';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -17,6 +18,7 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [isAdded, setIsAdded] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -41,7 +43,13 @@ const ProductDetailPage = () => {
   const handleAddToCart = () => {
     if (product) {
       dispatch(addToCart({ ...product, quantity }));
+      setIsAdded(true);
       toast.success('Added to cart');
+      
+      // Reset the animation after 1.5 seconds
+      setTimeout(() => {
+        setIsAdded(false);
+      }, 1500);
     }
   };
 
@@ -82,9 +90,29 @@ const ProductDetailPage = () => {
             />
           </div>
           <div className="flex gap-4">
-            <Button onClick={handleAddToCart} disabled={product.countInStock === 0}>
-              <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-            </Button>
+            <AnimatePresence>
+              <motion.div
+                initial={{ scale: 1 }}
+                animate={isAdded ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Button 
+                  onClick={handleAddToCart} 
+                  disabled={product.countInStock === 0 || isAdded}
+                  className={`${isAdded ? 'bg-green-500 hover:bg-green-600' : ''} transition-colors duration-300`}
+                >
+                  {isAdded ? (
+                    <>
+                      <Check className="mr-2 h-4 w-4" /> Added to Cart
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                    </>
+                  )}
+                </Button>
+              </motion.div>
+            </AnimatePresence>
             <Button variant="outline">
               <Heart className="mr-2 h-4 w-4" /> Wishlist
             </Button>

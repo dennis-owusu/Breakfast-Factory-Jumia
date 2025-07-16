@@ -245,10 +245,10 @@ const ProductListPage = () => {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {products.map((product) => (
-                <ProductCard key={product._id}  product={{
+                <ProductCard   product={{
                     _id: product._id,
-                    name: product.productName,
-                    price: product.productPrice,
+                    productName: product.productName,
+                    productPrice: product.productPrice,
                     images: [product.productImage], // Convert single image string to array
                     discountPrice: product.discountPrice,
                   }} />

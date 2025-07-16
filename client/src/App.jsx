@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { Toaster } from 'react-hot-toast';
 
 // Layout Components
 import Navbar from './components/Navbar';
@@ -15,6 +16,8 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmationPage from './pages/user/OrderConfirmationPage';
 
 // Lazy loaded pages for better performance
 const UserDashboard = React.lazy(() => import('./pages/user/UserDashboard'));
@@ -62,6 +65,31 @@ function App() {
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
+        <Toaster position="top-right" toastOptions={{
+          duration: 2000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            duration: 2000,
+            style: {
+              background: '#22c55e',
+              color: '#fff',
+            },
+            iconTheme: {
+              primary: 'white',
+              secondary: '#22c55e',
+            },
+          },
+          error: {
+            duration: 3000,
+            style: {
+              background: '#ef4444',
+              color: '#fff',
+            },
+          },
+        }} />
         <Navbar />
         <main className="flex-grow">
           <Routes>
@@ -69,7 +97,9 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductListPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="/user/orders/:id" element={<OrderConfirmationPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             
