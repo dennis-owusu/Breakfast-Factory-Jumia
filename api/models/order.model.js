@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import {v4 as uuidv4} from 'uuid'
 
 const orderSchema = new mongoose.Schema(
   {
@@ -23,7 +24,7 @@ const orderSchema = new mongoose.Schema(
           images: {
             type: [String],
             default: [],
-          },
+          },  
         },
         quantity: {
           type: Number,
@@ -79,13 +80,27 @@ const orderSchema = new mongoose.Schema(
       },
       default: "pending",
     },
-  },
-  {
-    timestamps: true, // Adds createdAt and updatedAt
-  }
-);
+  orderNumber: {
+      type: String,
+      default: uuidv4(),
+      unique: true,
+      sparse: true,
+      required: true 
+    },
+    },
+    {
+      timestamps: true, // Adds createdAt and updatedAt
+    }
+  );
 
+  // Pre-save hook to generate unique orderNumber
+/*   orderSchema.pre('save', async function(next) {
+    if (!this.orderNumber) {
+      this.orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    }
+    next();
+  }); */
 
-const Order = mongoose.model("Order", orderSchema);
+  const Order = mongoose.model("Order", orderSchema);
 
-export default Order;
+  export default Order;

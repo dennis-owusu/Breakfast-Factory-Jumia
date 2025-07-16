@@ -18,6 +18,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/user/OrderConfirmationPage';
+import OrdersPage from './pages/user/OrdersPage';
 
 // Lazy loaded pages for better performance
 const UserDashboard = React.lazy(() => import('./pages/user/UserDashboard'));
@@ -96,6 +97,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductListPage />} />
+            <Route path="/user/orders" element={<OrdersPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/user/orders/:id" element={<OrderConfirmationPage />} />
             <Route path="/cart" element={<CartPage />} />

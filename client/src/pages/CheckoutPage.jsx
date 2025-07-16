@@ -6,6 +6,7 @@ import Loader from '../components/ui/Loader';
 import { formatPrice } from '../utils/helpers';
 import { clearCart } from '../redux/slices/cartSlice';
 import { Input } from '../components/ui/input';
+import {v4 as uuidv4} from 'uuid';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 
 const CheckoutPage = () => {
@@ -22,6 +23,7 @@ const CheckoutPage = () => {
     postalCode: '',
     phone: '',
     paymentMethod: 'cash_on_delivery',
+    orderNumber_1: uuidv4(),
   });
   
   const [loading, setLoading] = useState(false);
@@ -79,6 +81,7 @@ const CheckoutPage = () => {
         city: formData.city,
         state: formData.state,
         phoneNumber: formData.phone,
+        orderNumber: formData.orderNumber_1,
         postalCode: formData.postalCode,
         paymentMethod: formData.paymentMethod,
       };
@@ -355,15 +358,15 @@ const CheckoutPage = () => {
                     <div className="ml-4 flex flex-1 flex-col">
                       <div>
                         <div className="flex justify-between text-sm font-medium text-gray-900">
-                          <h3>{item.product?.name || 'Unnamed Product'}</h3>
+                          <h3>{item.product?.productName || 'Unnamed Product'}</h3>
                           <p className="ml-4">
                             {formatPrice(
-                              (item.product?.price || 0) * item.quantity
+                              (item.product?.productPrice || 0) * item.quantity
                             )}
                           </p>
                         </div>
-                        {item.product?.outlet && (
-                          <p className="text-xs text-gray-500 mt-1">Sold by: {item.product.outlet.name}</p>
+                        {item.product?.currentUser && (
+                          <p className="text-xs text-gray-500 mt-1">Sold by: {item.product.currentUser.name}</p>
                         )}
                       </div>
                       <div className="flex flex-1 items-end justify-between text-xs">
@@ -388,7 +391,7 @@ const CheckoutPage = () => {
                 <div className="pt-4 border-t border-gray-200">
                   <div className="flex justify-between">
                     <p className="text-lg font-medium text-gray-900">Total</p>
-                    <p className="text-lg font-medium text-gray-900">{formatPrice(subtotal)}</p>
+                    <p className="text-lg font-medium text-gray-900">{formData.paymentMethod === 'cash_on_delivery' ? formatPrice(subtotal) : 'Pay with Paystack'}</p>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Including VAT</p>
                 </div>

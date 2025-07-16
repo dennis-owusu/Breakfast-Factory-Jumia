@@ -5,7 +5,7 @@ import { errorHandler } from '../utils/error.js';
 
 export const createOrder = async (req, res) => {
   try {
-    const { user, products, totalPrice, address, city, state, phoneNumber, postalCode, paymentMethod } = req.body;
+    const { user, products, totalPrice, address, city, state, phoneNumber, orderNumber, postalCode, paymentMethod } = req.body;
     if (!user || !products || products.length === 0 || totalPrice == null || !address || !city || !state || !phoneNumber || !postalCode || !paymentMethod) {
       return res.status(400).json({ message: 'All fields are required' });
     }
@@ -19,6 +19,7 @@ export const createOrder = async (req, res) => {
         }
         return {
           product: {
+            orderNumber_1: orderNumber,
             name: product.productName,
             price: product.productPrice,
             images: product.productImage ? [product.productImage] : [],
@@ -97,7 +98,7 @@ export const deleteOrder = async (req, res) => {
 
 export const getOrdersByUser = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user.id });
+    const orders = await Order.find({ user: req.params.id });
     res.status(200).json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to fetch user orders' });

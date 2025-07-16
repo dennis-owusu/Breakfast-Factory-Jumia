@@ -10,7 +10,7 @@ router.get('/getOrders', getOrders);
 router.get('/getOrder/:id', getOrder);
 router.put('/updateOrder/:id', updateOrder);
 router.delete('/deleteOrder/:id', deleteOrder);
-router.get('/getOrdersByUser', getOrdersByUser);
+router.get('/getOrdersByUser/:id', getOrdersByUser);
 
 
 export default router
