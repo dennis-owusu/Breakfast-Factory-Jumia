@@ -28,14 +28,21 @@ export const fetchCategory = async(req, res, next) =>{
     }
 };
 
-export const deleteCategory = async(req, res, next) => {
-    try {
-        const deleteOneCategory = await Categories.findByIdAndDelete(req.params.id)
-        res.status(200).json(deleteOneCategory)
-    } catch (error) {
-        next(error)
+export const deleteCategory = async (req, res, next) => {
+  try {
+    const deletedCategory = await Categories.findByIdAndDelete(req.params.id);
+    
+    if (!deletedCategory) {
+      return res.status(404).json({ message: 'Category not found' });
     }
-}
+
+    res.status(200).json({ message: 'Category deleted successfully' });
+  } catch (error) {
+    console.error('Delete error:', error);
+    next(error);
+  }
+};
+
 
 export const updateCategory = async (req, res, next) => {
       

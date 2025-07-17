@@ -21,7 +21,7 @@ const OutletCategories = () => {
       setLoading(true);
       try {
         const res = await fetch('/api/route/allcategories', {
-          headers: { Authorization: `Bearer ${currentUser}` }
+          headers: { Authorization: `Bearer ${currentUser.token}` }
         });
         const data = await res.json();
         if (data) {
@@ -39,14 +39,15 @@ const OutletCategories = () => {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`/api/route/delete/${id}`, {
+      const res = await fetch(`/api/route/category/delete/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${currentUser?.token}` }
+        headers: { Authorization: `Bearer ${currentUser.token}` }
       });
       const data = await res.json();
-      if (data) {
-        setAllCategories(allCategories.filter(cat => cat._id !== id));
+      if (res.ok) {
+        setAllCategories((prev)=> prev.filter((cat) => cat._id !== id));
         toast.success('Category deleted');
+        console.log(allCategories)
       } else {
         toast.error(data.message);
       }
