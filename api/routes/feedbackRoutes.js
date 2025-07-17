@@ -1,5 +1,5 @@
  import express from 'express';
-import Feedback from '../models/Feedback.js';
+import Feedback from '../models/feedback.js';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
