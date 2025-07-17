@@ -2,7 +2,7 @@ import { errorHandler } from "../utils/error.js";
 import Product from '../models/product.model.js';
 
 export const newProducts = async (req, res, next) => {
-    const { productId, productName, category, numberOfProductsAvailable, productPrice, productImage, description, specifications, featured, discountPrice, author } = req.body;
+    const { productId, productName, category, numberOfProductsAvailable, productPrice, productImage, description, outlet, specifications, featured, discountPrice, author } = req.body;
 
     if (!productName || !productPrice || !productImage) {
         return next(errorHandler(400, 'Product name, price, and image are required'));
@@ -21,7 +21,7 @@ export const newProducts = async (req, res, next) => {
             featured,
             discountPrice,
             author,
-            outlet: req.user._id
+            outlet
         });
 
         await newProduct.save();

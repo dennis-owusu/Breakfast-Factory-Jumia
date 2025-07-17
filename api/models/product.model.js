@@ -31,7 +31,7 @@ const productSchema = mongoose.Schema({
     required: false,
    },
    specifications: {
-    type: String,
+    type: [String],
     required: false,
    },
    featured: {

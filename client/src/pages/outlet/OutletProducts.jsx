@@ -58,6 +58,52 @@ const OutletProducts = () => {
     fetchCategories();
   }, []);
 
+const handleDeleteProduct = async (productId) => {
+  if (!productId) return;
+
+  try {
+    setLoading(true);
+    const res = await fetch(`/api/route/delete/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include' // Include credentials for authentication
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to delete product');
+    }
+
+    // Update local state by removing the deleted product
+    setProducts(prevProducts => 
+      prevProducts.filter(product => product._id !== productId)
+    );
+
+    toast.success('Product deleted successfully');
+    setIsDeleteModalOpen(false);
+    setProductToDelete(null);
+
+    // Recalculate total pages
+    const newTotalProducts = totalProducts - 1;
+    setTotalProducts(newTotalProducts);
+    setTotalPages(Math.ceil(newTotalProducts / ITEMS_PER_PAGE));
+
+    // If current page is empty, go to previous page
+    if (products.length === 1 && currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+
+  } catch (err) {
+    console.error('Delete product error:', err);
+    toast.error(err.message || 'Error deleting product');
+  } finally {
+    setLoading(false);
+  }
+};
+
   // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
@@ -195,7 +241,7 @@ const OutletProducts = () => {
               {products.map((product) => (
                 <tr key={product._id} className="border-t hover:bg-gray-50">
                   <td className="p-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full">
                       <img
                         src={product.productImage || 'https://via.placeholder.com/40'}
                         alt=""
@@ -212,7 +258,7 @@ const OutletProducts = () => {
                   <td className="p-3 text-sm">{product.category}</td>
                   <td className="p-3 text-sm">₦{product.productPrice.toFixed(2)}</td>
                   <td className="p-3 text-sm">{product.numberOfProductsAvailable}</td>
-                  <td className="p-3 text-right flex justify-end gap-2">
+                  <td className="p-3 flex justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -235,7 +281,7 @@ const OutletProducts = () => {
                         setProductToDelete(product);
                       }}
                     >
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                      <Trash2 className="h-4 w-4 text-red-500"/>
                     </Button>
                   </td>
                 </tr>
@@ -247,6 +293,33 @@ const OutletProducts = () => {
         <div className="text-center py-10 text-gray-500">
           <ShoppingBag className="mx-auto h-12 w-12 mb-2" />
           <p>No products found. Add your first product to get started.</p>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && productToDelete && (
+        <div className="fixed inset-0 bg-black/80 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+            <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
+            <p className="mb-4">Are you sure you want to delete "{productToDelete.productName}"? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setProductToDelete(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => handleDeleteProduct(productToDelete._id)}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

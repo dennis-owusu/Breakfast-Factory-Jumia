@@ -185,7 +185,7 @@ const ProductForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!currentUser?.token) {
+    if (!currentUser) {
       setError('Please log in to add a product');
       toast.error('Please log in to add a product');
       return;
@@ -213,10 +213,10 @@ const ProductForm = () => {
         productPrice: parseFloat(formData.price),
         discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : undefined,
         description: formData.description,
-        specifications: formData.specifications,
+        specifications: formData.specifications.map(spec => `${spec.key}: ${spec.value}`), // Convert to array of strings
         featured: formData.featured,
         productImage: imageUrl,
-        outlet: currentUser?.outletId || undefined,
+        outlet: currentUser._id || undefined,
       };
       const response = await fetch('/api/route/products', {
         method: 'POST',
