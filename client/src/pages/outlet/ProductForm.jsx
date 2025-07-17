@@ -1,24 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Label } from '../../components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { X, Plus, Loader as LoaderIcon } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
-
-// Sample categories for UI and backend compatibility
-const sampleCategories = [
-  { _id: 1, name: 'Electronics', stringId: 'electronics' },
-  { _id: 2, name: 'Clothing', stringId: 'clothing' },
-  { _id: 3, name: 'Food', stringId: 'food' },
-  { _id: 4, name: 'Furniture', stringId: 'furniture' },
-  { _id: 5, name: 'Beauty', stringId: 'beauty' },
-  { _id: 6, name: 'Health', stringId: 'health' },
-  { _id: 7, name: 'Sports', stringId: 'sports' },
-  { _id: 8, name: 'Books', stringId: 'books' },
-  { _id: 9, name: 'Toys', stringId: 'toys' },
-  { _id: 10, name: 'Other', stringId: 'other' }
-];
+import { Textarea } from '../../components/ui/textarea';
 
 const ProductForm = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -26,7 +14,8 @@ const ProductForm = () => {
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [categories] = useState(sampleCategories);
+  const [categories, setCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -35,7 +24,7 @@ const ProductForm = () => {
     stock: '',
     category: '',
     specifications: [],
-    featured: false
+    featured: false,
   });
   const [formErrors, setFormErrors] = useState({});
   const [newSpec, setNewSpec] = useState({ key: '', value: '' });
@@ -43,19 +32,56 @@ const ProductForm = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
 
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (!currentUser) {
+        setError('Please log in to add a product');
+        toast.error('Please log in to add a product');
+        return;
+      }
+      try {
+        setIsLoadingCategories(true);
+        const res = await fetch('/api/route/allcategories', {
+  headers: { Authorization: `Bearer ${currentUser?.token}` },
+});
+        if (!res.ok) {
+          throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
+        }
+        const data = await res.json();
+        const categoryData = Array.isArray(data.allCategory)
+          ? data.allCategory.map((cat) => ({
+              _id: cat._id,
+              name: cat.categoryName,
+              image: cat.image,
+            }))
+          : [];
+        console.log('Categories fetched:', categoryData); // Debug
+        setCategories(categoryData);
+      } catch (err) {
+        console.error('Fetch categories error:', err.message);
+        setError('Failed to load categories');
+        toast.error('Failed to load categories');
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, [currentUser]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === 'checkbox') {
-      setFormData(prev => ({ ...prev, [name]: checked }));
+      setFormData((prev) => ({ ...prev, [name]: checked }));
     } else if (name === 'price' || name === 'discountPrice' || name === 'stock') {
       if (value === '' || /^\d*\.?\d*$/.test(value)) {
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
       }
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
     if (formErrors[name]) {
-      setFormErrors(prev => ({ ...prev, [name]: null }));
+      setFormErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
 
@@ -70,19 +96,18 @@ const ProductForm = () => {
     const newFiles = [...imageFiles, ...files];
     setImageFiles(newFiles);
     const newPreviews = [];
-    files.forEach(file => {
+    files.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         newPreviews.push(reader.result);
         if (newPreviews.length === files.length) {
-          setImagePreviews(prev => [...prev, ...newPreviews]);
+          setImagePreviews((prev) => [...prev, ...newPreviews]);
         }
       };
       reader.readAsDataURL(file);
     });
-    // Clear image error when new images are selected
     if (formErrors.images) {
-      setFormErrors(prev => ({ ...prev, images: null }));
+      setFormErrors((prev) => ({ ...prev, images: null }));
     }
   };
 
@@ -97,28 +122,28 @@ const ProductForm = () => {
     setImageFiles(newImageFiles);
     setImagePreviews(newImagePreviews);
     if (newImagePreviews.length === 0) {
-      setFormErrors(prev => ({ ...prev, images: 'At least one image required' }));
+      setFormErrors((prev) => ({ ...prev, images: 'At least one image required' }));
     }
   };
 
   const handleSpecChange = (e) => {
     const { name, value } = e.target;
-    setNewSpec(prev => ({ ...prev, [name]: value }));
+    setNewSpec((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAddSpec = () => {
     if (!newSpec.key.trim() || !newSpec.value.trim()) return;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      specifications: [...prev.specifications, { ...newSpec }]
+      specifications: [...prev.specifications, { ...newSpec }],
     }));
     setNewSpec({ key: '', value: '' });
   };
 
   const handleRemoveSpec = (index) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      specifications: prev.specifications.filter((_, i) => i !== index)
+      specifications: prev.specifications.filter((_, i) => i !== index),
     }));
   };
 
@@ -126,13 +151,14 @@ const ProductForm = () => {
     if (imageFiles.length === 0) return null;
     setIsUploadingImages(true);
     const formDataToSend = new FormData();
-    imageFiles.forEach(file => formDataToSend.append('images', file));
+    imageFiles.forEach((file) => formDataToSend.append('images', file));
     try {
       const response = await fetch('/api/route/upload', {
         method: 'POST',
-        body: formDataToSend
+        headers: { Authorization: `Bearer ${currentUser?.token}` },
+        body: formDataToSend,
       });
-      if (!response.ok) throw new Error('Image upload failed');
+      if (!response.ok) throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
       const data = await response.json();
       if (!data.success) throw new Error(data.message || 'Image upload failed');
       return data.images[0].filePath; // Return the first image's filePath
@@ -159,6 +185,11 @@ const ProductForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!currentUser?.token) {
+      setError('Please log in to add a product');
+      toast.error('Please log in to add a product');
+      return;
+    }
     if (!validateForm()) {
       const firstError = document.querySelector('.error-message');
       if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -171,16 +202,13 @@ const ProductForm = () => {
     try {
       const imageUrl = await uploadImages();
       if (!imageUrl) {
-        setFormErrors(prev => ({ ...prev, images: 'Image upload failed' }));
+        setFormErrors((prev) => ({ ...prev, images: 'Image upload failed' }));
         toast.error('Image upload failed');
         return;
       }
-      const selectedCategory = sampleCategories.find(cat => cat.stringId === formData.category);
       const productData = {
-        productId: Date.now(),
         productName: formData.title,
-        category: formData.category,
-        categoryId: selectedCategory ? selectedCategory._id : 1,
+        category: formData.category, // Use selected category _id
         numberOfProductsAvailable: parseInt(formData.stock, 10),
         productPrice: parseFloat(formData.price),
         discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : undefined,
@@ -188,12 +216,15 @@ const ProductForm = () => {
         specifications: formData.specifications,
         featured: formData.featured,
         productImage: imageUrl,
-        author: currentUser?.name || 'Anonymous'
+        outlet: currentUser?.outletId || undefined,
       };
       const response = await fetch('/api/route/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData)
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+        body: JSON.stringify(productData),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || 'Failed to create product');
@@ -205,7 +236,7 @@ const ProductForm = () => {
         stock: '',
         category: '',
         specifications: [],
-        featured: false
+        featured: false,
       });
       setImageFiles([]);
       setImagePreviews([]);
@@ -239,10 +270,26 @@ const ProductForm = () => {
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
             <div className="flex">
               <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
               </svg>
               <p className="ml-3 text-sm text-red-700">{error}</p>
             </div>
+          </div>
+        )}
+
+        {isLoadingCategories && (
+          <div className="flex justify-center py-4">
+            <LoaderIcon className="animate-spin h-6 w-6 text-gray-500" />
+          </div>
+        )}
+
+        {!isLoadingCategories && categories.length === 0 && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
+            <p className="text-sm text-yellow-700">No categories available. Please add categories first.</p>
           </div>
         )}
 
@@ -255,74 +302,108 @@ const ProductForm = () => {
             <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
               <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div className="sm:col-span-4">
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700">Product Title *</label>
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                    Product Title *
+                  </label>
                   <Input
                     type="text"
                     name="title"
                     id="title"
                     value={formData.title}
                     onChange={handleChange}
-                    className={`block w-full sm:text-sm border-gray-300 rounded-md ${formErrors.title ? 'border-red-300' : ''}`}
+                    className={`block w-full sm:text-sm border-gray-300 rounded-md ${
+                      formErrors.title ? 'border-red-300' : ''
+                    }`}
                   />
-                  {formErrors.title && <p className="mt-2 text-sm text-red-600 error-message">{formErrors.title}</p>}
+                  {formErrors.title && (
+                    <p className="mt-2 text-sm text-red-600 error-message">{formErrors.title}</p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category *</label>
-                  <Select onValueChange={(value) => handleChange({ target: { name: 'category', value } })} value={formData.category} required>
+                  <Label htmlFor="category">Category *</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => {
+                      setFormData((prev) => ({ ...prev, category: value }));
+                      if (formErrors.category) {
+                        setFormErrors((prev) => ({ ...prev, category: null }));
+                      }
+                    }}
+                  >
                     <SelectTrigger className={`w-full ${formErrors.category ? 'border-red-300' : ''}`}>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map(category => (
-                        <SelectItem key={category._id} value={category.stringId}>{category.name}</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {formErrors.category && <p className="mt-2 text-sm text-red-600 error-message">{formErrors.category}</p>}
+                  {formErrors.category && (
+                    <p className="mt-2 text-sm text-red-600 error-message">{formErrors.category}</p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-6">
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <Textarea
                     id="description"
-                    name="description"
-                    rows={4}
+                    name="description" 
                     value={formData.description}
                     onChange={handleChange}
-                    className={`block w-full sm:text-sm border-gray-300 rounded-md ${formErrors.description ? 'border-red-300' : ''}`}
+                    placeholder="Write a detailed description of your product"
+                    className={`min-h-[100px] ${formErrors.description ? 'border-red-500' : ''}`}
                   />
                   <p className="mt-2 text-sm text-gray-500">Write a detailed description of your product.</p>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price (₦) *</label>
+                  <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                    Price (₦) *
+                  </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 sm:text-sm">₦</span>
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 sm:text-sm">
+                      ₦
+                    </span>
                     <Input
                       type="text"
                       name="price"
                       id="price"
                       value={formData.price}
                       onChange={handleChange}
-                      className={`block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md ${formErrors.price ? 'border-red-300' : ''}`}
+                      className={`block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md ${
+                        formErrors.price ? 'border-red-300' : ''
+                      }`}
                       placeholder="0"
                     />
                   </div>
-                  {formErrors.price && <p className="mt-2 text-sm text-red-600 error-message">{formErrors.price}</p>}
+                  {formErrors.price && (
+                    <p className="mt-2 text-sm text-red-600 error-message">{formErrors.price}</p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="discountPrice" className="block text-sm font-medium text-gray-700">Discount Price (₦)</label>
+                  <label htmlFor="discountPrice" className="block text-sm font-medium text-gray-700">
+                    Discount Price (₦)
+                  </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 sm:text-sm">₦</span>
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 sm:text-sm">
+                      ₦
+                    </span>
                     <Input
                       type="text"
                       name="discountPrice"
                       id="discountPrice"
                       value={formData.discountPrice}
                       onChange={handleChange}
-                      className={`block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md ${formErrors.discountPrice ? 'border-red-300' : ''}`}
+                      className={`block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md ${
+                        formErrors.discountPrice ? 'border-red-300' : ''
+                      }`}
                       placeholder="0"
                     />
                   </div>
@@ -330,17 +411,23 @@ const ProductForm = () => {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stock Quantity *</label>
+                  <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
+                    Stock Quantity *
+                  </label>
                   <Input
                     type="text"
                     name="stock"
                     id="stock"
                     value={formData.stock}
                     onChange={handleChange}
-                    className={`block w-full sm:text-sm border-gray-300 rounded-md ${formErrors.stock ? 'border-red-300' : ''}`}
+                    className={`block w-full sm:text-sm border-gray-300 rounded-md ${
+                      formErrors.stock ? 'border-red-300' : ''
+                    }`}
                     placeholder="0"
                   />
-                  {formErrors.stock && <p className="mt-2 text-sm text-red-600 error-message">{formErrors.stock}</p>}
+                  {formErrors.stock && (
+                    <p className="mt-2 text-sm text-red-600 error-message">{formErrors.stock}</p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-6">
@@ -354,7 +441,9 @@ const ProductForm = () => {
                       className="h-4 w-4 text-orange-600 border-gray-300 rounded"
                     />
                     <div className="ml-3 text-sm">
-                      <label htmlFor="featured" className="font-medium text-gray-700">Featured Product</label>
+                      <label htmlFor="featured" className="font-medium text-gray-700">
+                        Featured Product
+                      </label>
                       <p className="text-gray-500">Featured products appear on the homepage.</p>
                     </div>
                   </div>
@@ -371,7 +460,9 @@ const ProductForm = () => {
             <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
               <div className="space-y-6">
                 <div>
-                  <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700">Images * (at least one required)</label>
+                  <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700">
+                    Images * (at least one required)
+                  </label>
                   <Input
                     id="file-upload"
                     name="file-upload"
@@ -382,7 +473,9 @@ const ProductForm = () => {
                     disabled={isUploadingImages || imagePreviews.length >= 5}
                     className="cursor-pointer"
                   />
-                  {formErrors.images && <p className="mt-2 text-sm text-red-600 error-message">{formErrors.images}</p>}
+                  {formErrors.images && (
+                    <p className="mt-2 text-sm text-red-600 error-message">{formErrors.images}</p>
+                  )}
                   {isUploadingImages && (
                     <p className="mt-2 text-sm text-gray-500 flex items-center">
                       <LoaderIcon className="animate-spin h-4 w-4 mr-2" />
@@ -396,7 +489,12 @@ const ProductForm = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {imagePreviews.map((url, index) => (
                         <div key={index} className="relative">
-                          <img src={url} alt={`Preview ${index + 1}`} className="rounded-lg shadow-md max-w-[150px]" onError={() => toast.error(`Failed to load image ${index + 1}`)} />
+                          <img
+                            src={url}
+                            alt={`Preview ${index + 1}`}
+                            className="rounded-lg shadow-md max-w-[150px]"
+                            onError={() => toast.error(`Failed to load image ${index + 1}`)}
+                          />
                           <button
                             type="button"
                             onClick={() => handleRemoveImage(index)}
@@ -422,7 +520,9 @@ const ProductForm = () => {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                   <div className="sm:col-span-2">
-                    <label htmlFor="spec-key" className="block text-sm font-medium text-gray-700">Specification</label>
+                    <label htmlFor="spec-key" className="block text-sm font-medium text-gray-700">
+                      Specification
+                    </label>
                     <Input
                       type="text"
                       id="spec-key"
@@ -434,7 +534,9 @@ const ProductForm = () => {
                     />
                   </div>
                   <div className="sm:col-span-3">
-                    <label htmlFor="spec-value" className="block text-sm font-medium text-gray-700">Value</label>
+                    <label htmlFor="spec-value" className="block text-sm font-medium text-gray-700">
+                      Value
+                    </label>
                     <Input
                       type="text"
                       id="spec-value"
@@ -469,7 +571,11 @@ const ProductForm = () => {
                               <span className="text-sm font-medium text-gray-900">{spec.key}: </span>
                               <span className="text-sm text-gray-500">{spec.value}</span>
                             </div>
-                            <button type="button" onClick={() => handleRemoveSpec(index)} className="text-red-500 hover:text-red-600">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSpec(index)}
+                              className="text-red-500 hover:text-red-600"
+                            >
                               <X className="h-4 w-4" />
                             </button>
                           </li>

@@ -2,7 +2,7 @@ import { errorHandler } from "../utils/error.js";
 import Product from '../models/product.model.js';
 
 export const newProducts = async (req, res, next) => {
-    const { productId, productName, categoryId, numberOfProductsAvailable, category, productPrice, productImage, description, specifications, featured, discountPrice, author } = req.body;
+    const { productId, productName, category, numberOfProductsAvailable, productPrice, productImage, description, specifications, featured, discountPrice, author } = req.body;
 
     if (!productName || !productPrice || !productImage) {
         return next(errorHandler(400, 'Product name, price, and image are required'));
@@ -11,9 +11,8 @@ export const newProducts = async (req, res, next) => {
     try {
         const newProduct = new Product({
             productId,
-            category,
             productName,
-            categoryId,
+            category,
             numberOfProductsAvailable,
             productPrice,
             productImage, // Use the productImage from req.body
@@ -49,7 +48,6 @@ export const getProducts = async (req, res, next) => {
         const sortDirection = req.query.order === 'asc' ? 1 : -1;
         const products = await Product.find({
             ...(req.query.productId && { productId: req.query.productId }),
-            ...(req.query.categoryId && { categoryId: req.query.categoryId }),
             ...(req.query.category && { category: req.query.category }),
             ...(req.query.productName && { productName: req.query.productName }),
             ...(req.query.numberOfProductsAvailable && { numberOfProductsAvailable: req.query.numberOfProductsAvailable }),
@@ -103,7 +101,6 @@ export const updateProduct = async (req, res, next) => {
             productId: req.body.productId,
             category: req.body.category,
             productName: req.body.productName,
-            categoryId: req.body.categoryId,
             productPrice: req.body.productPrice,
             numberOfProductsAvailable: req.body.numberOfProductsAvailable,
             productImage: req.body.productImage,

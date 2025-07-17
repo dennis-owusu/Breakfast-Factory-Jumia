@@ -1,18 +1,28 @@
 import mongoose from 'mongoose';
-import {v4 as uuidv4} from 'uuid';
 
 const categorySchema = mongoose.Schema({
-    categoryId: {
-        type: String,
-        unique: true,
-        default: uuidv4(),
-        required: false 
-    },
+   
     categoryName: {
         type: String,
         required: true,
-    }, 
-})
+        unique: true
+    },
+    description: {
+        type: String,
+        required: false,
+        unique: false
+    },
+    outlet: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+     featured: {
+    type: Boolean,
+    default: false,
+   }
+}, { timestamps: true });
+
 
 const Categories = mongoose.model('Categories', categorySchema)
 

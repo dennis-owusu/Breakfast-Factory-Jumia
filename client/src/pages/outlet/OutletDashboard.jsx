@@ -81,7 +81,7 @@ const OutletDashboard = () => {
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
             <Link
-              to="/outlet/products/new"
+              to="/outlet/product/new"
               className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
             >
               Add New Product
@@ -236,6 +236,20 @@ const OutletDashboard = () => {
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">Analytics</h3>
                 <p className="text-sm text-gray-500">View sales and performance data</p>
+              </div>
+              <div className="ml-auto">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </Link>
+          <Link to="/outlet/categories" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <Package className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Manage Categories</h3>
+                <p className="text-sm text-gray-500">Add, edit, or remove categories</p>
               </div>
               <div className="ml-auto">
                 <ChevronRight className="h-5 w-5 text-gray-400" />

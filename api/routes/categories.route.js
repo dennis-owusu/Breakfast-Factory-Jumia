@@ -8,5 +8,4 @@ router.put('/update-categories/:id', updateCategory)
 router.get('/allcategories', fetchCategory)
 router.delete('/delete/:id', deleteCategory)
 
-
-export default router  
+export default router 

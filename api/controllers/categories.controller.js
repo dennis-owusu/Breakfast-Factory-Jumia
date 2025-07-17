@@ -1,29 +1,32 @@
 import Categories from "../models/categories.model.js";
-import {v4 as uuidv4} from 'uuid'
 
 export const category = async(req, res, next) => {
-    const {categoryName} = req.body;
+    const {categoryName, description, featured, outlet } = req.body;
+
     try {
         const newCategory = new Categories({ 
-            categoryId: uuidv4(),
-            categoryName
-        })
-        await newCategory.save() 
-        res.json(newCategory)
+            categoryName,
+            description,
+            featured,
+            outlet
+        });
+        await newCategory.save(); 
+        res.json(newCategory);
+        
     } catch (error) {
-        next(error)
-    }   
-    
-}  
+        next(error);
+        console.log(error)
+    }
+};
 
 export const fetchCategory = async(req, res, next) =>{
     try {
-        const allCategory = await Categories.find({})
-        res.json({allCategory})
+        const allCategory = await Categories.find();
+        res.json({allCategory});
     } catch (error) {
-        next(error)
+        next(error);
     }
-}
+};
 
 export const deleteCategory = async(req, res, next) => {
     try {
@@ -41,8 +44,8 @@ export const updateCategory = async (req, res, next) => {
         req.params.id, 
         {
           $set: {
-            categoryId: req.body.categoryId,
             categoryName: req.body.categoryName,
+            description: req.body.description,
           },
         },
         { new: true }

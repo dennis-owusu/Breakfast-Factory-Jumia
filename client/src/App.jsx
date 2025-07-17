@@ -28,12 +28,14 @@ const UserProfile = React.lazy(() => import('./pages/user/UserProfile'));
 const OutletDashboard = React.lazy(() => import('./pages/outlet/OutletDashboard'));
 const OutletProducts = React.lazy(() => import('./pages/outlet/OutletProducts'));
 const OutletOrders = React.lazy(() => import('./pages/outlet/OutletOrders'));
+const OutletCategoryForm = React.lazy(() => import('./pages/outlet/OutletCategoryForm'));
 const OutletProfile = React.lazy(() => import('./pages/outlet/OutletProfile'));
 const OutletAnalytics = React.lazy(() => import('./pages/outlet/OutletAnalytics'));
 const OutletSales = React.lazy(() => import('./pages/outlet/OutletSales'));
 const ProductForm = React.lazy(() => import('./pages/outlet/ProductForm'));
 const ProductView = React.lazy(() => import('./pages/outlet/ProductView'));
 const ProductEdit = React.lazy(() => import('./pages/outlet/ProductEdit'));
+const OutletCategories = React.lazy(() => import('./pages/outlet/OutletCategories'));
 const OutletOrderDetail = React.lazy(() => import('./pages/outlet/OutletOrderDetail'));
 
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
@@ -165,6 +167,30 @@ function App() {
                   element={
                     <React.Suspense fallback={<LoadingFallback />}>
                       <ProductForm />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+            <Route 
+              path="/outlet/categories" 
+              element={
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OutletCategories />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+            <Route 
+              path="/outlet/categories/new" 
+              element={
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OutletCategoryForm />
                     </React.Suspense>
                   }
                 />
