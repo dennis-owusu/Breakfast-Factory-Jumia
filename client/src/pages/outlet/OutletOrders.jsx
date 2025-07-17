@@ -23,20 +23,39 @@ const OutletOrders = () => {
 
   useEffect(() => {
     if (currentUser && currentUser.token) {
+      console.log('Setting up Socket.IO connection for outlet:', currentUser._id);
       const socket = io('http://localhost:3000', {
         auth: { token: currentUser.token }
       });
 
+      socket.on('connect', () => {
+        console.log('Socket connected for outlet orders. Socket ID:', socket.id);
+        console.log('Outlet should be in room:', currentUser._id);
+      });
+
       socket.on('orderStatusUpdated', (data) => {
-        setOrders(prevOrders =>
-          prevOrders.map(order =>
+        console.log('Received order status update for outlet:', data);
+        console.log('Current orders before update:', orders);
+        setOrders(prevOrders => {
+          const updatedOrders = prevOrders.map(order =>
             order._id === data.orderId ? { ...order, status: data.newStatus } : order
-          )
-        );
+          );
+          console.log('Orders after update:', updatedOrders);
+          return updatedOrders;
+        });
         toast.success(data.message);
       });
 
+      socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error.message);
+      });
+
+      socket.on('disconnect', (reason) => {
+        console.log('Socket disconnected from outlet orders. Reason:', reason);
+      });
+
       return () => {
+        console.log('Cleaning up socket connection for outlet orders');
         socket.disconnect();
       };
     }
@@ -140,6 +159,44 @@ const OutletOrders = () => {
       setError('Please log in to view orders');
       setIsLoading(false);
     }
+  }, [pagination.page, searchInput, filters, currentUser?.token]);
+
+  // Polling for updates every 30 seconds
+  useEffect(() => {
+    const pollOrders = async () => {
+      try {
+        const queryParams = new URLSearchParams({
+          startIndex: (pagination.page - 1) * pagination.limit,
+          limit: pagination.limit,
+          ...(searchInput && { searchTerm: searchInput }),
+          ...(filters.status !== 'all' && { status: filters.status }),
+          ...(filters.dateRange && { dateRange: filters.dateRange }),
+        });
+
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+
+        const response = await fetch(`/api/route/getOrdersByUser/${currentUser._id}`, { headers });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (data.orders) {
+          setOrders(data.orders);
+          setPagination({
+            ...pagination,
+            totalOrders: data.totalOrders || 0,
+            totalPages: Math.ceil(data.totalOrders / pagination.limit) || 1,
+          });
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    };
+
+    const intervalId = setInterval(pollOrders, 30000);
+
+    return () => clearInterval(intervalId);
   }, [pagination.page, searchInput, filters, currentUser?.token]);
 
   // Handle search

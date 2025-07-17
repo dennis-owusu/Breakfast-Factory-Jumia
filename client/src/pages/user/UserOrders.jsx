@@ -67,20 +67,39 @@ const UserOrders = () => {
 
   useEffect(() => {
     if (currentUser && currentUser.token) {
+      console.log('Setting up Socket.IO connection for user:', currentUser._id);
       const socket = io('http://localhost:3000', {
         auth: { token: currentUser.token }
       });
 
+      socket.on('connect', () => {
+        console.log('Socket connected for user orders. Socket ID:', socket.id);
+        console.log('User should be in room:', currentUser._id);
+      });
+
       socket.on('orderStatusUpdated', (data) => {
-        setOrders(prevOrders =>
-          prevOrders.map(order =>
+        console.log('Received order status update:', data);
+        console.log('Current orders before update:', orders);
+        setOrders(prevOrders => {
+          const updatedOrders = prevOrders.map(order =>
             order._id === data.orderId ? { ...order, status: data.newStatus } : order
-          )
-        );
+          );
+          console.log('Orders after update:', updatedOrders);
+          return updatedOrders;
+        });
         toast.success(data.message);
       });
 
+      socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error.message);
+      });
+
+      socket.on('disconnect', (reason) => {
+        console.log('Socket disconnected from user orders. Reason:', reason);
+      });
+
       return () => {
+        console.log('Cleaning up socket connection for user orders');
         socket.disconnect();
       };
     }
@@ -109,6 +128,28 @@ const UserOrders = () => {
     };
     
     fetchOrders();
+  }, [pagination.page, pagination.limit, search, filters]);
+
+  // Polling for updates every 30 seconds
+  useEffect(() => {
+    const pollOrders = async () => {
+      try {
+        const response = await fetchUserOrders(
+          pagination.page,
+          pagination.limit,
+          search,
+          filters
+        );
+        setOrders(response.orders);
+        setPagination(response.pagination);
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    };
+
+    const intervalId = setInterval(pollOrders, 30000);
+
+    return () => clearInterval(intervalId);
   }, [pagination.page, pagination.limit, search, filters]);
   
   // Handle search input change
