@@ -8,7 +8,6 @@ import { Textarea } from '../../components/ui/textarea';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, Loader } from 'lucide-react';
-// Remove import {v4 as uuidv4} from 'uuid'
 
 const OutletCategoryForm = () => {
   const { id } = useParams();
@@ -19,7 +18,7 @@ const OutletCategoryForm = () => {
     categoryName: '',
     description: '',
     featured: false,
-    outlet: currentUser._id,
+    outlet: currentUser?._id,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,10 +27,30 @@ const OutletCategoryForm = () => {
     if (!currentUser) {
       setError('Please log in as an outlet user to create a category');
       toast.error('Please log in as an outlet user');
-    } else {
-      setFormData((prev) => ({ ...prev, outlet: currentUser._id }));
+      return;
     }
-  }, [currentUser]);
+    setFormData((prev) => ({ ...prev, outlet: currentUser._id }));
+
+    if (id) {
+      const fetchCategory = async () => {
+        try {
+          const res = await fetch(`/api/route/categories/${id}`);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || 'Failed to fetch category');
+          setFormData({
+            categoryName: data.categoryName,
+            description: data.description,
+            featured: data.featured,
+            outlet: data.outlet,
+          });
+        } catch (err) {
+          toast.error('Error loading category');
+          console.error(err);
+        }
+      };
+      fetchCategory();
+    }
+  }, [currentUser, id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -54,8 +73,10 @@ const OutletCategoryForm = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/route/categories', {
-        method: 'POST',
+      const url = id ? `/api/route/categories/${id}` : '/api/route/categories';
+      const method = id ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -65,15 +86,11 @@ const OutletCategoryForm = () => {
       if (!res.ok) {
         throw new Error(data.message || `HTTP error ${res.status}`);
       }
-      if (data.success) {
-        toast.success('Category created');
-        navigate('/outlet/categories');
-      } else {
-        setError(data.message || 'Failed to create category');
-        toast.error(data.message || 'Failed to create category');
-      }
+      toast.success(id ? 'Category updated' : 'Category created');
+      setFormData({ categoryName: '', description: '', featured: false, outlet: currentUser._id });
+      navigate('/outlet/categories'); // Navigate back to categories list after save
     } catch (err) {
-      console.error('Create category error:', err.message);
+      console.error('Category operation error:', err.message);
       setError(err.message || 'Failed to save category');
       toast.error(err.message || 'Failed to save category');
     } finally {
@@ -81,7 +98,6 @@ const OutletCategoryForm = () => {
     }
   };
 
-  console.log(formData)
   return (
     <div className="max-w-2xl mx-auto p-6">
       <Button onClick={() => navigate(-1)} variant="ghost">
