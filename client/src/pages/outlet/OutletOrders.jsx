@@ -6,6 +6,7 @@ import Loader from '../../components/ui/Loader';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'react-hot-toast';
+import io from 'socket.io-client';
 
 const OutletOrders = () => {
   const navigate = useNavigate();
@@ -19,6 +20,27 @@ const OutletOrders = () => {
   const [pagination, setPagination] = useState({ page: 1, limit: 10, totalOrders: 0, totalPages: 1 });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
+
+  useEffect(() => {
+    if (currentUser && currentUser.token) {
+      const socket = io('http://localhost:3000', {
+        auth: { token: currentUser.token }
+      });
+
+      socket.on('orderStatusUpdated', (data) => {
+        setOrders(prevOrders =>
+          prevOrders.map(order =>
+            order._id === data.orderId ? { ...order, status: data.newStatus } : order
+          )
+        );
+        toast.success(data.message);
+      });
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [currentUser]);
 
   // Utility functions
   const formatDate = (dateString) => {

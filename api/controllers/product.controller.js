@@ -21,7 +21,8 @@ export const newProducts = async (req, res, next) => {
             specifications,   
             featured,
             discountPrice,
-            author
+            author,
+            outlet: req.user._id
         });
 
         await newProduct.save();

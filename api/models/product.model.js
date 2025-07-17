@@ -29,8 +29,28 @@ const productSchema = mongoose.Schema({
     type: Number,
     default: 0,
    },
-   
-}, {timestamp:true})
+   description: {
+    type: String,
+    required: false,
+   },
+   specifications: {
+    type: String,
+    required: false,
+   },
+   featured: {
+    type: Boolean,
+    default: false,
+   },
+   discountPrice: {
+    type: Number,
+    required: false,
+   },
+   outlet: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+   },
+}, {timestamps:true})
 
 const Product = mongoose.model('Product', productSchema)
 

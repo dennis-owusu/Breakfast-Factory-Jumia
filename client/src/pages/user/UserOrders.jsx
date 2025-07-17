@@ -7,98 +7,40 @@ import { formatPrice, formatDate } from '../../utils/helpers';
 import io from 'socket.io-client';
 import { toast } from 'react-hot-toast';
 
-// This would be imported from an API utility file in a real app
 const fetchUserOrders = async (page = 1, limit = 10, search = '', filters = {}) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate mock orders
-      const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-      const mockOrders = Array.from({ length: 25 }, (_, i) => {
-        const orderDate = new Date();
-        orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 30));
-        
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-        const totalAmount = Math.floor(Math.random() * 100000) + 5000;
-        
-        return {
-          _id: `ord${i + 100}`,
-          orderNumber: `ORD-${100000 + i}`,
-          createdAt: orderDate.toISOString(),
-          totalAmount,
-          status,
-          items: [
-            {
-              product: {
-                _id: `prod${i + 100}`,
-                name: [
-                  'Wireless Headphones',
-                  'Smartphone Case',
-                  'Smart Watch',
-                  'Bluetooth Speaker',
-                  'Power Bank'
-                ][Math.floor(Math.random() * 5)],
-                images: ['https://via.placeholder.com/150']
-              },
-              quantity: Math.floor(Math.random() * 3) + 1
-            }
-          ]
-        };
-      });
+  try {
+    const startIndex = (page - 1) * limit;
+    let url = `http://localhost:3000/api/route/getOrdersByUser/${currentUser._id}?startIndex=${startIndex}&limit=${limit}`;
+    if (search) url += `&searchTerm=${encodeURIComponent(search)}`;
+    if (filters.status && filters.status !== 'all') url += `&status=${filters.status}`;
+    if (filters.dateFrom) url += `&dateFrom=${filters.dateFrom}`;
+    if (filters.dateTo) url += `&dateTo=${filters.dateTo}`;
 
-      // Apply search filter if provided
-      let filteredOrders = mockOrders;
-      if (search) {
-        const searchLower = search.toLowerCase();
-        filteredOrders = mockOrders.filter(order => 
-          order.orderNumber.toLowerCase().includes(searchLower) ||
-          order.items.some(item => item.product.name.toLowerCase().includes(searchLower))
-        );
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${currentUser.token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      orders: data.orders,
+      pagination: {
+        page,
+        limit,
+        totalOrders: data.totalOrders,
+        totalPages: Math.ceil(data.totalOrders / limit),
       }
-
-      // Apply status filter if provided
-      if (filters.status && filters.status !== 'all') {
-        filteredOrders = filteredOrders.filter(order => order.status === filters.status);
-      }
-
-      // Apply date filter if provided
-      if (filters.dateFrom || filters.dateTo) {
-        filteredOrders = filteredOrders.filter(order => {
-          const orderDate = new Date(order.createdAt);
-          let isValid = true;
-          
-          if (filters.dateFrom) {
-            const fromDate = new Date(filters.dateFrom);
-            isValid = isValid && orderDate >= fromDate;
-          }
-          
-          if (filters.dateTo) {
-            const toDate = new Date(filters.dateTo);
-            toDate.setHours(23, 59, 59, 999); // End of the day
-            isValid = isValid && orderDate <= toDate;
-          }
-          
-          return isValid;
-        });
-      }
-
-      // Calculate pagination
-      const totalOrders = filteredOrders.length;
-      const totalPages = Math.ceil(totalOrders / limit);
-      const startIndex = (page - 1) * limit;
-      const paginatedOrders = filteredOrders.slice(startIndex, startIndex + limit);
-
-      resolve({
-        orders: paginatedOrders,
-        pagination: {
-          page,
-          limit,
-          totalOrders,
-          totalPages
-        }
-      });
-    }, 1000);
-  });
+    };
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    throw error;
+  }
 };
 
 const UserOrders = () => {
@@ -125,7 +67,7 @@ const UserOrders = () => {
 
   useEffect(() => {
     if (currentUser && currentUser.token) {
-      const socket = io('http://localhost:5000', {
+      const socket = io('http://localhost:3000', {
         auth: { token: currentUser.token }
       });
 
@@ -351,24 +293,24 @@ const UserOrders = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatPrice(order.totalAmount)}</div>
+                        <div className="text-sm text-gray-900">{formatPrice(order.totalPrice)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
                             <img 
                               className="h-10 w-10 rounded-full object-cover" 
-                              src={order.items[0].product.images[0]} 
-                              alt={order.items[0].product.name} 
+                              src={order.products[0].product.images[0] || 'https://via.placeholder.com/150'} 
+                              alt={order.products[0].product.name} 
                             />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {order.items[0].product.name}
+                              {order.products[0].product.name}
                             </div>
-                            {order.items.length > 1 && (
+                            {order.products.length > 1 && (
                               <div className="text-sm text-gray-500">
-                                +{order.items.length - 1} more item(s)
+                                +{order.products.length - 1} more item(s)
                               </div>
                             )}
                           </div>

@@ -91,10 +91,24 @@ export const updateOrder = async (req, res) => {
       await order.save();
       // Emit Socket.IO event for real-time notification
       const io = req.app.get('io');
-      io.to(order.user.toString()).emit('orderStatusUpdated', {
-        orderId: order._id,
-        newStatus: order.status,
-        message: `Your order ${order.orderNumber} status has been updated to ${order.status}`
+      if (order.user) {
+        io.to(order.user.toString()).emit('orderStatusUpdated', {
+          orderId: order._id,
+          newStatus: order.status,
+          message: `Your order ${order.orderNumber} status has been updated to ${order.status}`
+        });
+      }
+      // Emit to outlets
+      const outletIds = [...new Set(order.products
+        .filter(p => p.product.outlet && typeof p.product.outlet === 'object' && p.product.outlet.toString) // Ensure it's an ObjectId
+        .map(p => p.product.outlet.toString())
+      )];
+      outletIds.forEach(outletId => {
+        io.to(outletId).emit('orderStatusUpdated', {
+          orderId: order._id,
+          newStatus: order.status,
+          message: `Order ${order.orderNumber} status updated to ${order.status}`
+        });
       });
     }
     res.status(200).json(order);
@@ -117,9 +131,48 @@ export const deleteOrder = async (req, res) => {
 };
 
 export const getOrdersByUser = async (req, res) => {
+  const userId = req.params.id;
+  const startIndex = parseInt(req.query.startIndex) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+  const searchTerm = req.query.searchTerm || '';
+  const status = req.query.status;
+  const dateFrom = req.query.dateFrom;
+  const dateTo = req.query.dateTo;
+
+  let query = { user: userId };
+
+  if (status && status !== 'all') {
+    query.status = status;
+  }
+
+  if (searchTerm) {
+    query.$or = [
+      { orderNumber: { $regex: searchTerm, $options: 'i' } },
+      { 'products.product.name': { $regex: searchTerm, $options: 'i' } }
+    ];
+  }
+
+  let dateFilter = {};
+  if (dateFrom) {
+    dateFilter.$gte = new Date(dateFrom);
+  }
+  if (dateTo) {
+    const toDate = new Date(dateTo);
+    toDate.setHours(23, 59, 59, 999);
+    dateFilter.$lte = toDate;
+  }
+  if (Object.keys(dateFilter).length > 0) {
+    query.createdAt = dateFilter;
+  }
+
   try {
-    const orders = await Order.find({ user: req.params.id }).populate('user', 'name email phoneNumber');
-    res.status(200).json(orders);
+    const totalOrders = await Order.countDocuments(query);
+    const orders = await Order.find(query)
+      .populate('user', 'name email phoneNumber')
+      .sort({ createdAt: -1 })
+      .skip(startIndex)
+      .limit(limit);
+    res.status(200).json({ orders, totalOrders });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to fetch user orders' });
   }
