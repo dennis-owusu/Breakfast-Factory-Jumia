@@ -8,27 +8,30 @@ import Loader from '../components/ui/Loader';
 import { Button } from '../components/ui/button';
 import { toast } from 'react-hot-toast';
 import { addToCart } from '../redux/slices/cartSlice';
+import img1 from "../assets/cf.jpg"
+import img2 from "../assets/cof.jpg"
+import img3 from "../assets/cof1.jpg"
 
 // Hero banner carousel images
 const heroBanners = [
   {
     title: 'Shop the Best Deals on Breakfast Factory',
     subtitle: 'Discover amazing products at unbeatable prices. Free delivery on orders over ₦100.',
-    image: 'https://via.placeholder.com/1200x500?text=Hero+Banner+1',
+    image: img1,
     cta: '/products',
     ctaText: 'Shop Now',
   },
   {
     title: 'Exclusive Electronics Sale',
     subtitle: 'Up to 50% off on smartphones, laptops, and more!',
-    image: 'https://via.placeholder.com/1200x500?text=Electronics+Sale',
+    image: img2,
     cta: '/products?category=electronics',
     ctaText: 'Explore Deals',
   },
   {
     title: 'New Fashion Arrivals',
     subtitle: 'Check out our latest collection of trendy outfits.',
-    image: 'https://via.placeholder.com/1200x500?text=Fashion+Collection',
+    image:  img3,
     cta: '/products?category=fashion',
     ctaText: 'Shop Fashion',
   },
