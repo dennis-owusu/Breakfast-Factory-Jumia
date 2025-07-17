@@ -36,7 +36,7 @@ const OrdersPage = () => {
 
         const data = await response.json();
         console.log('User orders:', data);
-        setOrders(data);
+        setOrders(data.orders || []);
         setLoading(false);
       } catch (err) {
         setError(err.message || 'Failed to load orders');
@@ -109,29 +109,35 @@ const OrdersPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders.map((order) => (
-                      <TableRow key={order._id}>
-                        <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                        <TableCell>
-                          {new Date(order.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
-                        </TableCell>
-                        <TableCell className="capitalize">{order.status}</TableCell>
-                        <TableCell>{order.totalPrice}</TableCell>
-                        <TableCell>
-                          <Button
-                            asChild
-                            variant="link"
-                            className="text-orange-500 hover:text-orange-600 p-0"
-                          >
-                            <Link to={`/user/orders/${order._id}`}>View Details</Link>
-                          </Button>
-                        </TableCell>
+                    {Array.isArray(orders) ? (
+                      orders.map((order) => (
+                        <TableRow key={order._id}>
+                          <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                          <TableCell>
+                            {new Date(order.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </TableCell>
+                          <TableCell className="capitalize">{order.status}</TableCell>
+                          <TableCell>{order.totalPrice}</TableCell>
+                          <TableCell>
+                            <Button
+                              asChild
+                              variant="link"
+                              className="text-orange-500 hover:text-orange-600 p-0"
+                            >
+                              <Link to={`/user/orders/${order._id}`}>View Details</Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan="5" className="text-center">No orders available</TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
               </div>
