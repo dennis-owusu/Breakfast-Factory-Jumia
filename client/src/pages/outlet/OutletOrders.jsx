@@ -7,6 +7,8 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'react-hot-toast';
 import io from 'socket.io-client';
+import { Input } from '../../components/ui/input'; // Import Shadcn Input component
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 
 const OutletOrders = () => {
   const navigate = useNavigate();
@@ -314,12 +316,12 @@ const OutletOrders = () => {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search className="h-5 w-5 text-gray-400" />
                   </div>
-                  <input
+                  <Input // Use Shadcn Input component
                     type="text"
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                     placeholder="Search by order number or customer..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
+                    className="pl-10"
                   />
                   <button type="submit" className="hidden">Search</button>
                 </form>
@@ -360,39 +362,43 @@ const OutletOrders = () => {
                   <label htmlFor="status" className="block text-sm font-medium text-gray-700">
                     Order Status
                   </label>
-                  <select
-                    id="status"
-                    name="status"
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  <Select
                     value={filters.status}
-                    onChange={handleFilterChange}
+                    onValueChange={(value) => handleFilterChange({ target: { name: 'status', value } })}
                   >
-                    <option value="all">All Statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
                   <label htmlFor="dateRange" className="block text-sm font-medium text-gray-700">
                     Date Range
                   </label>
-                  <select
-                    id="dateRange"
-                    name="dateRange"
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  <Select
                     value={filters.dateRange}
-                    onChange={handleFilterChange}
+                    onValueChange={(value) => handleFilterChange({ target: { name: 'dateRange', value } })}
                   >
-                    <option value="">All Time</option>
-                    <option value="today">Today</option>
-                    <option value="yesterday">Yesterday</option>
-                    <option value="last7days">Last 7 Days</option>
-                    <option value="last30days">Last 30 Days</option>
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a date range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Time</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="yesterday">Yesterday</SelectItem>
+                      <SelectItem value="last7days">Last 7 Days</SelectItem>
+                      <SelectItem value="last30days">Last 30 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}
@@ -483,9 +489,9 @@ const OutletOrders = () => {
                         <div className="text-sm text-gray-900">{order.createdAt ? formatDate(order.createdAt) : 'N/A'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <select
+                        <Select
                           value={order.status || 'pending'}
-                          onChange={async (e) => {
+                          onValueChange={async (value) => {
                             try {
                               const headers = {
                                 'Content-Type': 'application/json',
@@ -494,7 +500,7 @@ const OutletOrders = () => {
                               const response = await fetch(`http://localhost:3000/api/route/updateOrder/${order._id}`, {
                                 method: 'PUT',
                                 headers,
-                                body: JSON.stringify({ status: e.target.value }),
+                                body: JSON.stringify({ status: value }),
                               });
                               if (!response.ok) {
                                 throw new Error(`HTTP error ${response.status}`);
@@ -502,7 +508,7 @@ const OutletOrders = () => {
                               const result = await response.json();
                               if (result.success) {
                                 setOrders(orders.map((o) =>
-                                  o._id === order._id ? { ...o, status: e.target.value } : o
+                                  o._id === order._id ? { ...o, status: value } : o
                                 ));
                                 toast.success('Order status updated');
                               }
@@ -511,14 +517,18 @@ const OutletOrders = () => {
                               toast.error('Failed to update order status');
                             }
                           }}
-                          className={`px-2 py-1 text-xs font-semibold rounded-full border-none focus:ring-2 focus:ring-orange-500 ${getStatusBadgeColor(order.status)}`}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
+                          >
+                          <SelectTrigger className={` text-xs font-semibold rounded-full border-none focus:ring-2 focus:ring-orange-500 ${getStatusBadgeColor(order.status)}`}>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="processing">Processing</SelectItem>
+                            <SelectItem value="shipped">Shipped</SelectItem>
+                            <SelectItem value="delivered">Delivered</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {order.totalPrice ? formatPrice(order.totalPrice) : 'N/A'}

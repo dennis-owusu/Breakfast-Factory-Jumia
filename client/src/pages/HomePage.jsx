@@ -61,7 +61,7 @@ const HomePage = () => {
           throw new Error('Invalid response: Expected JSON');
         }
         const data = await response.json();
-        if (!data.success) {
+        if (!data) {
           throw new Error(data.message || 'Failed to fetch categories');
         }
         setCategories(data.categories || []);
