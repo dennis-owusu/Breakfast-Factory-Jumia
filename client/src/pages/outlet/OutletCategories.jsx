@@ -24,7 +24,7 @@ const OutletCategories = () => {
           headers: { Authorization: `Bearer ${currentUser}` }
         });
         const data = await res.json();
-        if (data.success) {
+        if (data) {
           setAllCategories(data.allCategory || []);
         } else {
           setError(data.message);
@@ -39,7 +39,7 @@ const OutletCategories = () => {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`/api/route/categories/${id}`, {
+      const res = await fetch(`/api/route/delete/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${currentUser?.token}` }
       });
