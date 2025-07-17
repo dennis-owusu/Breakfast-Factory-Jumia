@@ -352,11 +352,11 @@ const HomePage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="relative rounded-lg overflow-hidden h-64">
             <img
-              src="https://via.placeholder.com/800x400?text=Flash+Sale"
+              src={img1}
               alt="Flash sale banner"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col justify-center p-8">
+            <div className="absolute inset-0   bg-opacity-40 flex flex-col justify-center p-8">
               <h3 className="text-white text-2xl font-bold mb-2">Flash Sale</h3>
               <p className="text-white text-lg mb-4">Up to 50% off on electronics</p>
               <Link
@@ -369,11 +369,11 @@ const HomePage = () => {
           </div>
           <div className="relative rounded-lg overflow-hidden h-64">
             <img
-              src="https://via.placeholder.com/800x400?text=New+Arrivals"
+              src={img2}
               alt="New arrivals banner"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col justify-center p-8">
+            <div className="absolute inset-0  bg-opacity-40 flex flex-col justify-center p-8">
               <h3 className="text-white text-2xl font-bold mb-2">New Arrivals</h3>
               <p className="text-white text-lg mb-4">Check out our latest fashion collection</p>
               <Link
