@@ -234,3 +234,71 @@ export const getOutletOrders = async (req, res) => {
     res.status(500).json({ message: error.message || 'Failed to fetch outlet orders' });
   }
 };
+
+// Verify MTN Mobile Money payment and update order status
+export const verifyMomoPayment = async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const { status } = req.body;
+    
+    if (!transactionId) {
+      return res.status(400).json({ success: false, message: 'Transaction ID is required' });
+    }
+    
+    // Find order with this transaction ID
+    const order = await Order.findOne({ momoTransactionId: transactionId });
+    
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'No order found with this transaction ID' });
+    }
+    
+    // Update order status based on payment status
+    if (status === 'SUCCESSFUL' || status === 'SUCCESS') {
+      order.status = 'processing'; // Move from pending to processing after payment
+      await order.save();
+      
+      // Emit Socket.IO event for real-time notification
+      const io = req.app.get('io');
+      if (order.user) {
+        io.to(order.user.toString()).emit('paymentConfirmed', {
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          message: `Your payment for order ${order.orderNumber} has been confirmed!`
+        });
+      }
+      
+      // Notify outlet about the payment confirmation
+      const outletIds = [...new Set(order.products
+        .filter(p => p.product.outlet && typeof p.product.outlet === 'object' && p.product.outlet.toString) 
+        .map(p => p.product.outlet.toString())
+      )];
+      
+      outletIds.forEach(outletId => {
+        io.to(outletId).emit('paymentConfirmed', {
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          message: `Payment confirmed for order ${order.orderNumber}`
+        });
+      });
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Payment verified and order updated successfully',
+        order
+      });
+    } else {
+      // Payment failed
+      order.status = 'cancelled'; // Mark as cancelled if payment failed
+      await order.save();
+      
+      return res.status(200).json({
+        success: false,
+        message: 'Payment verification failed',
+        order
+      });
+    }
+  } catch (error) {
+    console.error('Error verifying MTN Mobile Money payment:', error);
+    res.status(500).json({ success: false, message: 'Failed to verify payment' });
+  }
+};

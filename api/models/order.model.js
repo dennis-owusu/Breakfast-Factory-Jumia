@@ -81,7 +81,7 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: {
         values: ["pending", "processing", "shipped", "delivered", "cancelled"],
-        message: "Status must be pending, processing, shipped, or delivered",
+        message: "Status must be pending, processing, shipped, delivered or cancelled",
       },
       default: "pending",
     },
@@ -91,6 +91,11 @@ const orderSchema = new mongoose.Schema(
       unique: true,
       required: true 
     },
+    momoTransactionId: {
+      type: String,
+      default: null,
+      sparse: true
+    }
     },
     {
       timestamps: true, // Adds createdAt and updatedAt

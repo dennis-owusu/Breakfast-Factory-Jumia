@@ -9,7 +9,6 @@
     "seed:admin": "node utils/seedAdmin.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -28,6 +27,7 @@
     "mongoose": "^8.16.4",
     "mongose": "^0.0.2-security",
     "multer": "^2.0.1",
+    "node-fetch": "^3.3.2",
     "socket.io": "^4.8.1",
     "uuid": "^11.1.0"
   },

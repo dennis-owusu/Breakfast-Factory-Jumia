@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const analyticsSchema = new mongoose.Schema({
   outletId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Outlet',
+    ref: 'Users',
     required: true,
   },
   period: {

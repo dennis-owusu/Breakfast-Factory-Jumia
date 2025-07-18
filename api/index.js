@@ -10,6 +10,7 @@ import analyticsRoute from './routes/analytics.route.js';
 import orderRoute from './routes/order.route.js';
 import categoryRoute from './routes/categories.route.js';
 import feedbackRoute from './routes/feedbackRoutes.js';
+import paymentRoute from './routes/payment.route.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
@@ -105,6 +106,7 @@ app.use('/api/route', orderRoute);
 app.use('/api/route', categoryRoute);
 app.use('/api/route', analyticsRoute);
 app.use('/api/feedback', feedbackRoute);
+app.use('/api/route/payments', paymentRoute);
 
 // Global error handler
 app.use((err, req, res, next) => {

@@ -19,6 +19,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/user/OrderConfirmationPage';
 import OrdersPage from './pages/user/OrdersPage';
+import MomoTestPage from './pages/MomoTestPage';
 
 // Lazy loaded pages for better performance
 const UserDashboard = React.lazy(() => import('./pages/user/UserDashboard'));
@@ -32,6 +33,7 @@ const OutletCategoryForm = React.lazy(() => import('./pages/outlet/OutletCategor
 const OutletProfile = React.lazy(() => import('./pages/outlet/OutletProfile'));
 const OutletAnalytics = React.lazy(() => import('./pages/outlet/OutletAnalytics'));
 const OutletSales = React.lazy(() => import('./pages/outlet/OutletSales'));
+const OutletSellPage = React.lazy(() => import('./pages/outlet/OutletSellPage'));
 const ProductForm = React.lazy(() => import('./pages/outlet/ProductForm'));
 const ProductView = React.lazy(() => import('./pages/outlet/ProductView'));
 const ProductEdit = React.lazy(() => import('./pages/outlet/ProductEdit'));
@@ -106,6 +108,7 @@ function App() {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/momo-test" element={<MomoTestPage />} />
             
             {/* User Routes */}
             <Route 
@@ -275,6 +278,18 @@ function App() {
                   element={
                     <React.Suspense fallback={<LoadingFallback />}>
                       <OutletSales />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+            <Route 
+              path="/outlet/sell" 
+              element={
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OutletSellPage />
                     </React.Suspense>
                   }
                 />

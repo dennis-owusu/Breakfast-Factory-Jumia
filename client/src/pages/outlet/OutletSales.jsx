@@ -22,22 +22,45 @@ const OutletSales = () => {
     const fetchSales = async () => {
       try {
         setIsLoading(true);
-        // TODO: Replace with actual API call
-        // const response = await fetch(`/api/sales?${queryParams}`, { headers });
-        // const data = await response.json();
-        // setSales(data.sales);
-        // setSummary(data.summary);
-        // setPagination({...});
-
-        // Mock data
-        const mockSales = [
-          { _id: '1', date: '2024-07-15', amount: 15000, items: 5, status: 'completed' },
-          { _id: '2', date: '2024-07-14', amount: 22000, items: 3, status: 'completed' },
-          // Add more mock data
-        ];
-        setSales(mockSales);
-        setSummary({ totalSales: 37000, averageSale: 18500, saleCount: 2 });
-        setPagination({ ...pagination, totalSales: 2, totalPages: 1 });
+        
+        // Build query parameters
+        const queryParams = new URLSearchParams({
+          outletId: currentUser?.outlet?._id,
+          page: pagination.page,
+          limit: pagination.limit
+        });
+        
+        if (searchInput) queryParams.append('search', searchInput);
+        if (filters.period !== 'all') queryParams.append('period', filters.period);
+        if (filters.minAmount) queryParams.append('minAmount', filters.minAmount);
+        if (filters.maxAmount) queryParams.append('maxAmount', filters.maxAmount);
+        
+        // Set headers with authentication token
+        const headers = {
+          'Content-Type': 'application/json',
+          ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
+        };
+        
+        // Make API call to fetch sales data
+        const response = await fetch(`/api/sales?${queryParams}`, { headers });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to fetch sales data');
+        }
+        
+        setSales(data.sales);
+        setSummary(data.summary);
+        setPagination(prev => ({
+          ...prev,
+          totalSales: data.totalSales,
+          totalPages: data.totalPages
+        }));
       } catch (err) {
         setError(err.message);
         toast.error(err.message);
@@ -45,8 +68,14 @@ const OutletSales = () => {
         setIsLoading(false);
       }
     };
-    fetchSales();
-  }, [pagination.page, searchInput, filters]);
+    
+    if (currentUser?.outlet?._id) {
+      fetchSales();
+    } else {
+      setError('No outlet found. Please ensure you are logged in.');
+      setIsLoading(false);
+    }
+  }, [pagination.page, pagination.limit, searchInput, filters, currentUser]);
 
   const handleSearch = (e) => {
     e.preventDefault();

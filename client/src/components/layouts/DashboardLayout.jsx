@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
 import Sidebar from '../Sidebar';
 
 const DashboardLayout = ({ children }) => {
@@ -16,6 +16,7 @@ const DashboardLayout = ({ children }) => {
         { to: '/outlet/dashboard', icon: <BarChart2 size={20} />, label: 'Dashboard' },
         { to: '/outlet/analytics', icon: <BarChart2 size={20} />, label: 'Analytics' },
         { to: '/outlet/sales', icon: <DollarSign size={20} />, label: 'Sales' },
+        { to: '/outlet/sell', icon: <CreditCard size={20} />, label: 'Sell' },
         { to: '/outlet/products', icon: <Package size={20} />, label: 'Products' },
         { to: '/outlet/orders', icon: <ShoppingBag size={20} />, label: 'Orders' },
         { to: '/outlet/profile', icon: <User size={20} />, label: 'Profile' },

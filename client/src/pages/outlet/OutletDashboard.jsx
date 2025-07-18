@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Package, BarChart2, Settings, ChevronRight, DollarSign, TrendingUp, Users } from 'lucide-react';
+import { ShoppingBag, Package, BarChart2, Settings, ChevronRight, DollarSign, TrendingUp, Users, CreditCard } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { toast } from 'react-hot-toast';
@@ -9,13 +9,65 @@ import { toast } from 'react-hot-toast';
 // Fetch outlet dashboard statistics from the API
 
 const OutletDashboard = () => {
-  const { user } = useSelector((state) => state.user);
-  const outlet = user?.outlet || {};
+  const { currentUser } = useSelector((state) => state.user);
+  const outlet = currentUser || {};
   
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Fetch dashboard statistics
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Set headers with authentication token
+        const headers = {
+          'Content-Type': 'application/json',
+          ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
+        };
+        
+        // Fetch orders for the outlet
+        const ordersResponse = await fetch(`/api/route/getOutletOrders/${outlet._id}?limit=5`, { headers });
+        if (!ordersResponse.ok) {
+          throw new Error(`HTTP error ${ordersResponse.status}: ${ordersResponse.statusText}`);
+        }
+        const ordersData = await ordersResponse.json();
+        
+        // Fetch analytics summary
+        const analyticsResponse = await fetch(`/api/route/analytics?period=monthly&outletId=${outlet._id}`, { headers });
+        if (!analyticsResponse.ok) {
+          throw new Error(`HTTP error ${analyticsResponse.status}: ${analyticsResponse.statusText}`);
+        }
+        const analyticsData = await analyticsResponse.json();
+        
+        // Combine data for dashboard
+        setStats({
+          totalSales: analyticsData.data.summaryData.totalSales,
+          totalOrders: analyticsData.data.summaryData.totalOrders,
+          totalProducts: analyticsData.data.summaryData.totalProducts,
+          pendingOrders: ordersData.orders.filter(order => order.status === 'pending').length,
+          recentOrders: ordersData.orders.slice(0, 5),
+          topProducts: analyticsData.data.topProducts
+        });
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err.message);
+        setError('Failed to load dashboard data. Please try again later.');
+        toast.error('Failed to load dashboard data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (outlet) {
+      fetchDashboardStats();
+    } else {
+      setError('No outlet found. Please ensure you are logged in.');
+      setIsLoading(false);
+    }
+  }, [outlet._id, currentUser?.token]);
   
   // Helper function to get status badge color
   const getStatusBadgeColor = (status) => {
@@ -35,14 +87,14 @@ const OutletDashboard = () => {
     }
   };
   
- /*  if (isLoading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Loader size="lg" />
       </div>
     );
-  } */
-/*    
+  }
+   
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -68,7 +120,7 @@ const OutletDashboard = () => {
         </button>
       </div>
     );
-  } */
+  }
   
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -197,7 +249,7 @@ const OutletDashboard = () => {
         </div>
         
         {/* Quick Links */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-8">
           <Link to="/outlet/products" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
             <div className="flex items-center">
               <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
@@ -221,6 +273,21 @@ const OutletDashboard = () => {
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">Manage Orders</h3>
                 <p className="text-sm text-gray-500">View and update order status</p>
+              </div>
+              <div className="ml-auto">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </Link>
+          
+          <Link to="/outlet/sell" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <CreditCard className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Sell</h3>
+                <p className="text-sm text-gray-500">Process in-store sales</p>
               </div>
               <div className="ml-auto">
                 <ChevronRight className="h-5 w-5 text-gray-400" />

@@ -6,15 +6,17 @@ import Loader from '../components/ui/Loader';
 import { formatPrice } from '../utils/helpers';
 import { clearCart } from '../redux/slices/cartSlice';
 import { Input } from '../components/ui/input';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import { usePaystackPayment } from 'react-paystack';
+import axios from 'axios';
 
 const CheckoutPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { cart: cartItems, totalPrice: subtotal } = useSelector((state) => state.cart);
   const { currentUser } = useSelector((state) => state.user);
-  
+
   const [formData, setFormData] = useState({
     fullName: currentUser?.name || '',
     address: '',
@@ -25,12 +27,36 @@ const CheckoutPage = () => {
     paymentMethod: 'cash_on_delivery',
     orderNumber_1: uuidv4(),
   });
-  
+
+  const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  
+
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+
+  const initializePayment = usePaystackPayment({
+    reference: new Date().getTime().toString(),
+    email: currentUser?.email || '',
+    amount: subtotal * 100, // in pesewas for GHS
+    publicKey,
+    currency: 'GHS',
+  });
+
+  const triggerPaystackPayment = () => {
+    initializePayment(handlePaystackSuccess, handlePaystackClose);
+  };
+
+  if (!currentUser) {
+    navigate('/login');
+     <div>Redirecting to login...</div>;
+  }
+
+  if (cartItems.length === 0) {
+    navigate('/cart');
+     <div>Redirecting to cart...</div>;
+  }
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -38,7 +64,7 @@ const CheckoutPage = () => {
       navigate('/login?redirect=checkout');
       return;
     }
-    
+
     // Redirect if cart is empty
     if (cartItems.length === 0) {
       navigate('/cart');
@@ -48,15 +74,46 @@ const CheckoutPage = () => {
     // Debug cart items
     console.log('Cart items in Checkout:', cartItems);
   }, [currentUser, cartItems, navigate]);
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
-  
+
+
+  const handlePaystackSuccess = async (reference) => {
+    try {
+      const outletId = cartItems[0]?.product?.currentUser?._id; // Assuming single outlet for simplicity
+      const email = currentUser?.email || ''; // Assuming user has email
+
+      const response = await axios.post('http://localhost:3000/api/route/paystack/save', {
+        reference: reference.reference,
+        amount: subtotal,
+        currency: 'GHS',
+        orderId,
+        outletId,
+        email,
+      });
+
+      if (response.status === 200) {
+        setSuccess(true);
+        dispatch(clearCart());
+        setTimeout(() => {
+          navigate(`/user/orders/${orderId}`);
+        }, 2000);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to save transaction.');
+    }
+  };
+
+  const handlePaystackClose = () => {
+    setError('Payment popup closed.');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -67,12 +124,12 @@ const CheckoutPage = () => {
       setError('Invalid phone number format. Please use international format, e.g., +1234567890');
       return;
     }
-    
+
     try {
-      // Prepare order data for backend
+      // Prepare order data
       const orderData = {
         user: currentUser._id,
-        products: cartItems.map(item => ({
+        products: cartItems.map((item) => ({
           product: item.product._id,
           quantity: item.quantity,
         })),
@@ -84,9 +141,10 @@ const CheckoutPage = () => {
         orderNumber: formData.orderNumber_1,
         postalCode: formData.postalCode,
         paymentMethod: formData.paymentMethod,
+        status: 'pending',
       };
-      
-      // Send POST request to create order
+
+      // Create order
       const response = await fetch('http://localhost:3000/api/route/createOrder', {
         method: 'POST',
         headers: {
@@ -94,28 +152,31 @@ const CheckoutPage = () => {
         },
         body: JSON.stringify(orderData),
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(result.message || 'Failed to create order');
       }
-      
-      // Show success and clear cart
-      setSuccess(true);
-      dispatch(clearCart());
-      
-      // Redirect to order confirmation after 2 seconds
-      setTimeout(() => {
-        navigate(`/user/orders/${result._id}`);
-      }, 2000);
+
+      setOrderId(result._id);
+
+      if (formData.paymentMethod === 'cash_on_delivery') {
+        setSuccess(true);
+        dispatch(clearCart());
+        setTimeout(() => {
+          navigate(`/user/orders/${result._id}`);
+        }, 2000);
+      } else {
+        setLoading(false);
+        triggerPaystackPayment();
+      }
     } catch (err) {
       setError(err.message || 'Failed to create order. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
-  
+
   if (loading && !success) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -123,7 +184,7 @@ const CheckoutPage = () => {
       </div>
     );
   }
-  
+
   if (success) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12">
@@ -136,8 +197,8 @@ const CheckoutPage = () => {
             </div>
           </div>
           <div className="mt-6 flex justify-center">
-            <Link 
-              to="/user/orders" 
+            <Link
+              to="/user/orders"
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
             >
               View My Orders
@@ -147,7 +208,7 @@ const CheckoutPage = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -156,9 +217,9 @@ const CheckoutPage = () => {
             <ArrowLeft className="h-4 w-4 mr-1" /> Back to Cart
           </Link>
         </div>
-        
+
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
-        
+
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8">
             <div className="flex">
@@ -171,14 +232,14 @@ const CheckoutPage = () => {
             </div>
           </div>
         )}
-        
+
         <div className="lg:grid lg:grid-cols-12 lg:gap-12">
           <div className="lg:col-span-7">
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                 <Truck className="h-5 w-5 mr-2" /> Shipping Information
               </h2>
-              
+
               <form id="checkout-form" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                   <div className="sm:col-span-6">
@@ -197,7 +258,7 @@ const CheckoutPage = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="sm:col-span-6">
                     <label htmlFor="address" className="block text-sm font-medium text-gray-700">
                       Address
@@ -214,7 +275,7 @@ const CheckoutPage = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="sm:col-span-3">
                     <label htmlFor="city" className="block text-sm font-medium text-gray-700">
                       City
@@ -231,7 +292,7 @@ const CheckoutPage = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="sm:col-span-3">
                     <label htmlFor="state" className="block text-sm font-medium text-gray-700">
                       State
@@ -248,7 +309,7 @@ const CheckoutPage = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="sm:col-span-3">
                     <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
                       Postal Code
@@ -264,7 +325,7 @@ const CheckoutPage = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="sm:col-span-3">
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                       Phone Number
@@ -283,16 +344,16 @@ const CheckoutPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="mt-8">
                   <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                     <CreditCard className="h-5 w-5 mr-2" /> Payment Method
                   </h2>
-                  
+
                   <RadioGroup
                     name="paymentMethod"
                     value={formData.paymentMethod}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, paymentMethod: value }))}
                     className="space-y-4"
                   >
                     <div className="flex items-center">
@@ -323,7 +384,7 @@ const CheckoutPage = () => {
                     </div>
                   </RadioGroup>
                 </div>
-                
+
                 <div className="mt-8 lg:hidden">
                   <button
                     type="submit"
@@ -336,17 +397,21 @@ const CheckoutPage = () => {
               </form>
             </div>
           </div>
-          
+
           <div className="lg:col-span-5">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h2>
-              
+
               <div className="max-h-80 overflow-y-auto mb-6">
                 {cartItems.map((item) => (
                   <div key={item._id} className="flex py-4 border-b border-gray-200 last:border-0">
                     <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                      <img 
-                        src={Array.isArray(item.product?.images) && item.product.images.length > 0 ? item.product.images[0] : 'https://via.placeholder.com/150?text=No+Image'} 
+                      <img
+                        src={
+                          Array.isArray(item.product?.images) && item.product.images.length > 0
+                            ? item.product.images[0]
+                            : 'https://via.placeholder.com/150?text=No+Image'
+                        }
                         alt={item.product?.name || 'Product'}
                         className="h-full w-full object-cover object-center"
                         onError={(e) => {
@@ -359,11 +424,7 @@ const CheckoutPage = () => {
                       <div>
                         <div className="flex justify-between text-sm font-medium text-gray-900">
                           <h3>{item.product?.productName || 'Unnamed Product'}</h3>
-                          <p className="ml-4">
-                            {formatPrice(
-                              (item.product?.productPrice || 0) * item.quantity
-                            )}
-                          </p>
+                          <p className="ml-4">{formatPrice((item.product?.productPrice || 0) * item.quantity)}</p>
                         </div>
                         {item.product?.currentUser && (
                           <p className="text-xs text-gray-500 mt-1">Sold by: {item.product.currentUser.name}</p>
@@ -376,27 +437,29 @@ const CheckoutPage = () => {
                   </div>
                 ))}
               </div>
-              
+
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <p className="text-gray-600">Subtotal ({totalItems} items)</p>
                   <p className="font-medium text-gray-900">{formatPrice(subtotal)}</p>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <p className="text-gray-600">Shipping</p>
                   <p className="font-medium text-gray-900">Free</p>
                 </div>
-                
+
                 <div className="pt-4 border-t border-gray-200">
                   <div className="flex justify-between">
                     <p className="text-lg font-medium text-gray-900">Total</p>
-                    <p className="text-lg font-medium text-gray-900">{formData.paymentMethod === 'cash_on_delivery' ? formatPrice(subtotal) : 'Pay with Paystack'}</p>
+                    <p className="text-lg font-medium text-gray-900">
+                      {formData.paymentMethod === 'cash_on_delivery' ? formatPrice(subtotal) : 'Pay with Paystack'}
+                    </p>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Including VAT</p>
                 </div>
               </div>
-              
+
               <div className="mt-6 hidden lg:block">
                 <button
                   type="submit"
