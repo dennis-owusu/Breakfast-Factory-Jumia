@@ -19,7 +19,6 @@ export const createOrder = async (req, res) => {
         }
         return {
           product: {
-            orderNumber_1: orderNumber,
             name: product.productName,
             price: product.productPrice,
             images: product.productImage ? [product.productImage] : [],
@@ -47,6 +46,7 @@ export const createOrder = async (req, res) => {
       address,
       city,
       state,
+      orderNumber,
       phoneNumber,
       postalCode,
       paymentMethod,

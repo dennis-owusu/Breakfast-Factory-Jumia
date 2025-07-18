@@ -80,7 +80,7 @@ const orderSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: {
-        values: ["pending", "processing", "shipped", "delivered"],
+        values: ["pending", "processing", "shipped", "delivered", "cancelled"],
         message: "Status must be pending, processing, shipped, or delivered",
       },
       default: "pending",
@@ -89,7 +89,6 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: uuidv4(),
       unique: true,
-      sparse: true,
       required: true 
     },
     },
