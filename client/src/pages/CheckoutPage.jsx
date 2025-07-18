@@ -10,6 +10,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import { usePaystackPayment } from 'react-paystack';
 import axios from 'axios';
+import { Button } from '../components/ui/button';
+import { useRef } from 'react';
 
 const CheckoutPage = () => {
   const dispatch = useDispatch();
@@ -25,27 +27,32 @@ const CheckoutPage = () => {
     postalCode: '',
     phone: '',
     paymentMethod: 'cash_on_delivery',
-    orderNumber_1: uuidv4(),
+    orderNumber: uuidv4(),
   });
 
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [triggerPayment, setTriggerPayment] = useState(false);
+  const orderIdRef = useRef(null);
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
   const initializePayment = usePaystackPayment({
-    reference: new Date().getTime().toString(),
+    reference: formData.orderNumber,
     email: currentUser?.email || '',
-    amount: subtotal * 100, // in pesewas for GHS
+    amount: subtotal * 100,
     publicKey,
     currency: 'GHS',
   });
 
   const triggerPaystackPayment = () => {
-    initializePayment(handlePaystackSuccess, handlePaystackClose);
+    initializePayment({
+      onSuccess: handlePaystackSuccess,
+      onClose: handlePaystackClose,
+    });
   };
 
   if (!currentUser) {
@@ -75,6 +82,13 @@ const CheckoutPage = () => {
     console.log('Cart items in Checkout:', cartItems);
   }, [currentUser, cartItems, navigate]);
 
+  useEffect(() => {
+    if (triggerPayment) {
+      triggerPaystackPayment();
+      setTriggerPayment(false);
+    }
+  }, [triggerPayment]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -84,44 +98,69 @@ const CheckoutPage = () => {
   };
 
 
+
+
   const handlePaystackSuccess = async (reference) => {
     try {
-      const outletId = cartItems[0]?.product?.currentUser?._id; // Assuming single outlet for simplicity
-      const email = currentUser?.email || ''; // Assuming user has email
-
-      const response = await axios.post('http://localhost:3000/api/route/paystack/save', {
-        reference: reference.reference,
-        amount: subtotal,
-        currency: 'GHS',
-        orderId,
-        outletId,
-        email,
+      const response = await fetch('http://localhost:3000/api/route/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referenceId: reference.reference,
+          userId: currentUser._id,
+          amount: subtotal,
+          phoneNumber: formData.phone,
+          currency: 'GHS',
+          orderId: orderIdRef.current,
+          payerEmail: currentUser?.email,
+          paymentMethod: formData.paymentMethod,
+          status: 'paid',
+        }),
       });
-
-      if (response.status === 200) {
+      if (response.ok) {
         setSuccess(true);
         dispatch(clearCart());
-        setTimeout(() => {
-          navigate(`/user/orders/${orderId}`);
-        }, 2000);
+        setTimeout(() => navigate(`/user/orders/${orderId}`), 2000);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save transaction.');
       }
     } catch (err) {
       setError(err.message || 'Failed to save transaction.');
     }
   };
 
-  const handlePaystackClose = () => {
-    setError('Payment popup closed.');
-  };
+const handlePaystackClose = async () => {
+  try {
+    await fetch('http://localhost:3000/api/route/payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        referenceId: formData.orderNumber,
+        userId: currentUser._id,
+        orderId: orderIdRef.current,
+        amount: subtotal,
+        paymentMethod: formData.paymentMethod,
+        currency: 'GHS',
+        payerEmail: currentUser?.email,
+        phoneNumber: formData.phone,
+        status: 'failed',
+      }),
+    });
+  } catch (err) {
+    console.error('Failed to log failed transaction:', err);
+  }
+  setError('Payment popup closed.');
+  // Navigate to products page after payment is cancelled/failed
+  navigate('/products');
+};
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, isCash = false) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
-
-    if (!formData.phone.match(/^\+?[1-9]\d{1,14}$/)) {
+    if (!formData.phone.match(/^[+]?[0-9]{10,15}$/)) {
       setLoading(false);
-      setError('Invalid phone number format. Please use international format, e.g., +1234567890');
+      setError('Invalid phone number format.');
       return;
     }
 
@@ -138,7 +177,7 @@ const CheckoutPage = () => {
         city: formData.city,
         state: formData.state,
         phoneNumber: formData.phone,
-        orderNumber: formData.orderNumber_1,
+        orderNumber: formData.orderNumber,
         postalCode: formData.postalCode,
         paymentMethod: formData.paymentMethod,
         status: 'pending',
@@ -160,8 +199,9 @@ const CheckoutPage = () => {
       }
 
       setOrderId(result._id);
+      orderIdRef.current = result._id;
 
-      if (formData.paymentMethod === 'cash_on_delivery') {
+      if (formData.paymentMethod === 'cash_on_delivery' || isCash) {
         setSuccess(true);
         dispatch(clearCart());
         setTimeout(() => {
@@ -169,12 +209,21 @@ const CheckoutPage = () => {
         }, 2000);
       } else {
         setLoading(false);
-        triggerPaystackPayment();
+        setTriggerPayment(true);
       }
     } catch (err) {
       setError(err.message || 'Failed to create order. Please try again.');
       setLoading(false);
     }
+  };
+
+  const handleCashPaymentTrigger = async () => {
+    setLoading(true);
+    await handleSubmit({ preventDefault: () => {} }, true);
+  };
+  const handlePaystackPayment = async () => {
+    setLoading(true);
+    await handleSubmit({ preventDefault: () => {} }, false);
   };
 
   if (loading && !success) {
@@ -386,13 +435,23 @@ const CheckoutPage = () => {
                 </div>
 
                 <div className="mt-8 lg:hidden">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-orange-500 text-white py-3 px-4 rounded-md font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center"
-                  >
-                    {loading ? <Loader size="sm" color="white" /> : 'Place Order'}
-                  </button>
+                  {formData.paymentMethod === 'cash_on_delivery' ? (
+                    <Button
+                      onClick={handleCashPaymentTrigger}
+                      disabled={loading}
+                      className="w-full bg-orange-500 text-white py-3 px-4 rounded-md font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center"
+                    >
+                      {loading ? <Loader size="sm" color="white" /> : 'Place Order'}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handlePaystackPayment}
+                      disabled={loading || formData.paymentMethod !== 'paystack'}
+                      className="w-full bg-orange-500 text-white py-3 px-4 rounded-md font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50"
+                    >
+                      {loading && formData.paymentMethod === 'paystack' ? <Loader size="sm" color="white" /> : 'Pay with Paystack'}
+                    </Button>
+                  )}
                 </div>
               </form>
             </div>

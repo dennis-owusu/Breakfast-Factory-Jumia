@@ -106,7 +106,7 @@ app.use('/api/route', orderRoute);
 app.use('/api/route', categoryRoute);
 app.use('/api/route', analyticsRoute);
 app.use('/api/feedback', feedbackRoute);
-app.use('/api/route/payments', paymentRoute);
+app.use('/api/route', paymentRoute);
 
 // Global error handler
 app.use((err, req, res, next) => {
