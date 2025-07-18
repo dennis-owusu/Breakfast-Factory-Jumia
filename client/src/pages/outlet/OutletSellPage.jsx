@@ -9,6 +9,9 @@ import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { Label } from '../../components/ui/label';
 import Loader from '../../components/ui/Loader';
 import { formatPrice } from '../../utils/helpers';
+import { usePaystackPayment } from 'react-paystack';
+import { v4 as uuidv4 } from 'uuid';
+import { useRef } from 'react';
 
 const OutletSellPage = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -24,6 +27,93 @@ const OutletSellPage = () => {
     email: '',
   });
   const [paymentMethod, setPaymentMethod] = useState('cashOnDelivery');
+  const [orderId, setOrderId] = useState(null);
+  const [triggerPayment, setTriggerPayment] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  const orderIdRef = useRef(null);
+  const [orderNumber, setOrderNumber] = useState(uuidv4());
+
+  const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+
+  const initializePayment = usePaystackPayment({
+    reference: orderNumber,
+    email: currentUser?.email || 'outlet@example.com',
+    amount: calculateTotal() * 100,
+    publicKey,
+    currency: 'GHS',
+  });
+
+  const triggerPaystackPayment = () => {
+    initializePayment({
+      onSuccess: handlePaystackSuccess,
+      onClose: handlePaystackClose,
+    });
+  };
+
+  useEffect(() => {
+    if (triggerPayment) {
+      triggerPaystackPayment();
+      setTriggerPayment(false);
+    }
+  }, [triggerPayment]);
+
+  const handlePaystackSuccess = async (reference) => {
+    try {
+      const response = await fetch('http://localhost:3000/api/route/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referenceId: reference.reference,
+          userId: currentUser._id,
+          orderId: orderIdRef.current,
+          amount: calculateTotal(),
+          phoneNumber: currentUser?.phoneNumber,
+          currency: 'GHS',
+          payerEmail: currentUser?.email || 'outlet@example.com',
+          paymentMethod: 'paystack',
+          status: 'paid',
+        }),
+      });
+      if (response.ok) {
+        setSuccess(true);
+        setCart([]);
+        setCustomerInfo({ name: '', phoneNumber: '', email: '' });
+        setPaymentMethod('cashOnDelivery');
+      setOrderNumber(uuidv4());
+        toast.success('Payment successful and order processed!');
+      } else {
+        throw new Error('Failed to save transaction.');
+      }
+    } catch (err) {
+      setError(err.message);
+      toast.error('Failed to save transaction.');
+    }
+  };
+
+  const handlePaystackClose = async () => {
+    try {
+      await fetch('http://localhost:3000/api/route/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referenceId: orderNumber,
+          userId: currentUser._id,
+          orderId: orderIdRef.current,
+          amount: calculateTotal(),
+          paymentMethod: 'paystack',
+          currency: 'GHS',
+          payerEmail: currentUser?.email || 'outlet@example.com',
+          phoneNumber: currentUser?.phoneNumber,
+          status: 'failed',
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to log failed transaction:', err);
+    }
+    setError('Payment popup closed.');
+    toast.error('Payment was not completed.');
+  };
 
   // Fetch products for this outlet
   useEffect(() => {
@@ -105,7 +195,7 @@ const OutletSellPage = () => {
   };
 
   // Calculate cart total
-  const calculateTotal = () => {
+  function calculateTotal() {
     return cart.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
   };
 
@@ -122,8 +212,13 @@ const OutletSellPage = () => {
       return;
     }
 
+     if (paymentMethod === 'paystack' && (!currentUser?.email || !currentUser.email.trim())) {
+       toast.error('Email is required for Paystack payment');
+       return;
+     }
+
     // Validate phone number for MTN Mobile Money
-    if (paymentMethod === 'mtnMomo' && (!customerInfo.phoneNumber || !customerInfo.phoneNumber.trim())) {
+    if (paymentMethod === 'mtnMomo' && (!currentUser?.phoneNumber || !currentUser?.phoneNumber.trim())) {
       toast.error('Phone number is required for MTN Mobile Money payment');
       return;
     }
@@ -205,7 +300,7 @@ const OutletSellPage = () => {
       }
 
       // Create the order
-      const response = await fetch('/api/route/orders', {
+      const response = await fetch('/api/route/createOrder', {
         method: 'POST',
         headers,
         body: JSON.stringify(orderData),
@@ -228,6 +323,14 @@ const OutletSellPage = () => {
       
       if (!response.ok) {
         throw new Error(data?.message || `HTTP error ${response.status}`);
+      }
+      
+      setOrderId(data._id);
+      orderIdRef.current = data._id;
+
+      if (paymentMethod === 'paystack') {
+        setTriggerPayment(true);
+        return;
       }
       
       if (paymentMethod === 'cashOnDelivery') {
@@ -370,7 +473,7 @@ const OutletSellPage = () => {
                 <Input
                   placeholder="Customer Name"
                   name="name"
-                  value={customerInfo.name}
+
                   onChange={handleCustomerInfoChange}
                 />
                 <Input
@@ -387,7 +490,7 @@ const OutletSellPage = () => {
                   placeholder="Email"
                   name="email"
                   type="email"
-                  value={customerInfo.email}
+                  value={currentUser.email}
                   onChange={handleCustomerInfoChange}
                 />
               </div>
@@ -397,19 +500,25 @@ const OutletSellPage = () => {
                 <h3 className="font-semibold">Payment Method</h3>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-2">
                   <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="paystack" id="paystack" />
+                    <Label htmlFor="paystack" className="flex items-center">
+                      <CreditCard className="mr-2 h-4 w-4" /> Mobile Money
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="cashOnDelivery" id="cashOnDelivery" />
                     <Label htmlFor="cashOnDelivery" className="flex items-center">
                       <CreditCard className="mr-2 h-4 w-4 text-gray-500" />
                       Cash Payment
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                {/*   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="mtnMomo" id="mtnMomo" />
                     <Label htmlFor="mtnMomo" className="flex items-center">
                       <Phone className="mr-2 h-4 w-4 text-yellow-500" />
                       MTN Mobile Money
                     </Label>
-                  </div>
+                  </div> */}
                 </RadioGroup>
               </div>
               

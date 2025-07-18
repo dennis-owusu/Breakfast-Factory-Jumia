@@ -63,9 +63,8 @@ const orderSchema = new mongoose.Schema(
     },
     phoneNumber: {
       type: String,
-      required: [true, "Phone number is required"],
+      required: false,
       trim: true,
-      match: [/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"],
     },
     postalCode: {
       type: String,
@@ -87,7 +86,7 @@ const orderSchema = new mongoose.Schema(
     },
   orderNumber: {
       type: String,
-      default: uuidv4(),
+      default: () => uuidv4(),
       unique: true,
       required: true 
     },
