@@ -13,6 +13,7 @@ const OutletDashboard = () => {
   const outlet = currentUser || {};
   
   const [stats, setStats] = useState(null);
+  const [allOrders, setAllOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -29,8 +30,8 @@ const OutletDashboard = () => {
           ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
         };
         
-        // Fetch orders for the outlet
-        const ordersResponse = await fetch(`/api/route/getOutletOrders/${outlet._id}?limit=5`, { headers });
+        // Fetch all orders for the outlet
+        const ordersResponse = await fetch(`/api/route/getOutletOrders/${outlet._id}`, { headers });
         if (!ordersResponse.ok) {
           throw new Error(`HTTP error ${ordersResponse.status}: ${ordersResponse.statusText}`);
         }
@@ -52,6 +53,7 @@ const OutletDashboard = () => {
           recentOrders: ordersData.orders.slice(0, 5),
           topProducts: analyticsData.data.topProducts
         });
+        setAllOrders(ordersData.orders);
       } catch (err) {
         console.error('Failed to load dashboard data:', err.message);
         setError('Failed to load dashboard data. Please try again later.');
@@ -443,6 +445,53 @@ const OutletDashboard = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        {/* Transaction History */}
+        <div className="mt-8 bg-white shadow rounded-lg overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-200">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Transaction History</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {allOrders.map((order) => (
+                  <tr key={order._id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.orderNumber}<br/>{formatDate(order.createdAt)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.customer.name}<br/>{order.customer.email}</td>
+                    <td className="px-6 py-4">
+                      {order.items.map((item, index) => (
+                        <div key={index} className="flex items-center mb-2">
+                          <img src={item.product.images[0] || 'https://via.placeholder.com/50'} alt={item.product.name} className="h-10 w-10 rounded" />
+                          <div className="ml-2">
+                            <p className="text-sm font-medium text-gray-900">{item.product.name}</p>
+                            <p className="text-sm text-gray-500">Qty: {item.quantity} @ {formatPrice(item.price)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.paymentMethod}<br/>{order.paymentStatus}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(order.totalAmount)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

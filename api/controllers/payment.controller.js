@@ -1,4 +1,5 @@
 import Payment from '../models/payment.model.js'
+import Order from '../models/order.model.js'
 
 export const createPayment = async (req, res, next) => {
   try {
@@ -20,7 +21,18 @@ export const createPayment = async (req, res, next) => {
 
     res.status(201).json({ message: "Payment recorded", payment: newPayment });
   } catch (error) {
-    next(error); // or: res.status(500).json({ error: error.message });
+    next(error);
     console.log(error)
+  }
+};
+
+export const getOutletPayments = async (req, res, next) => {
+  try {
+    const orders = await Order.find({});
+    const orderIds = orders.map(order => order._id);
+    const payments = await Payment.find({ orderId: { $in: orderIds } }).sort({ createdAt: -1 });
+    res.status(200).json(payments);
+  } catch (error) {
+    next(error);
   }
 };

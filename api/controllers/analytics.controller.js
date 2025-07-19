@@ -8,12 +8,6 @@ export const getAnalytics = async (req, res, next) => {
     const { period, outletId, date } = req.query;
 
     // Validate inputs
-    if (!outletId) {
-      return next(errorHandler(400, 'Outlet ID is required'));
-    }
-    if (!mongoose.Types.ObjectId.isValid(outletId)) {
-      return next(errorHandler(400, 'Invalid Outlet ID'));
-    }
     if (!['daily', 'weekly', 'monthly', 'yearly'].includes(period)) {
       return next(errorHandler(400, 'Invalid period. Must be daily, weekly, monthly, or yearly'));
     }
@@ -55,10 +49,11 @@ export const getAnalytics = async (req, res, next) => {
     }
 
     // Build match stage
-    const matchStage = {
-      outletId: new mongoose.Types.ObjectId(outletId),
-      createdAt: date ? { $gte: startDate, $lte: new Date(startDate.getTime() + 24 * 60 * 60 * 1000 - 1) } : { $gte: startDate },
-    };
+    const matchStage = {};
+    if (outletId) {
+      matchStage.outletId = new mongoose.Types.ObjectId(outletId);
+    }
+    matchStage.createdAt = date ? { $gte: startDate, $lte: new Date(startDate.getTime() + 24 * 60 * 60 * 1000 - 1) } : { $gte: startDate };
 
     // Aggregate sales and orders data
     const salesData = await Order.aggregate([
@@ -202,10 +197,12 @@ export const getAnalytics = async (req, res, next) => {
 export const getSales = async (req, res, next) => {
      try {
        const { outletId, period, search, minAmount, maxAmount, page = 1, limit = 10 } = req.query;
-       if (!outletId) return next(errorHandler(400, 'Outlet ID is required'));
-       if (!mongoose.Types.ObjectId.isValid(outletId)) return next(errorHandler(400, 'Invalid Outlet ID'));
 
-       const matchStage = { outletId: new mongoose.Types.ObjectId(outletId) };
+       const matchStage = {};
+       if (outletId) {
+         if (!mongoose.Types.ObjectId.isValid(outletId)) return next(errorHandler(400, 'Invalid Outlet ID'));
+         matchStage.outletId = new mongoose.Types.ObjectId(outletId);
+       }
        if (period && period !== 'all') {
          const now = new Date();
          let startDate;

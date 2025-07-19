@@ -42,7 +42,7 @@ const OutletSales = () => {
         };
         
         // Make API call to fetch sales data
-        const response = await fetch(`/api/sales?${queryParams}`, { headers });
+        const response = await fetch(`/api/route/sales`, { headers });
         
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
@@ -50,7 +50,7 @@ const OutletSales = () => {
         
         const data = await response.json();
         
-        if (!data.success) {
+        if (!data) {
           throw new Error(data.message || 'Failed to fetch sales data');
         }
         
@@ -69,7 +69,7 @@ const OutletSales = () => {
       }
     };
     
-    if (currentUser?.outlet?._id) {
+    if (currentUser) {
       fetchSales();
     } else {
       setError('No outlet found. Please ensure you are logged in.');

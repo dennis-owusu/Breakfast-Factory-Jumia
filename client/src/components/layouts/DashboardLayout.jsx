@@ -16,6 +16,7 @@ const DashboardLayout = ({ children }) => {
         { to: '/outlet/dashboard', icon: <BarChart2 size={20} />, label: 'Dashboard' },
         { to: '/outlet/analytics', icon: <BarChart2 size={20} />, label: 'Analytics' },
         { to: '/outlet/sales', icon: <DollarSign size={20} />, label: 'Sales' },
+        { to: '/outlet/transactions', icon: <CreditCard size={20} />, label: 'Transactions' },
         { to: '/outlet/sell', icon: <CreditCard size={20} />, label: 'Sell' },
         { to: '/outlet/products', icon: <Package size={20} />, label: 'Products' },
         { to: '/outlet/orders', icon: <ShoppingBag size={20} />, label: 'Orders' },
