@@ -1,24 +1,8 @@
 import { errorHandler } from "../utils/error.js"; 
 import Product from '../models/product.model.js';
-import { v2 as cloudinary } from 'cloudinary';
-import dotenv from 'dotenv';
-dotenv.config();
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
 
 export const newProducts = async (req, res, next) => {
-    const { productId, productName, category, numberOfProductsAvailable, productPrice, description, outlet, specifications, featured, discountPrice, author } = req.body;
-    let imageUrl = '';
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path);
-      imageUrl = result.secure_url;
-    } else if (productImage) {
-      imageUrl = productImage;
-    }
+    const { productId, productName, category, numberOfProductsAvailable, productPrice, productImage, description, outlet, specifications, featured, discountPrice, author } = req.body;
 
     if (!productName || !productPrice || !productImage) {
         return next(errorHandler(400, 'Product name, price, and image are required'));
@@ -31,7 +15,7 @@ export const newProducts = async (req, res, next) => {
             category,
             numberOfProductsAvailable,
             productPrice,
-            productImage: imageUrl,
+            productImage, // Use the productImage from req.body
             description,
             specifications,   
             featured,
@@ -113,10 +97,22 @@ export const deleteProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
     try {
-        let updateData = { ...req.body };
+        const updateData = {
+            productId: req.body.productId,
+            category: req.body.category,
+            productName: req.body.productName,
+            productPrice: req.body.productPrice,
+            numberOfProductsAvailable: req.body.numberOfProductsAvailable,
+            productImage: req.body.productImage,
+            description: req.body.description,
+            specifications: req.body.specifications,
+            featured: req.body.featured,
+            discountPrice: req.body.discountPrice,
+            author: req.body.author
+        };
+
         if (req.file) {
-          const result = await cloudinary.uploader.upload(req.file.path);
-          updateData.productImage = result.secure_url;
+            updateData.productImage = `/uploads/${req.file.filename}`;
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
