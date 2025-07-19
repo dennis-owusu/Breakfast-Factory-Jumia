@@ -91,8 +91,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Serve static files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
+app.use('/uploads', [
+  express.static(path.join(__dirname, 'uploads')),
+  express.static(path.join(__dirname, 'Uploads'))
+]);
 
 // MongoDB
 mongoose.connect(process.env.MONGO_URI)
