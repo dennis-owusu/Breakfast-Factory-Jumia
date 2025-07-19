@@ -1,32 +1,35 @@
 import express from 'express';
 import multer from 'multer';
 import Image from '../models/image.model.js';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
+dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const router = express.Router();
 
-// Set up storage for multer
-const storage = multer.diskStorage({
-  destination: './uploads/', // Directory for uploaded files
-  filename: (req, file, cb) => {
-    const uniqueName = Date.now() + path.extname(file.originalname); // Unique file name
-    cb(null, uniqueName); // Use the unique file name
-  },
-});
-
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Route for uploading multiple images
 router.post('/upload', upload.array('images', 10), async (req, res) => {
   try {
-    const images = req.files.map(file => ({
-      fileName: file.filename,
-      filePath: `http://localhost:3000/uploads/${file.filename}`, // Full URL
-
-    }));
-
-
-    const savedImages = await Image.insertMany(images);
+    const uploadPromises = req.files.map(async (file) => {
+      const result = await cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+        if (error) throw error;
+        return result;
+      }).end(file.buffer);
+      return {
+        fileName: file.originalname,
+        filePath: result.secure_url
+      };
+    });
+    const uploadedImages = await Promise.all(uploadPromises);
+    const savedImages = await Image.insertMany(uploadedImages);
     res.status(201).json({ success: true, images: savedImages });
   } catch (err) {
     console.error('Error uploading images:', err);
