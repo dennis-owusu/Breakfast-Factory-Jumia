@@ -5,6 +5,7 @@ import { ShoppingBag, Package, BarChart2, Settings, ChevronRight, DollarSign, Tr
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { toast } from 'react-hot-toast';
+import AIQuery from '../../components/ui/AIQuery';
 
 // Fetch outlet dashboard statistics from the API
 
@@ -224,6 +225,11 @@ const OutletDashboard = () => {
           </div>
           
           {/* Pending Orders Card */}
+
+          {/* AI Query Section */}
+          <div className="mt-8 col-span-full">
+            <AIQuery />
+          </div>
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">

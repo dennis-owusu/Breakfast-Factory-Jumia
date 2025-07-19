@@ -30,7 +30,10 @@
     "multer": "^2.0.1",
     "node-fetch": "^3.3.2",
     "socket.io": "^4.8.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "@azure-rest/ai-inference": "^1.0.0-beta.6",
+    "@azure/core-auth": "^1.10.0",
+    "@azure/core-sse": "latest"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

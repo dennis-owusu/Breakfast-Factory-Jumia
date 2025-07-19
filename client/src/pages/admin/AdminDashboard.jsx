@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
+import AIQuery from '../../components/ui/AIQuery';
 
 // This would be imported from an API utility file in a real app
 const fetchDashboardStats = async () => {
@@ -248,6 +249,11 @@ const AdminDashboard = () => {
           </div>
 
           {/* Total Users */}
+
+        {/* AI Query Section */}
+        <div className="mt-8">
+          <AIQuery />
+        </div>
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
