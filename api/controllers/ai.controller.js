@@ -70,14 +70,20 @@ export const askAI = async (req, res, next) => {
     }
 
     if (question.toLowerCase().includes('predict') || question.toLowerCase().includes('future') || question.toLowerCase().includes('best selling') || question.toLowerCase().includes('bestselling')) {
-      const historicalSales = await Order.aggregate([
+      let historicalSales = await Order.aggregate([
         { $unwind: '$items' },
         { $group: { _id: '$items.product', totalSold: { $sum: '$items.quantity' } } },
         { $sort: { totalSold: -1 } },
         { $limit: 10 },
         { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'product' } }
       ]);
-      context += `Top bestselling products based on all order data: ${JSON.stringify(historicalSales.map(s => ({ name: s.product[0]?.productName, description: s.product[0]?.description, price: s.product[0]?.price, sold: s.totalSold })))}. Use this for accurate answers and predictions. `;
+      let predictionContext = `Top bestselling products based on all order data: ${JSON.stringify(historicalSales.map(s => ({ name: s.product[0]?.productName, description: s.product[0]?.description, price: s.product[0]?.price, sold: s.totalSold })))}. `;
+      if (historicalSales.length === 0) {
+        const allProducts = await Product.find().limit(10);
+        predictionContext += `No sales data available yet. Here are some products in the system: ${JSON.stringify(allProducts.map(p => ({ name: p.productName, description: p.description, price: p.price })))}. `;
+      }
+      predictionContext += 'Use this data to make reasonable predictions for future best-sellers, such as based on current trends or product details if no sales history.';
+      context += predictionContext;
     }
 
     if (question.toLowerCase().includes('users') || question.toLowerCase().includes('customers')) {
@@ -111,7 +117,7 @@ export const askAI = async (req, res, next) => {
     const response = await client.path('/chat/completions').post({
       body: {
         messages: [
-          { role: 'system', content: 'You are a friendly and knowledgeable AI assistant with full real-time access to the e-commerce system\'s data. Always provide precise, specific, and accurate answers based solely on the provided context. Never claim lack of access or speculate; use the data given to give confident, helpful responses in simple language without technical jargon: ' + context },
+          { role: 'system', content: 'You are a friendly and knowledgeable AI assistant with full real-time access to the e-commerce system\'s data. Always provide precise, specific, and accurate answers based solely on the provided context. If data is limited, make reasonable predictions based on available information without claiming lack of data. Format your responses in a clear, organized manner using markdown: use headings, bullet points, bold text for key information, and short paragraphs for readability. Use the data given to give confident, helpful responses in simple language without technical jargon: ' + context },
           { role: 'user', content: question }
         ],
         temperature: 1.0,
