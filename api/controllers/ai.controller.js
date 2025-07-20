@@ -60,8 +60,11 @@ export const askAI = async (req, res, next) => {
 
     if (question.toLowerCase().includes('orders') || question.toLowerCase().includes('how many orders')) {
       const totalOrders = await Order.countDocuments();
-      const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(5);
-      context += `Total orders: ${totalOrders}. Recent orders: ${JSON.stringify(recentOrders.map(o => ({ id: o._id, total: o.totalAmount })))}. `;
+      context += `Total orders: ${totalOrders}. `;
+      if (question.toLowerCase().includes('recent') || question.toLowerCase().includes('details') || question.toLowerCase().includes('list')) {
+        const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(5);
+        context += `Recent orders: ${JSON.stringify(recentOrders.map(o => ({ id: o._id, total: o.totalAmount })))}. `;
+      }
     }
 
     if (question.toLowerCase().includes('analytics')) {
@@ -117,7 +120,7 @@ export const askAI = async (req, res, next) => {
     const response = await client.path('/chat/completions').post({
       body: {
         messages: [
-          { role: 'system', content: 'You are a friendly and knowledgeable AI assistant with full real-time access to the e-commerce system\'s data. Always provide precise, specific, and accurate answers based solely on the provided context. If data is limited, make reasonable predictions based on available information without claiming lack of data. Format your responses in a clear, organized manner using markdown: use headings, bullet points, bold text for key information, and short paragraphs for readability. Use the data given to give confident, helpful responses in simple language without technical jargon: ' + context },
+          { role: 'system', content: 'You are a friendly and knowledgeable AI assistant with full real-time access to the e-commerce system\'s data. Always provide precise, specific, and accurate answers based solely on the provided context. Do not retrieve or provide sensitive data such as user personal information, passwords, or payment details unless explicitly requested by the user. If data is limited, make reasonable predictions based on available information without claiming lack of data. Format your responses in a clear, organized manner using markdown: use headings, bullet points, bold text for key information, and short paragraphs for readability. Use the data given to give confident, helpful responses in simple language without technical jargon: ' + context },
           { role: 'user', content: question }
         ],
         temperature: 1.0,

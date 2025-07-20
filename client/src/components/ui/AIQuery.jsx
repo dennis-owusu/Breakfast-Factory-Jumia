@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
 
 const AIQuery = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -62,8 +63,10 @@ const AIQuery = () => {
       </form>
       {loading && <p className="mt-4 text-gray-500">Thinking...</p>}
       {answer && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-md">
-          <p className="text-gray-800">{answer}</p>
+        <div className="mt-4 p-4 bg-gray-50 rounded-md overflow-auto max-h-96">
+          <div className="text-gray-800 prose prose-sm max-w-none prose-headings:text-orange-600 prose-headings:font-bold prose-p:text-gray-700 prose-li:marker:text-orange-500">
+            <ReactMarkdown>{answer}</ReactMarkdown>
+          </div>
         </div>
       )}
     </div>
