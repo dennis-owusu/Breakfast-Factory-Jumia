@@ -12,7 +12,9 @@ import { errorHandler } from '../utils/error.js';
 
 dotenv.config();
 
-const token = process.env.GITHUB_TOKEN;
+// const token = process.env.GITHUB_TOKEN;
+const token = process.env.AZURE_AI_KEY; // your actual Azure API key variable
+
 const endpoint = 'https://models.inference.ai.azure.com';
 const modelName = 'Llama-3.3-70B-Instruct';
 
