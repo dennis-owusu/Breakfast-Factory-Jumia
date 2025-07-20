@@ -3,6 +3,11 @@ import { AzureKeyCredential } from '@azure/core-auth';
 import dotenv from 'dotenv';
 import Order from '../models/order.model.js';
 import Product from '../models/product.model.js';
+import Analytics from '../models/analytics.model.js';
+import User from '../models/users.model.js';
+import Category from '../models/categories.model.js';
+import Payment from '../models/payment.model.js';
+import Feedback from '../models/feedback.js';
 import { errorHandler } from '../utils/error.js';
 
 dotenv.config();
@@ -48,12 +53,65 @@ export const askAI = async (req, res, next) => {
       context += `Best selling product this week: ${bestSelling[0]?.product[0]?.productName || 'None'}, sold ${bestSelling[0]?.totalSold || 0} units. `;
     }
 
+    if (question.toLowerCase().includes('products') || question.toLowerCase().includes('how many products')) {
+      const totalProducts = await Product.countDocuments();
+      context += `Total products in the system: ${totalProducts}. `;
+    }
+
+    if (question.toLowerCase().includes('orders') || question.toLowerCase().includes('how many orders')) {
+      const totalOrders = await Order.countDocuments();
+      const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(5);
+      context += `Total orders: ${totalOrders}. Recent orders: ${JSON.stringify(recentOrders.map(o => ({ id: o._id, total: o.totalAmount })))}. `;
+    }
+
+    if (question.toLowerCase().includes('analytics')) {
+      const analyticsData = await Analytics.findOne(); // Adjust based on actual model
+      context += `Analytics summary: Total revenue: ${analyticsData?.totalRevenue || 0}, Total users: ${analyticsData?.totalUsers || 0}. `;
+    }
+
+    if (question.toLowerCase().includes('predict') || question.toLowerCase().includes('future') || question.toLowerCase().includes('best selling') || question.toLowerCase().includes('bestselling')) {
+      const historicalSales = await Order.aggregate([
+        { $unwind: '$items' },
+        { $group: { _id: '$items.product', totalSold: { $sum: '$items.quantity' } } },
+        { $sort: { totalSold: -1 } },
+        { $limit: 10 },
+        { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'product' } }
+      ]);
+      context += `Top bestselling products based on all order data: ${JSON.stringify(historicalSales.map(s => ({ name: s.product[0]?.productName, description: s.product[0]?.description, price: s.product[0]?.price, sold: s.totalSold })))}. Use this for accurate answers and predictions. `;
+    }
+
+    if (question.toLowerCase().includes('users') || question.toLowerCase().includes('customers')) {
+      const totalUsers = await User.countDocuments();
+      const recentUsers = await User.find().sort({ createdAt: -1 }).limit(5);
+      context += `Total users: ${totalUsers}. Recent users: ${JSON.stringify(recentUsers.map(u => ({ id: u._id, username: u.username, role: u.role })))}. `;
+    }
+
+    if (question.toLowerCase().includes('categories')) {
+      const categories = await Category.find();
+      context += `Product categories: ${JSON.stringify(categories.map(c => ({ name: c.name, description: c.description })))}. `;
+    }
+
+    if (question.toLowerCase().includes('payments')) {
+      const recentPayments = await Payment.find().sort({ createdAt: -1 }).limit(5);
+      context += `Recent payments: ${JSON.stringify(recentPayments.map(p => ({ id: p._id, amount: p.amount, status: p.status })))}. `;
+    }
+
+    if (question.toLowerCase().includes('feedback') || question.toLowerCase().includes('reviews')) {
+      const recentFeedback = await Feedback.find().sort({ createdAt: -1 }).limit(5);
+      context += `Recent feedback: ${JSON.stringify(recentFeedback.map(f => ({ product: f.product, rating: f.rating, comment: f.comment })))}. `;
+    }
+
+    // Add general system details
+    const systemDetails = 'The system is a MERN stack e-commerce app with roles: Admin, Outlet, User. Features include product listings, carts, orders, payments (Cash on Delivery), JWT auth, image uploads.';
+    context += systemDetails + ' ';
+
+
     const client = ModelClient(endpoint, new AzureKeyCredential(token));
 
     const response = await client.path('/chat/completions').post({
       body: {
         messages: [
-          { role: 'system', content: 'You are a helpful assistant with access to the e-commerce system data. Use the following context to answer: ' + context },
+          { role: 'system', content: 'You are a friendly and knowledgeable AI assistant with full real-time access to the e-commerce system\'s data. Always provide precise, specific, and accurate answers based solely on the provided context. Never claim lack of access or speculate; use the data given to give confident, helpful responses in simple language without technical jargon: ' + context },
           { role: 'user', content: question }
         ],
         temperature: 1.0,
