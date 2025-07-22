@@ -38,8 +38,8 @@ const OutletDashboard = () => {
         }
         const ordersData = await ordersResponse.json();
         
-        // Fetch analytics summary
-        const analyticsResponse = await fetch(`/api/route/analytics?period=monthly&outletId=${outlet._id}`, { headers });
+        // Fetch analytics summary - removed outletId parameter as it's causing filtering issues
+        const analyticsResponse = await fetch(`/api/route/analytics?period=monthly`, { headers });
         if (!analyticsResponse.ok) {
           throw new Error(`HTTP error ${analyticsResponse.status}: ${analyticsResponse.statusText}`);
         }

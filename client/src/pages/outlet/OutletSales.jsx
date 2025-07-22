@@ -23,9 +23,8 @@ const OutletSales = () => {
       try {
         setIsLoading(true);
         
-        // Build query parameters
+        // Build query parameters - removed outletId as it's causing filtering issues
         const queryParams = new URLSearchParams({
-          outletId: currentUser?.outlet?._id,
           page: pagination.page,
           limit: pagination.limit
         });
@@ -42,7 +41,7 @@ const OutletSales = () => {
         };
         
         // Make API call to fetch sales data
-        const response = await fetch(`/api/route/sales`, { headers });
+        const response = await fetch(`/api/route/sales?${queryParams.toString()}`, { headers });
         
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
