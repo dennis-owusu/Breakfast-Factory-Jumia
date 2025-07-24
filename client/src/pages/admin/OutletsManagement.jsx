@@ -14,74 +14,19 @@ import {
 import { formatDate } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
 
-// This would be imported from an API utility file in a real app
+import { adminAPI } from '../../utils/api';
+
+// Use the real API function from our API utility
 const fetchOutlets = async (params) => {
-  // Simulate API call with filtering and pagination
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate 40 outlets
-      const allOutlets = Array.from({ length: 40 }, (_, i) => ({
-        _id: `outlet${i + 1}`,
-        name: `Outlet ${i + 1}`,
-        description: `This is a description for Outlet ${i + 1}`,
-        owner: {
-          _id: `user${i + 100}`,
-          name: `Owner ${i + 1}`,
-          email: `owner${i + 1}@example.com`
-        },
-        status: i % 8 === 0 ? 'pending' : (i % 9 === 0 ? 'rejected' : 'active'),
-        productsCount: Math.floor(Math.random() * 100),
-        ordersCount: Math.floor(Math.random() * 200),
-        totalSales: Math.floor(Math.random() * 1000000),
-        rating: (Math.random() * 3 + 2).toFixed(1),
-        createdAt: new Date(Date.now() - (i * 2 * 24 * 60 * 60 * 1000)).toISOString(),
-        categories: [
-          ['Electronics', 'Fashion', 'Home & Kitchen'][Math.floor(Math.random() * 3)],
-          ['Beauty', 'Books', 'Sports'][Math.floor(Math.random() * 3)]
-        ]
-      }));
-      
-      // Apply search filter
-      let filteredOutlets = [...allOutlets];
-      if (params.search) {
-        const searchLower = params.search.toLowerCase();
-        filteredOutlets = filteredOutlets.filter(outlet => 
-          outlet.name.toLowerCase().includes(searchLower) || 
-          outlet.description.toLowerCase().includes(searchLower) ||
-          outlet.owner.name.toLowerCase().includes(searchLower) ||
-          outlet.owner.email.toLowerCase().includes(searchLower)
-        );
-      }
-      
-      // Apply status filter
-      if (params.status && params.status !== 'all') {
-        filteredOutlets = filteredOutlets.filter(outlet => outlet.status === params.status);
-      }
-      
-      // Apply category filter
-      if (params.category && params.category !== 'all') {
-        filteredOutlets = filteredOutlets.filter(outlet => 
-          outlet.categories.some(cat => cat.toLowerCase() === params.category.toLowerCase())
-        );
-      }
-      
-      // Calculate pagination
-      const totalOutlets = filteredOutlets.length;
-      const totalPages = Math.ceil(totalOutlets / params.limit);
-      const offset = (params.page - 1) * params.limit;
-      const paginatedOutlets = filteredOutlets.slice(offset, offset + params.limit);
-      
-      resolve({
-        outlets: paginatedOutlets,
-        pagination: {
-          total: totalOutlets,
-          totalPages,
-          currentPage: params.page,
-          limit: params.limit
-        }
-      });
-    }, 1000);
-  });
+  try {
+    // Assuming there's a getOutlets method in adminAPI
+    // If not, you might need to add it to the API utility
+    const response = await adminAPI.getOutlets(params);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching outlets:', error);
+    throw error;
+  }
 };
 
 const updateOutletStatus = async (outletId, status) => {

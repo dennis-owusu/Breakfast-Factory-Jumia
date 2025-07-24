@@ -1,117 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-hot-toast';
 import { 
   Users, 
   ShoppingBag, 
   Store, 
   DollarSign, 
-  TrendingUp, 
   Package, 
   AlertTriangle,
   BarChart2,
-  ShoppingCart,
-  UserCheck
+  ShoppingCart,                                                                                                                                                                                                                                                                                                                                                                                                                                               
+  UserCheck,
+  ChevronRight
 } from 'lucide-react';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
 import AIQuery from '../../components/ui/AIQuery';
 
-// This would be imported from an API utility file in a real app
-const fetchDashboardStats = async () => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        totalSales: 12500000,
-        totalOrders: 1250,
-        totalUsers: 3500,
-        totalOutlets: 120,
-        totalProducts: 8500,
-        pendingOrders: 85,
-        pendingOutlets: 12,
-        recentOrders: [
-          {
-            _id: 'ord123',
-            orderNumber: 'ORD-100123',
-            customer: { name: 'John Doe' },
-            totalAmount: 45000,
-            status: 'processing',
-            createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            _id: 'ord124',
-            orderNumber: 'ORD-100124',
-            customer: { name: 'Jane Smith' },
-            totalAmount: 78500,
-            status: 'pending',
-            createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            _id: 'ord125',
-            orderNumber: 'ORD-100125',
-            customer: { name: 'Robert Johnson' },
-            totalAmount: 125000,
-            status: 'delivered',
-            createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            _id: 'ord126',
-            orderNumber: 'ORD-100126',
-            customer: { name: 'Emily Davis' },
-            totalAmount: 35000,
-            status: 'shipped',
-            createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            _id: 'ord127',
-            orderNumber: 'ORD-100127',
-            customer: { name: 'Michael Wilson' },
-            totalAmount: 92500,
-            status: 'processing',
-            createdAt: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString()
-          }
-        ],
-        newOutlets: [
-          {
-            _id: 'out123',
-            name: 'Tech Haven',
-            owner: { name: 'David Chen' },
-            status: 'pending',
-            productsCount: 0,
-            createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            _id: 'out124',
-            name: 'Fashion Forward',
-            owner: { name: 'Sarah Kim' },
-            status: 'pending',
-            productsCount: 0,
-            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            _id: 'out125',
-            name: 'Home Essentials',
-            owner: { name: 'James Brown' },
-            status: 'active',
-            productsCount: 12,
-            createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ],
-        salesByCategory: [
-          { name: 'Electronics', value: 4500000 },
-          { name: 'Fashion', value: 3200000 },
-          { name: 'Home & Kitchen', value: 2100000 },
-          { name: 'Beauty & Personal Care', value: 1500000 },
-          { name: 'Books & Media', value: 1200000 }
-        ]
-      });
-    }, 1000);
-  });
+// Fetch dashboard stats from API
+const fetchDashboardStats = async (headers) => {
+  try {
+    const response = await fetch('/api/dashboard/stats', {
+      method: 'GET',
+      headers,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    throw error;
+  }
 };
 
 const AdminDashboard = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.user);
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -120,18 +48,27 @@ const AdminDashboard = () => {
     const loadDashboardStats = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchDashboardStats();
-        setStats(data);
         setError(null);
+        
+        // Set headers with authentication token
+        const headers = {
+          'Content-Type': 'application/json',
+          ...(user?.token && { Authorization: `Bearer ${user.token}` }),
+        };
+        
+        const data = await fetchDashboardStats(headers);
+        setStats(data);
       } catch (err) {
+        console.error('Failed to load dashboard data:', err.message);
         setError('Failed to load dashboard statistics. Please try again later.');
+        toast.error('Failed to load dashboard data');
       } finally {
         setIsLoading(false);
       }
     };
     
     loadDashboardStats();
-  }, []);
+  }, [user?.token]);
 
   // Helper function to get status badge color
   const getStatusBadgeColor = (status) => {
@@ -194,7 +131,12 @@ const AdminDashboard = () => {
           </p>
         </div>
 
-        {/* Stats Overview */}
+        {/* AI Query Section */}
+        <div className="mt-8">
+          <AIQuery />
+        </div>
+
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           {/* Total Sales */}
           <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -249,11 +191,6 @@ const AdminDashboard = () => {
           </div>
 
           {/* Total Users */}
-
-        {/* AI Query Section */}
-        <div className="mt-8">
-          <AIQuery />
-        </div>
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
@@ -304,10 +241,7 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Secondary Stats */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
           {/* Total Products */}
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
@@ -387,6 +321,100 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Quick Links */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-8">
+          <Link to="/admin/products" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <Package className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Manage Products</h3>
+                <p className="text-sm text-gray-500">Add, edit, or remove products</p>
+              </div>
+              <div className="ml-auto">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </Link>
+          
+          <Link to="/admin/orders" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <ShoppingBag className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Manage Orders</h3>
+                <p className="text-sm text-gray-500">View and update order status</p>
+              </div>
+              <div className="ml-auto">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </Link>
+          
+          <Link to="/admin/analytics" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <BarChart2 className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Analytics</h3>
+                <p className="text-sm text-gray-500">View sales and performance data</p>
+              </div>
+              <div className="ml-auto">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </Link>
+          
+          <Link to="/admin/categories" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <Package className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Manage Categories</h3>
+                <p className="text-sm text-gray-500">Add, edit, or remove categories</p>
+              </div>
+              <div className="ml-auto">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </Link>
+          
+          <Link to="/admin/users" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <Users className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Manage Users</h3>
+                <p className="text-sm text-gray-500">View and manage user accounts</p>
+              </div>
+              <div className="ml-auto">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </Link>
+          
+          <Link to="/admin/outlets" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <Store className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Manage Outlets</h3>
+                <p className="text-sm text-gray-500">View and manage outlets</p>
+              </div>
+              <div className="ml-auto">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Recent Orders and New Outlets */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           {/* Recent Orders */}
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">

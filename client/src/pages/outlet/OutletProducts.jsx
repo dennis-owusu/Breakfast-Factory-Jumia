@@ -255,7 +255,7 @@ const handleDeleteProduct = async (productId) => {
                       </div>
                     </div>
                   </td>
-                  <td className="p-3 text-sm">{product.category}</td>
+                  <td className="p-3 text-sm">{product.category?.categoryName || product.category || 'Uncategorized'}</td>
                   <td className="p-3 text-sm">₦{product.productPrice.toFixed(2)}</td>
                   <td className="p-3 text-sm">{product.numberOfProductsAvailable}</td>
                   <td className="p-3 flex justify-end gap-2">

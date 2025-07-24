@@ -16,132 +16,124 @@ import {
 import { formatDate, formatPrice } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
 
-// This would be imported from an API utility file in a real app
 const fetchProducts = async (params) => {
-  // Simulate API call with filtering and pagination
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate 50 products
-      const allProducts = Array.from({ length: 50 }, (_, i) => ({
-        _id: `product${i + 1}`,
-        name: `Product ${i + 1}`,
-        description: `This is a description for Product ${i + 1}`,
-        price: Math.floor(Math.random() * 100000) + 1000,
-        discountPrice: Math.random() > 0.7 ? Math.floor(Math.random() * 50000) + 500 : null,
-        stock: Math.floor(Math.random() * 100),
-        sold: Math.floor(Math.random() * 200),
-        rating: (Math.random() * 3 + 2).toFixed(1),
-        numReviews: Math.floor(Math.random() * 50),
-        images: [
-          `https://picsum.photos/id/${(i * 10) % 1000}/400/400`,
-          `https://picsum.photos/id/${(i * 10 + 1) % 1000}/400/400`
-        ],
-        category: ['Electronics', 'Fashion', 'Home & Kitchen', 'Beauty', 'Books', 'Sports'][Math.floor(Math.random() * 6)],
-        brand: ['Brand A', 'Brand B', 'Brand C', 'Brand D'][Math.floor(Math.random() * 4)],
-        status: i % 10 === 0 ? 'inactive' : 'active',
-        featured: i % 8 === 0,
-        outlet: {
-          _id: `outlet${Math.floor(i / 5) + 1}`,
-          name: `Outlet ${Math.floor(i / 5) + 1}`
-        },
-        createdAt: new Date(Date.now() - (i * 2 * 24 * 60 * 60 * 1000)).toISOString()
-      }));
-      
-      // Apply search filter
-      let filteredProducts = [...allProducts];
-      if (params.search) {
-        const searchLower = params.search.toLowerCase();
-        filteredProducts = filteredProducts.filter(product => 
-          product.name.toLowerCase().includes(searchLower) || 
-          product.description.toLowerCase().includes(searchLower) ||
-          product.category.toLowerCase().includes(searchLower) ||
-          product.brand.toLowerCase().includes(searchLower) ||
-          product.outlet.name.toLowerCase().includes(searchLower)
-        );
+  try {
+    const token = localStorage.getItem('token');
+    const queryParams = new URLSearchParams({
+      startIndex: ((params.page - 1) * params.limit).toString(),
+      limit: params.limit.toString(),
+      searchTerm: params.search || '',
+      category: params.category !== 'all' ? params.category : '',
+      featured: params.featured !== 'all' ? params.featured === 'featured' : ''
+    });
+
+    const response = await fetch(`/api/allproducts?${queryParams}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-      
-      // Apply category filter
-      if (params.category && params.category !== 'all') {
-        filteredProducts = filteredProducts.filter(product => 
-          product.category.toLowerCase() === params.category.toLowerCase()
-        );
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
+    }
+
+    const data = await response.json();
+    
+    // Transform the response to match our component's expectations
+    return {
+      products: data.products.map(product => ({
+        _id: product._id,
+        name: product.productName,
+        description: product.description,
+        price: product.productPrice,
+        discountPrice: product.discountPrice,
+        stock: product.numberOfProductsAvailable,
+        images: [product.productImage],
+        category: product.category?.categoryName || 'Uncategorized',
+        featured: product.featured,
+        outlet: product.outlet,
+        createdAt: product.createdAt
+      })),
+      pagination: {
+        total: data.totalProducts,
+        totalPages: Math.ceil(data.totalProducts / params.limit),
+        currentPage: params.page,
+        limit: params.limit
       }
-      
-      // Apply status filter
-      if (params.status && params.status !== 'all') {
-        filteredProducts = filteredProducts.filter(product => product.status === params.status);
-      }
-      
-      // Apply stock filter
-      if (params.stock && params.stock !== 'all') {
-        if (params.stock === 'in-stock') {
-          filteredProducts = filteredProducts.filter(product => product.stock > 0);
-        } else if (params.stock === 'out-of-stock') {
-          filteredProducts = filteredProducts.filter(product => product.stock === 0);
-        } else if (params.stock === 'low-stock') {
-          filteredProducts = filteredProducts.filter(product => product.stock > 0 && product.stock <= 10);
-        }
-      }
-      
-      // Apply featured filter
-      if (params.featured && params.featured !== 'all') {
-        const isFeatured = params.featured === 'featured';
-        filteredProducts = filteredProducts.filter(product => product.featured === isFeatured);
-      }
-      
-      // Calculate pagination
-      const totalProducts = filteredProducts.length;
-      const totalPages = Math.ceil(totalProducts / params.limit);
-      const offset = (params.page - 1) * params.limit;
-      const paginatedProducts = filteredProducts.slice(offset, offset + params.limit);
-      
-      resolve({
-        products: paginatedProducts,
-        pagination: {
-          total: totalProducts,
-          totalPages,
-          currentPage: params.page,
-          limit: params.limit
-        }
-      });
-    }, 1000);
-  });
+    };
+  } catch (error) {
+    throw new Error('Failed to fetch products: ' + error.message);
+  }
 };
 
 const updateProductStatus = async (productId, status) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: `Product status updated to ${status}`
-      });
-    }, 500);
-  });
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/update/${productId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update product status');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw new Error('Failed to update product status: ' + error.message);
+  }
 };
 
 const updateProductFeatured = async (productId, featured) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: `Product ${featured ? 'marked as featured' : 'removed from featured'}`
-      });
-    }, 500);
-  });
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/update/${productId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ featured })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update product featured status');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw new Error('Failed to update product featured status: ' + error.message);
+  }
 };
 
 const deleteProduct = async (productId) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: 'Product deleted successfully'
-      });
-    }, 500);
-  });
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/delete/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete product');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw new Error('Failed to delete product: ' + error.message);
+  }
 };
 
 const ProductsManagement = () => {
@@ -539,7 +531,7 @@ const ProductsManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <img className="h-10 w-10 rounded-md object-cover" src={product.images[0]} alt={product.name} />
+                            <img className="h-10 w-10 rounded-md object-cover" src={product.images?.[0] || '/placeholder-image.jpg'} alt={product.name || 'Product'} />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{product.name}</div>
@@ -587,11 +579,11 @@ const ProductsManagement = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{product.outlet.name}</div>
+                        <div className="text-sm text-gray-900">{product.outlet?.name || 'Unknown Outlet'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                          {product.status ? (product.status.charAt(0).toUpperCase() + product.status.slice(1)) : 'Unknown'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

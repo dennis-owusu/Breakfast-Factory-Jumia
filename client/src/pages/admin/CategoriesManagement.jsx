@@ -25,58 +25,35 @@ const fetchCategories = async (params) => {
     throw error;
   }
 };
-      
-      // Filter by search term
-      let filteredCategories = allCategories;
-      if (search) {
-        const searchLower = search.toLowerCase();
-        filteredCategories = allCategories.filter(cat => 
-          cat.name.toLowerCase().includes(searchLower) || 
-          cat.description.toLowerCase().includes(searchLower) ||
-          (cat.parentName && cat.parentName.toLowerCase().includes(searchLower))
-        );
-      }
-      
-      // Paginate
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedCategories = filteredCategories.slice(startIndex, endIndex);
-      
-      resolve({
-        categories: paginatedCategories,
-        totalCategories: filteredCategories.length,
-        totalPages: Math.ceil(filteredCategories.length / limit),
-        currentPage: page
-      });
-    }, 1000);
-  });
-};
 
 const deleteCategory = async (id) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, message: 'Category deleted successfully' });
-    }, 1000);
-  });
+  try {
+    const response = await adminAPI.deleteCategory(id);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    throw error;
+  }
 };
 
 const updateCategoryStatus = async (id, status) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, message: `Category ${status === 'active' ? 'activated' : 'deactivated'} successfully` });
-    }, 1000);
-  });
+  try {
+    const response = await adminAPI.updateCategory(id, { status });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating category status:', error);
+    throw error;
+  }
 };
 
 const updateCategoryFeatured = async (id, featured) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, message: `Category ${featured ? 'marked as featured' : 'removed from featured'} successfully` });
-    }, 1000);
-  });
+  try {
+    const response = await adminAPI.updateCategory(id, { featured });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating category featured:', error);
+    throw error;
+  }
 };
 
 const CategoriesManagement = () => {

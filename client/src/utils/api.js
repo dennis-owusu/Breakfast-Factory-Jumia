@@ -82,10 +82,16 @@ export const productAPI = {
 // Admin API endpoints
 export const adminAPI = {
   // User management
-  getAllUsers: () => api.get('/auth/users'),
+  getAllUsers: (params) => api.get('/auth/users', { params }),
   getUserById: (id) => api.get(`/auth/users/${id}`),
   updateUser: (id, userData) => api.put(`/auth/users/${id}`, userData),
   deleteUser: (id) => api.delete(`/auth/users/${id}`),
+  
+  // Outlet management
+  getOutlets: (params) => api.get('/outlets', { params }),
+  getOutletById: (id) => api.get(`/outlets/${id}`),
+  updateOutlet: (id, outletData) => api.put(`/outlets/${id}`, outletData),
+  deleteOutlet: (id) => api.delete(`/outlets/${id}`),
   
   // Product management
   createProduct: (productData) => api.post('/products', productData),

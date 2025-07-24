@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -15,7 +16,9 @@ import {
 import { Button } from './button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 
-const DashboardLayout = ({ children, userRole }) => {
+const DashboardLayout = ({ children }) => {
+  const { currentUser } = useSelector((state) => state.user);
+  const userRole = currentUser?.usersRole || 'user';
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   
@@ -70,7 +73,7 @@ const DashboardLayout = ({ children, userRole }) => {
           icon: <Package className="h-5 w-5" />, 
           path: '/outlet/products' 
         },
-        { 
+        {  
           label: 'Orders', 
           icon: <ShoppingBag className="h-5 w-5" />, 
           path: '/outlet/orders' 

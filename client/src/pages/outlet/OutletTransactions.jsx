@@ -16,20 +16,43 @@ const OutletTransactions = () => {
     const fetchTransactions = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        
         const headers = {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${currentUser.token}`,
         };
-        const response = await fetch(`/api/route/payments`, { headers });
-        if (!response.ok) throw new Error('Failed to fetch transactions');
+        
+        // Get outlet ID from current user if they are an outlet
+        const outletId = currentUser?.usersRole === 'outlet' ? currentUser._id : null;
+        const url = outletId 
+          ? `/api/route/payments` 
+          : '/api/route/payments';
+          
+        const response = await fetch(url, { headers });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch transactions');
+        }
+        
         const data = await response.json();
-        setTransactions(data.payments);
+        
+        if (data && data.payments) {
+          setTransactions(data.payments);
+        } else {
+          setTransactions([]);
+          setError('No transaction data available');
+        }
       } catch (err) {
-        toast.error(err.message);
+        console.error('Transaction fetch error:', err);
+        setError(err.message || 'Failed to load transactions');
+        toast.error(err.message || 'Failed to load transactions');
       } finally {
         setIsLoading(false);
       }
     };
+    
     if (currentUser) fetchTransactions();
   }, [currentUser]);
 
@@ -58,8 +81,8 @@ const OutletTransactions = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatPrice(tx.amount)} {tx.currency}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tx.paymentMethod}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <Badge variant={tx.status === 'successful' ? 'success' : 'destructive'}>
-                    {tx.status}
+                  <Badge variant={tx.status === 'paid' || tx.status === 'successful' ? 'success' : 'destructive'}>
+                    {tx.status === 'paid' ? 'Success' : tx.status}
                   </Badge>
                 </td>
               </tr>

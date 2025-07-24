@@ -14,125 +14,73 @@ import {
 import { formatDate, formatPrice } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
 
-// This would be imported from an API utility file in a real app
 const fetchOrders = async (params) => {
-  // Simulate API call with filtering and pagination
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate 50 orders
-      const allOrders = Array.from({ length: 50 }, (_, i) => {
-        const orderDate = new Date(Date.now() - (i * 24 * 60 * 60 * 1000));
-        const orderStatus = [
-          'pending', 'processing', 'shipped', 'delivered', 'cancelled'
-        ][Math.floor(Math.random() * 5)];
-        
-        const paymentStatus = orderStatus === 'cancelled' ? 'refunded' : 
-          (orderStatus === 'delivered' ? 'paid' : 
-            (Math.random() > 0.3 ? 'paid' : 'pending'));
-        
-        const paymentMethod = ['cash_on_delivery', 'card', 'bank_transfer'][Math.floor(Math.random() * 3)];
-        
-        const itemsCount = Math.floor(Math.random() * 5) + 1;
-        const totalAmount = Math.floor(Math.random() * 100000) + 5000;
-        
-        return {
-          _id: `order${i + 1}`,
-          orderNumber: `ORD-${100000 + i}`,
-          customer: {
-            _id: `user${i + 100}`,
-            name: `Customer ${i + 1}`,
-            email: `customer${i + 1}@example.com`,
-            phone: `+234${Math.floor(Math.random() * 1000000000).toString().padStart(10, '0')}`
+  try {
+    const token = localStorage.getItem('token');
+    const queryParams = new URLSearchParams({
+      startIndex: ((params.page - 1) * params.limit).toString(),
+      limit: params.limit.toString(),
+      searchTerm: params.search || '',
+      status: params.status !== 'all' ? params.status : '',
+      dateFrom: params.startDate || '',
+      dateTo: params.endDate || ''
+    });
+
+    const response = await fetch(`/api/route/getOrders?${queryParams}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch orders');
+    }
+
+    const data = await response.json();
+    
+    return {
+      orders: data.map(order => ({
+        _id: order._id,
+        orderNumber: order.orderNumber,
+        customer: {
+          _id: order.user,
+          name: order.userInfo?.name || 'Unknown',
+          email: order.userInfo?.email,
+          phone: order.phoneNumber
+        },
+        items: order.products.map(item => ({
+          _id: item._id,
+          product: {
+            name: item.product?.name,
+            image: item.product?.images?.[0]
           },
-          items: Array.from({ length: itemsCount }, (_, j) => ({
-            _id: `item${i}${j}`,
-            product: {
-              _id: `product${i * 10 + j}`,
-              name: `Product ${i * 10 + j}`,
-              image: `https://picsum.photos/id/${(i * 10 + j) % 1000}/400/400`
-            },
-            price: Math.floor(Math.random() * 10000) + 1000,
-            quantity: Math.floor(Math.random() * 3) + 1,
-            outlet: {
-              _id: `outlet${Math.floor(i / 5) + 1}`,
-              name: `Outlet ${Math.floor(i / 5) + 1}`
-            }
-          })),
-          shippingAddress: {
-            street: `${i + 100} Main Street`,
-            city: ['Lagos', 'Abuja', 'Port Harcourt', 'Ibadan', 'Kano'][Math.floor(Math.random() * 5)],
-            state: ['Lagos', 'FCT', 'Rivers', 'Oyo', 'Kano'][Math.floor(Math.random() * 5)],
-            country: 'Nigeria',
-            zipCode: `${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
-          },
-          paymentMethod,
-          paymentStatus,
-          totalAmount,
-          status: orderStatus,
-          createdAt: orderDate.toISOString(),
-          updatedAt: new Date(orderDate.getTime() + (Math.random() * 24 * 60 * 60 * 1000)).toISOString()
-        };
-      });
-      
-      // Apply search filter
-      let filteredOrders = [...allOrders];
-      if (params.search) {
-        const searchLower = params.search.toLowerCase();
-        filteredOrders = filteredOrders.filter(order => 
-          order.orderNumber.toLowerCase().includes(searchLower) || 
-          order.customer.name.toLowerCase().includes(searchLower) ||
-          order.customer.email.toLowerCase().includes(searchLower) ||
-          order.customer.phone.includes(params.search) ||
-          order.items.some(item => item.product.name.toLowerCase().includes(searchLower)) ||
-          order.shippingAddress.city.toLowerCase().includes(searchLower) ||
-          order.shippingAddress.state.toLowerCase().includes(searchLower)
-        );
+          price: item.product?.price,
+          quantity: item.quantity
+        })),
+        shippingAddress: {
+          street: order.address,
+          city: order.city,
+          state: order.state,
+          country: 'Ghana',
+          zipCode: order.postalCode
+        },
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.momoTransactionId ? 'paid' : 'pending',
+        totalAmount: order.totalPrice,
+        status: order.status,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
+      })),
+      pagination: {
+        total: data.length,
+        totalPages: Math.ceil(data.length / params.limit),
+        currentPage: params.page,
+        limit: params.limit
       }
-      
-      // Apply status filter
-      if (params.status && params.status !== 'all') {
-        filteredOrders = filteredOrders.filter(order => order.status === params.status);
-      }
-      
-      // Apply payment status filter
-      if (params.paymentStatus && params.paymentStatus !== 'all') {
-        filteredOrders = filteredOrders.filter(order => order.paymentStatus === params.paymentStatus);
-      }
-      
-      // Apply payment method filter
-      if (params.paymentMethod && params.paymentMethod !== 'all') {
-        filteredOrders = filteredOrders.filter(order => order.paymentMethod === params.paymentMethod);
-      }
-      
-      // Apply date range filter
-      if (params.startDate) {
-        const startDate = new Date(params.startDate);
-        filteredOrders = filteredOrders.filter(order => new Date(order.createdAt) >= startDate);
-      }
-      
-      if (params.endDate) {
-        const endDate = new Date(params.endDate);
-        endDate.setHours(23, 59, 59, 999); // End of the day
-        filteredOrders = filteredOrders.filter(order => new Date(order.createdAt) <= endDate);
-      }
-      
-      // Calculate pagination
-      const totalOrders = filteredOrders.length;
-      const totalPages = Math.ceil(totalOrders / params.limit);
-      const offset = (params.page - 1) * params.limit;
-      const paginatedOrders = filteredOrders.slice(offset, offset + params.limit);
-      
-      resolve({
-        orders: paginatedOrders,
-        pagination: {
-          total: totalOrders,
-          totalPages,
-          currentPage: params.page,
-          limit: params.limit
-        }
-      });
-    }, 1000);
-  });
+    };
+  } catch (error) {
+    throw new Error('Failed to fetch orders: ' + error.message);
+  }
 };
 
 const OrdersManagement = () => {
@@ -270,12 +218,10 @@ const OrdersManagement = () => {
     switch (method) {
       case 'cash_on_delivery':
         return 'Cash on Delivery';
-      case 'card':
-        return 'Card Payment';
-      case 'bank_transfer':
-        return 'Bank Transfer';
+      case 'paystack':
+        return 'Paystack';
       default:
-        return method;
+        return method.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
   };
   
@@ -385,8 +331,7 @@ const OrdersManagement = () => {
                 >
                   <option value="all">All Payment Methods</option>
                   <option value="cash_on_delivery">Cash on Delivery</option>
-                  <option value="card">Card Payment</option>
-                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="paystack">Paystack</option>
                 </select>
               </div>
               
@@ -500,13 +445,13 @@ const OrdersManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentStatusBadgeColor(order.paymentStatus)}`}>
-                            {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                            {order.paymentStatus ? order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) : 'Unknown'}
                           </span>
                           <span className="text-xs text-gray-500 mt-1">
                             {formatPaymentMethod(order.paymentMethod)}

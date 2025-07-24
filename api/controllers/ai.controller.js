@@ -13,7 +13,7 @@ import { errorHandler } from '../utils/error.js';
 dotenv.config();
 
 // const token = process.env.GITHUB_TOKEN;
-const token = process.env.AZURE_AI_KEY; // your actual Azure API key variable
+const token = process.env.GITHUB_TOKEN; // your actual Azure API key variable
 
 const endpoint = 'https://models.inference.ai.azure.com';
 const modelName = 'Llama-3.3-70B-Instruct';
@@ -33,14 +33,14 @@ export const askAI = async (req, res, next) => {
         { $group: { _id: null, totalSales: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
       ]);
       context += `Sales data for yesterday: ${sales[0]?.count || 0} orders, total ${sales[0]?.totalSales || 0}. `;
-    }
+    } 
 
     if (question.toLowerCase().includes('stock')) {
       const outOfStock = await Product.countDocuments({ numberOfProductsAvailable: 0 });
       const inStock = await Product.countDocuments({ numberOfProductsAvailable: { $gt: 0 } });
       context += `Products: ${inStock} in stock, ${outOfStock} out of stock. `;
     }
-
+ 
     if (question.toLowerCase().includes('best selling') || question.toLowerCase().includes('this week')) {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);

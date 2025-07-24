@@ -2,6 +2,16 @@ import mongoose from 'mongoose';
 
 
 const usersSchema = new mongoose.Schema({
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active',
+        required: true
+    },
+    lastLogin: {
+        type: Date,
+        default: null
+    },
     name: {
         type: String,
         required: true
@@ -35,7 +45,9 @@ const usersSchema = new mongoose.Schema({
         type: String,
         required: false
      },
-}, {timestamp: {new: true}})
+}, {
+    timestamps: true
+})
 
 const Users = mongoose.model('Users', usersSchema)
 

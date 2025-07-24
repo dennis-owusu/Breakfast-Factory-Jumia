@@ -1,7 +1,9 @@
 import { errorHandler } from '../utils/error.js';
 import Product from '../models/product.model.js';
 import Order from '../models/order.model.js';
+import Categories from '../models/categories.model.js';
 import mongoose from 'mongoose';
+import User from '../models/users.model.js'
 
 export const getAnalytics = async (req, res, next) => {
   try {
@@ -148,6 +150,21 @@ export const getAnalytics = async (req, res, next) => {
       categoryData = [];
     }
 
+    // User and outlet growth
+    const userGrowth = await User.aggregate([
+      { $match: { createdAt: { $gte: startDate, $lte: endDate }, role: 'user' } },
+      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+      { $project: { date: '$_id', users: '$count', _id: 0 } }
+    ]);
+
+    const outletGrowth = await User.aggregate([
+      { $match: { createdAt: { $gte: startDate, $lte: endDate }, role: 'outlet' } },
+      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+      { $project: { date: '$_id', outlets: '$count', _id: 0 } }
+    ]);
+
     // Aggregate top products
     let topProducts = [];
     try {
@@ -168,10 +185,19 @@ export const getAnalytics = async (req, res, next) => {
           },
           { $unwind: { path: '$productDetails', preserveNullAndEmptyArrays: true } },
           {
+            $lookup: {
+              from: 'categories',
+              localField: 'productDetails.category',
+              foreignField: '_id',
+              as: 'categoryDetails'
+            }
+          },
+          { $unwind: { path: '$categoryDetails', preserveNullAndEmptyArrays: true } },
+          {
             $group: {
               _id: { $ifNull: ['$productDetails._id', '$products.product._id'] },
               name: { $first: { $ifNull: ['$productDetails.productName', '$products.product.name'] } },
-              category: { $first: { $ifNull: ['$productDetails.category', 'Uncategorized'] } },
+              category: { $first: { $ifNull: ['$categoryDetails.categoryName', 'Uncategorized'] } },
               sales: { $sum: { $multiply: ['$products.quantity', { $ifNull: ['$productDetails.productPrice', '$products.product.price'] }] } },
               units: { $sum: '$products.quantity' },
             },
@@ -246,6 +272,8 @@ export const getAnalytics = async (req, res, next) => {
         categoryData,
         topProducts,
         summaryData,
+        userGrowth,
+        outletGrowth,
       },
     });
   } catch (error) {

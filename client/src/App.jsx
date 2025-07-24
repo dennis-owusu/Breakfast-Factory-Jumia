@@ -43,6 +43,8 @@ const OutletTransactions = React.lazy(() => import('./pages/outlet/OutletTransac
 
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
 const UsersManagement = React.lazy(() => import('./pages/admin/UsersManagement'));
+const UserView = React.lazy(() => import('./pages/admin/UserView'));
+const UserEdit = React.lazy(() => import('./pages/admin/UserEdit'));
 const OutletsManagement = React.lazy(() => import('./pages/admin/OutletsManagement'));
 const ProductsManagement = React.lazy(() => import('./pages/admin/ProductsManagement'));
 const OrdersManagement = React.lazy(() => import('./pages/admin/OrdersManagement'));
@@ -58,9 +60,15 @@ const LoadingFallback = () => (
   </div>
 );
 
-// Wrapper component for outlet routes with DashboardLayout
+// Wrapper components for routes with DashboardLayout
 const OutletRouteWithLayout = ({ element }) => (
-  <DashboardLayout>
+  <DashboardLayout userRole="outlet">
+    {element}
+  </DashboardLayout>
+);
+
+const AdminRouteWithLayout = ({ element }) => (
+  <DashboardLayout userRole="admin">
     {element}
   </DashboardLayout>
 );
@@ -313,81 +321,145 @@ function App() {
             <Route 
               path="/admin/dashboard" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <AdminDashboard />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <AdminDashboard />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/admin/users" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <UsersManagement />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <UsersManagement />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+            <Route 
+              path="/admin/users/:id" 
+              element={
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <UserView />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+            <Route 
+              path="/admin/users/:id/edit" 
+              element={
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <UserEdit />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/admin/outlets" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <OutletsManagement />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OutletsManagement />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/admin/products" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <ProductsManagement />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <ProductsManagement />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/admin/orders" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <OrdersManagement />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OrdersManagement />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/admin/orders/:id" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <AdminOrderDetail />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <AdminOrderDetail />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/admin/analytics" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <Analytics />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <Analytics />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/admin/categories" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <CategoriesManagement />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <CategoriesManagement />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/admin/categories/:id" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <CategoryForm />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <CategoryForm />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             <Route 
               path="/admin/categories/new" 
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <CategoryForm />
-                </React.Suspense>
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <CategoryForm />
+                    </React.Suspense>
+                  }
+                />
               } 
             />
             

@@ -5,9 +5,9 @@ import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp
 import Sidebar from '../Sidebar';
 
 const DashboardLayout = ({ children }) => {
-  const { user } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state) => state.user);
   const location = useLocation();
-  const role = user?.role || 'outlet';
+  const role = currentUser?.usersRole || 'user';
   
   // Define sidebar links based on user role
   const getSidebarLinks = () => {
@@ -44,7 +44,7 @@ const DashboardLayout = ({ children }) => {
   // Get title based on role
   const getTitle = () => {
     if (role === 'outlet') {
-      return user?.outlet?.name || 'Outlet Dashboard';
+      return currentUser?.storeName || 'Outlet Dashboard';
     } else if (role === 'admin') {
       return 'Admin Dashboard';
     } else {

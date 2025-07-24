@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import {
   BarChart,
   Bar,
@@ -25,162 +27,11 @@ import {
 import { formatPrice } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
 
-// This would be imported from an API utility file in a real app
-const fetchAnalyticsData = async (period) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate sales data
-      let salesData = [];
-      let categoryData = [];
-      let topProducts = [];
-      let topOutlets = [];
-      let userGrowthData = [];
-      
-      // Different data based on period
-      if (period === 'daily') {
-        // Last 7 days
-        salesData = Array.from({ length: 7 }, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - (6 - i));
-          return {
-            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            sales: Math.floor(Math.random() * 500000) + 100000,
-            orders: Math.floor(Math.random() * 100) + 20
-          };
-        });
-      } else if (period === 'weekly') {
-        // Last 4 weeks
-        salesData = Array.from({ length: 4 }, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - ((3 - i) * 7));
-          return {
-            date: `Week ${i + 1}`,
-            sales: Math.floor(Math.random() * 2000000) + 500000,
-            orders: Math.floor(Math.random() * 500) + 100
-          };
-        });
-      } else if (period === 'monthly') {
-        // Last 6 months
-        salesData = Array.from({ length: 6 }, (_, i) => {
-          const date = new Date();
-          date.setMonth(date.getMonth() - (5 - i));
-          return {
-            date: date.toLocaleDateString('en-US', { month: 'short' }),
-            sales: Math.floor(Math.random() * 8000000) + 2000000,
-            orders: Math.floor(Math.random() * 2000) + 500
-          };
-        });
-      } else { // yearly
-        // Last 12 months
-        salesData = Array.from({ length: 12 }, (_, i) => {
-          const date = new Date();
-          date.setMonth(date.getMonth() - (11 - i));
-          return {
-            date: date.toLocaleDateString('en-US', { month: 'short' }),
-            sales: Math.floor(Math.random() * 10000000) + 3000000,
-            orders: Math.floor(Math.random() * 3000) + 1000
-          };
-        });
-      }
-      
-      // Category data
-      categoryData = [
-        { name: 'Electronics', value: Math.floor(Math.random() * 5000000) + 1000000 },
-        { name: 'Fashion', value: Math.floor(Math.random() * 4000000) + 1000000 },
-        { name: 'Home & Kitchen', value: Math.floor(Math.random() * 3000000) + 1000000 },
-        { name: 'Beauty', value: Math.floor(Math.random() * 2000000) + 500000 },
-        { name: 'Books', value: Math.floor(Math.random() * 1000000) + 300000 },
-        { name: 'Sports', value: Math.floor(Math.random() * 1500000) + 400000 }
-      ];
-      
-      // Top products
-      topProducts = Array.from({ length: 5 }, (_, i) => ({
-        id: `product${i + 1}`,
-        name: `Product ${i + 1}`,
-        category: ['Electronics', 'Fashion', 'Home & Kitchen', 'Beauty', 'Books'][Math.floor(Math.random() * 5)],
-        sales: Math.floor(Math.random() * 1000000) + 200000,
-        units: Math.floor(Math.random() * 500) + 50
-      }));
-      
-      // Top outlets
-      topOutlets = Array.from({ length: 5 }, (_, i) => ({
-        id: `outlet${i + 1}`,
-        name: `Outlet ${i + 1}`,
-        sales: Math.floor(Math.random() * 2000000) + 500000,
-        orders: Math.floor(Math.random() * 1000) + 100,
-        products: Math.floor(Math.random() * 200) + 20
-      }));
-      
-      // User growth data
-      if (period === 'daily') {
-        // Last 7 days
-        userGrowthData = Array.from({ length: 7 }, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - (6 - i));
-          return {
-            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            users: Math.floor(Math.random() * 100) + 10,
-            outlets: Math.floor(Math.random() * 20) + 2
-          };
-        });
-      } else if (period === 'weekly') {
-        // Last 4 weeks
-        userGrowthData = Array.from({ length: 4 }, (_, i) => {
-          return {
-            date: `Week ${i + 1}`,
-            users: Math.floor(Math.random() * 500) + 50,
-            outlets: Math.floor(Math.random() * 100) + 10
-          };
-        });
-      } else if (period === 'monthly') {
-        // Last 6 months
-        userGrowthData = Array.from({ length: 6 }, (_, i) => {
-          const date = new Date();
-          date.setMonth(date.getMonth() - (5 - i));
-          return {
-            date: date.toLocaleDateString('en-US', { month: 'short' }),
-            users: Math.floor(Math.random() * 2000) + 200,
-            outlets: Math.floor(Math.random() * 400) + 40
-          };
-        });
-      } else { // yearly
-        // Last 12 months
-        userGrowthData = Array.from({ length: 12 }, (_, i) => {
-          const date = new Date();
-          date.setMonth(date.getMonth() - (11 - i));
-          return {
-            date: date.toLocaleDateString('en-US', { month: 'short' }),
-            users: Math.floor(Math.random() * 5000) + 500,
-            outlets: Math.floor(Math.random() * 1000) + 100
-          };
-        });
-      }
-      
-      // Summary data
-      const summaryData = {
-        totalSales: salesData.reduce((sum, item) => sum + item.sales, 0),
-        totalOrders: salesData.reduce((sum, item) => sum + item.orders, 0),
-        averageOrderValue: Math.floor(salesData.reduce((sum, item) => sum + item.sales, 0) / salesData.reduce((sum, item) => sum + item.orders, 0)),
-        totalUsers: Math.floor(Math.random() * 50000) + 10000,
-        totalOutlets: Math.floor(Math.random() * 5000) + 1000,
-        totalProducts: Math.floor(Math.random() * 100000) + 20000
-      };
-      
-      resolve({
-        salesData,
-        categoryData,
-        topProducts,
-        topOutlets,
-        userGrowthData,
-        summaryData
-      });
-    }, 1500);
-  });
-};
+
 
 const Analytics = () => {
   const [period, setPeriod] = useState('monthly');
+  const { currentUser } = useSelector((state) => state.user);
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -190,21 +41,32 @@ const Analytics = () => {
   
   // Load analytics data
   useEffect(() => {
-    const loadAnalyticsData = async () => {
+    const fetchAnalytics = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
-        setIsLoading(true);
-        const analyticsData = await fetchAnalyticsData(period);
-        setData(analyticsData);
-        setError(null);
+        const response = await fetch(`/api/analytics?period=${period}`, {
+          headers: {
+            'Authorization': `Bearer ${currentUser.token}`
+          }
+        });
+        const responseData = await response.json();
+        if (!response.ok) {
+          throw new Error(responseData.message || 'Failed to fetch analytics data');
+        }
+        setData(responseData);
       } catch (err) {
-        setError('Failed to load analytics data. Please try again later.');
+        setError(err.message);
+        toast.error(err.message);
       } finally {
         setIsLoading(false);
       }
     };
-    
-    loadAnalyticsData();
-  }, [period]);
+
+    if (currentUser && currentUser.token) {
+        fetchAnalytics();
+    }
+  }, [period, currentUser]);
   
   // Handle period change
   const handlePeriodChange = (e) => {
@@ -498,7 +360,7 @@ const Analytics = () => {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={data.userGrowthData}
+                    data={userGrowthData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />

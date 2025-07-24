@@ -59,6 +59,7 @@ export const getProducts = async (req, res, next) => {
                 ],
             }),
         })
+            .populate('category', 'categoryName')
             .sort({ updatedAt: sortDirection })
             .skip(startIndex);
 

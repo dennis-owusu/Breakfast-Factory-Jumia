@@ -531,7 +531,7 @@ const OutletAnalytics = () => {
                         {product.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.category}
+                        {product.category?.categoryName || product.category || 'Uncategorized'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatPrice(product.sales)}

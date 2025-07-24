@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   Search, 
   Filter, 
@@ -9,84 +8,139 @@ import {
   UserX,
   UserCheck,
   Edit,
-  Eye
+  Eye,
+  Trash2
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { formatDate } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
-
-// This would be imported from an API utility file in a real app
-const fetchUsers = async (params) => {
-  // Simulate API call with filtering and pagination
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate 50 users
-      const allUsers = Array.from({ length: 50 }, (_, i) => ({
-        _id: `user${i + 1}`,
-        name: `User ${i + 1}`,
-        email: `user${i + 1}@example.com`,
-        role: i % 10 === 0 ? 'admin' : (i % 3 === 0 ? 'outlet' : 'user'),
-        status: i % 7 === 0 ? 'inactive' : 'active',
-        createdAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(),
-        outletName: i % 3 === 0 ? `Outlet ${i + 1}` : null,
-        ordersCount: Math.floor(Math.random() * 20),
-        lastLogin: i % 5 === 0 ? null : new Date(Date.now() - (Math.floor(Math.random() * 10) * 24 * 60 * 60 * 1000)).toISOString()
-      }));
-      
-      // Apply search filter
-      let filteredUsers = [...allUsers];
-      if (params.search) {
-        const searchLower = params.search.toLowerCase();
-        filteredUsers = filteredUsers.filter(user => 
-          user.name.toLowerCase().includes(searchLower) || 
-          user.email.toLowerCase().includes(searchLower) ||
-          (user.outletName && user.outletName.toLowerCase().includes(searchLower))
-        );
-      }
-      
-      // Apply role filter
-      if (params.role && params.role !== 'all') {
-        filteredUsers = filteredUsers.filter(user => user.role === params.role);
-      }
-      
-      // Apply status filter
-      if (params.status && params.status !== 'all') {
-        filteredUsers = filteredUsers.filter(user => user.status === params.status);
-      }
-      
-      // Calculate pagination
-      const totalUsers = filteredUsers.length;
-      const totalPages = Math.ceil(totalUsers / params.limit);
-      const offset = (params.page - 1) * params.limit;
-      const paginatedUsers = filteredUsers.slice(offset, offset + params.limit);
-      
-      resolve({
-        users: paginatedUsers,
-        pagination: {
-          total: totalUsers,
-          totalPages,
-          currentPage: params.page,
-          limit: params.limit
-        }
-      });
-    }, 1000);
-  });
-};
-
-const updateUserStatus = async (userId, status) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: `User status updated to ${status}`
-      });
-    }, 500);
-  });
-};
+import { useSelector } from 'react-redux';
+import { toast } from 'react-hot-toast';
 
 const UsersManagement = () => {
+// Fetch users from the API
+const fetchUsers = async (params) => {
+  try {
+    // Set headers with authentication token
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    // Build query string from params
+    const queryParams = new URLSearchParams();
+    if (params.search) queryParams.append('search', params.search);
+    if (params.role && params.role !== 'all') queryParams.append('role', params.role);
+    if (params.status && params.status !== 'all') queryParams.append('status', params.status);
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    
+    const queryString = queryParams.toString();
+    const url = `/api/auth/get-all-users${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return {
+      users: data.allUsers || [],
+      pagination: {
+        total: data.allUsers?.length || 0,
+        totalPages: Math.ceil((data.allUsers?.length || 0) / params.limit),
+        currentPage: params.page,
+        limit: params.limit
+      }
+    };
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    throw error;
+  }
+};
+
+
+const updateUserStatus = async (userId, status) => {
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    const response = await fetch(`/api/auth/user/update/${userId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ status })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    throw error;
+  }
+};
+
+const updateUserRole = async (userId, usersRole) => {
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    const response = await fetch(`/api/auth/user/update/${userId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ usersRole })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    throw error;
+  }
+};
+
+const deleteUser = async (userId) => {
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    const response = await fetch(`/api/auth/user/${userId}`, {
+      method: 'DELETE',
+      headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    throw error;
+  }
+};
+
   // State for filters and pagination
   const [search, setSearch] = useState('');
+  const {currentUser} = useSelector((state) => state.user);
   const [role, setRole] = useState('all');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
@@ -171,27 +225,68 @@ const UsersManagement = () => {
     
     try {
       setActionLoading(true);
-      const result = await updateUserStatus(userId, newStatus);
+      const updatedUser = await updateUserStatus(userId, newStatus);
       
-      if (result.success) {
-        // Update local state
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
-            user._id === userId ? { ...user, status: newStatus } : user
-          )
-        );
-        
-        setSuccessMessage(result.message);
-        
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSuccessMessage('');
-        }, 3000);
-      } else {
-        setError('Failed to update user status. Please try again.');
-      }
+      // Update local state
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user._id === userId ? { ...user, status: newStatus } : user
+        )
+      );
+      
+      toast.success('User status updated successfully');
     } catch (err) {
-      setError('An error occurred. Please try again later.');
+      toast.error('Failed to update user status');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle user role update
+  const handleRoleUpdate = async (userId, newRole) => {
+    if (!window.confirm(`Are you sure you want to change this user's role to ${getRoleDisplayName(newRole)}?`)) {
+      return;
+    }
+    
+    try {
+      setActionLoading(true);
+      const updatedUser = await updateUserRole(userId, newRole);
+      
+      // Update local state
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user._id === userId ? { ...user, usersRole: newRole } : user
+        )
+      );
+      
+      toast.success('User role updated successfully');
+    } catch (err) {
+      toast.error('Failed to update user role');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle user deletion
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      setActionLoading(true);
+      await deleteUser(userId);
+      
+      // Remove from local state
+      setUsers(prevUsers => prevUsers.filter(user => user._id !== userId));
+      setPagination(prev => ({
+        ...prev,
+        total: prev.total - 1
+      }));
+      
+      toast.success('User deleted successfully');
+    } catch (err) {
+      toast.error('Failed to delete user');
     } finally {
       setActionLoading(false);
     }
@@ -225,6 +320,8 @@ const UsersManagement = () => {
   
   // Helper function to get role display name
   const getRoleDisplayName = (role) => {
+    if (!role) return 'Unknown';
+    
     switch (role) {
       case 'admin':
         return 'Admin';
@@ -401,7 +498,7 @@ const UsersManagement = () => {
                           <div className="flex-shrink-0 h-10 w-10">
                             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                               <span className="text-gray-600 font-medium">
-                                {user.name.charAt(0).toUpperCase()}
+                                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
                               </span>
                             </div>
                           </div>
@@ -416,12 +513,12 @@ const UsersManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
-                          {getRoleDisplayName(user.role)}
+                          {getRoleDisplayName(user.usersRole)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(user.status)}`}>
-                          {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                          {user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Unknown'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -449,20 +546,40 @@ const UsersManagement = () => {
                           >
                             <Edit className="h-5 w-5" />
                           </Link>
-                          {user.role !== 'admin' && (
-                            <button
-                              type="button"
-                              onClick={() => handleStatusUpdate(user._id, user.status === 'active' ? 'inactive' : 'active')}
-                              disabled={actionLoading}
-                              className={`${user.status === 'active' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'} ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              title={user.status === 'active' ? 'Deactivate User' : 'Activate User'}
-                            >
-                              {user.status === 'active' ? (
-                                <UserX className="h-5 w-5" />
-                              ) : (
-                                <UserCheck className="h-5 w-5" />
-                              )}
-                            </button>
+                          {user.usersRole !== 'admin' && (
+                            <>
+                              <select
+                                value={user.usersRole}
+                                onChange={(e) => handleRoleUpdate(user._id, e.target.value)}
+                                disabled={actionLoading}
+                                className={`text-sm border-gray-300 rounded-md ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                <option value="user">User</option>
+                                <option value="outlet">Outlet</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => handleStatusUpdate(user._id, user.status === 'active' ? 'inactive' : 'active')}
+                                disabled={actionLoading}
+                                className={`${user.status === 'active' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'} ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                title={user.status === 'active' ? 'Deactivate User' : 'Activate User'}
+                              >
+                                {user.status === 'active' ? (
+                                  <UserX className="h-5 w-5" />
+                                ) : (
+                                  <UserCheck className="h-5 w-5" />
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteUser(user._id)}
+                                disabled={actionLoading}
+                                className={`text-red-600 hover:text-red-900 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                title="Delete User"
+                              >
+                                <Trash2 className="h-5 w-5" />
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>
