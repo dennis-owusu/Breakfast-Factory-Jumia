@@ -22,8 +22,29 @@ export const askAI = async (req, res, next) => {
   const { question } = req.body;
 
   try {
-    // Query relevant data based on question keywords
-    let context = '';
+    // Fetch baseline summary data for comprehensive context
+    const totalProducts = await Product.countDocuments();
+    const totalOrders = await Order.countDocuments();
+    const pendingOrders = await Order.countDocuments({ status: 'pending' });
+    const processingOrders = await Order.countDocuments({ status: 'processing' });
+    const shippedOrders = await Order.countDocuments({ status: 'shipped' });
+    const deliveredOrders = await Order.countDocuments({ status: 'delivered' });
+    const totalUsers = await User.countDocuments();
+    const adminCount = await User.countDocuments({ usersRole: 'admin' });
+    const outletCount = await User.countDocuments({ usersRole: 'outlet' });
+    const customerCount = await User.countDocuments({ usersRole: 'user' });
+    const totalCategories = await Category.countDocuments();
+    const totalPayments = await Payment.countDocuments();
+    const totalFeedback = await Feedback.countDocuments();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todaySales = await Order.aggregate([
+      { $match: { createdAt: { $gte: todayStart } } },
+      { $group: { _id: null, totalSales: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
+    ]);
+    let context = `Baseline system data: Total products: ${totalProducts}. Total orders: ${totalOrders} (Pending: ${pendingOrders}, Processing: ${processingOrders}, Shipped: ${shippedOrders}, Delivered: ${deliveredOrders}). Today's sales: ${todaySales[0]?.count || 0} orders, total ${todaySales[0]?.totalSales || 0}. Total users: ${totalUsers} (Admins: ${adminCount}, Outlets: ${outletCount}, Customers: ${customerCount}). Total categories: ${totalCategories}. Total payments: ${totalPayments}. Total feedback: ${totalFeedback}. `;
+
+    // Query additional relevant data based on question keywords
 
     if (question.toLowerCase().includes('sales') || question.toLowerCase().includes('yesterday')) {
       const yesterday = new Date();
@@ -67,6 +88,10 @@ export const askAI = async (req, res, next) => {
         const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(5);
         context += `Recent orders: ${JSON.stringify(recentOrders.map(o => ({ id: o._id, total: o.totalAmount })))}. `;
       }
+    }
+    if (question.toLowerCase().includes('pending orders') || question.toLowerCase().includes('how many pending orders')) {
+      const pendingOrders = await Order.countDocuments({ status: 'pending' });
+      context += `Pending orders: ${pendingOrders}. `;
     }
 
     if (question.toLowerCase().includes('analytics')) {
@@ -122,7 +147,7 @@ export const askAI = async (req, res, next) => {
     const response = await client.path('/chat/completions').post({
       body: {
         messages: [
-          { role: 'system', content: 'You are a friendly and knowledgeable AI assistant with full real-time access to the e-commerce system\'s data. Always provide precise, specific, and accurate answers based solely on the provided context. Do not retrieve or provide sensitive data such as user personal information, passwords, or payment details unless explicitly requested by the user. If data is limited, make reasonable predictions based on available information without claiming lack of data. Format your responses in a clear, organized manner using markdown: use headings, bullet points, bold text for key information, and short paragraphs for readability. Use the data given to give confident, helpful responses in simple language without technical jargon: ' + context },
+          { role: 'system', content: 'You are a friendly and knowledgeable AI assistant with full real-time access to the e-commerce system\'s data. Always provide precise, specific, and accurate answers based solely on the provided context. For sales or analysis queries, include data-driven insights, trends, and practical suggestions to improve sales (e.g., based on product performance, user engagement, or order patterns). Do not retrieve or provide sensitive data such as user personal information, passwords, or payment details unless explicitly requested by the user. If data is limited, make reasonable predictions based on available information without claiming lack of data. Format your responses in a clear, organized manner using markdown: use headings, bullet points, bold text for key information, and short paragraphs for readability. Use the data given to give confident, helpful responses in simple language without technical jargon: ' + context },
           { role: 'user', content: question }
         ],
         temperature: 1.0,
