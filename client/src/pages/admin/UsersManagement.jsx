@@ -534,14 +534,14 @@ const deleteUser = async (userId) => {
                         <div className="flex justify-end space-x-2">
                           <Link 
                             to={`/admin/users/${user._id}`} 
-                            className="text-orange-600 hover:text-orange-900"
+                            className="p-2 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-md transition-colors"
                             title="View Details"
                           >
                             <Eye className="h-5 w-5" />
                           </Link>
                           <Link 
                             to={`/admin/users/${user._id}/edit`} 
-                            className="text-blue-600 hover:text-blue-900"
+                            className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors"
                             title="Edit User"
                           >
                             <Edit className="h-5 w-5" />
@@ -552,7 +552,7 @@ const deleteUser = async (userId) => {
                                 value={user.usersRole}
                                 onChange={(e) => handleRoleUpdate(user._id, e.target.value)}
                                 disabled={actionLoading}
-                                className={`text-sm border-gray-300 rounded-md ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 hover:bg-gray-50 transition-colors ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                               >
                                 <option value="user">User</option>
                                 <option value="outlet">Outlet</option>
@@ -560,21 +560,17 @@ const deleteUser = async (userId) => {
                               <button
                                 type="button"
                                 onClick={() => handleStatusUpdate(user._id, user.status === 'active' ? 'inactive' : 'active')}
-                                disabled={actionLoading}
-                                className={`${user.status === 'active' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'} ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                disabled={actionLoading || user.usersRole === 'admin'}
+                                className={`p-2 ${user.status === 'active' ? 'text-red-600 hover:text-red-900 hover:bg-red-50' : 'text-green-600 hover:text-green-900 hover:bg-green-50'} rounded-md transition-colors ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 title={user.status === 'active' ? 'Deactivate User' : 'Activate User'}
                               >
-                                {user.status === 'active' ? (
-                                  <UserX className="h-5 w-5" />
-                                ) : (
-                                  <UserCheck className="h-5 w-5" />
-                                )}
+                                {user.status === 'active' ? <UserX className="h-5 w-5" /> : <UserCheck className="h-5 w-5" />}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteUser(user._id)}
                                 disabled={actionLoading}
-                                className={`text-red-600 hover:text-red-900 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-colors ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 title="Delete User"
                               >
                                 <Trash2 className="h-5 w-5" />

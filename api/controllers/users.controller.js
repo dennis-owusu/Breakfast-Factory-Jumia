@@ -163,14 +163,6 @@ export const allClients = async (req, res, next) => {
 
 export const updateClient = async (req, res, next) => {
     try {
-        const token = req.cookies.access_token;
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Only allow users to update their own profile or admin to update any profile
-        if (decoded.role !== 'admin' && decoded.id !== req.params.id) {
-            return res.status(403).json({ message: 'Access denied' });
-        }
-
         const updateData = {};
 
         // Update basic info if provided
@@ -179,23 +171,7 @@ export const updateClient = async (req, res, next) => {
         if (req.body.phoneNumber) updateData.phoneNumber = req.body.phoneNumber;
         if (req.body.profilePicture) updateData.profilePicture = req.body.profilePicture;
         if (req.body.status) updateData.status = req.body.status;
-
-        // Only admin can update roles
-        if (decoded.role === 'admin' && req.body.usersRole) {
-            // Prevent changing the last admin's role
-            if (req.body.usersRole !== 'admin') {
-                const currentUser = await Users.findById(req.params.id);
-                if (currentUser.usersRole === 'admin') {
-                    const adminCount = await Users.countDocuments({ usersRole: 'admin' });
-                    if (adminCount <= 1) {
-                        return res.status(400).json({ 
-                            message: 'Cannot change the role of the last admin user' 
-                        });
-                    }
-                }
-            }
-            updateData.usersRole = req.body.usersRole;
-        }
+        if (req.body.usersRole) updateData.usersRole = req.body.usersRole;
 
         // If password is being updated
         if (req.body.password) {

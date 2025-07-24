@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 
 const categorySchema = mongoose.Schema({
-   
     categoryName: {
         type: String,
         required: true,
@@ -15,15 +14,26 @@ const categorySchema = mongoose.Schema({
     outlet: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false
     },
-     featured: {
-    type: Boolean,
-    default: false,
-   }
+    image: {
+        type: String,
+        required: false
+    },
+    parent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Categories',
+        required: false
+    },
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active'
+    },
+    featured: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true });
-
-
 const Categories = mongoose.model('Categories', categorySchema)
-
 export default Categories

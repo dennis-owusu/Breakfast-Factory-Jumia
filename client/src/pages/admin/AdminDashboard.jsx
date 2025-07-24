@@ -21,7 +21,7 @@ import AIQuery from '../../components/ui/AIQuery';
 // Fetch dashboard stats from API
 const fetchDashboardStats = async (headers) => {
   try {
-    const response = await fetch('/api/dashboard/stats', {
+    const response = await fetch('/api/route/dashboard/stats', {
       method: 'GET',
       headers,
     });

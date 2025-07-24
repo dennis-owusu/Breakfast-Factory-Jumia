@@ -14,15 +14,54 @@ import {
 import { formatDate } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
 
-import { adminAPI } from '../../utils/api';
-
-// Use the real API function from our API utility
 const fetchOutlets = async (params) => {
   try {
-    // Assuming there's a getOutlets method in adminAPI
-    // If not, you might need to add it to the API utility
-    const response = await adminAPI.getOutlets(params);
-    return response.data;
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    const queryParams = new URLSearchParams();
+    if (params.search) queryParams.append('search', params.search);
+    if (params.status && params.status !== 'all') queryParams.append('status', params.status);
+    if (params.category && params.category !== 'all') queryParams.append('category', params.category);
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    
+    const queryString = queryParams.toString();
+    const url = `/api/auth/get-all-users${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    const filteredOutlets = (data.allUsers || []).filter(user => user.usersRole === 'outlet').map(user => ({
+      ...user,
+      name: user.storeName || user.name || 'Unnamed Outlet',
+      owner: {
+        name: user.name || 'Unknown',
+        email: user.email || 'No email'
+      },
+      description: user.description || '',
+      categories: user.categories || [],
+      status: user.status || 'pending',
+      productsCount: user.productsCount || 0,
+      ordersCount: user.ordersCount || 0,
+      totalSales: user.totalSales || 0,
+      rating: user.rating || 0
+    }));
+    return {
+      outlets: filteredOutlets,
+      pagination: {
+        total: data.pagination?.total || filteredOutlets.length,
+        totalPages: data.pagination?.totalPages || 1,
+        currentPage: data.pagination?.page || 1,
+        limit: 10
+      }
+    };
   } catch (error) {
     console.error('Error fetching outlets:', error);
     throw error;
@@ -30,15 +69,29 @@ const fetchOutlets = async (params) => {
 };
 
 const updateOutletStatus = async (outletId, status) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: `Outlet status updated to ${status}`
-      });
-    }, 500);
-  });
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    const response = await fetch(`/api/auth/user/update/${outletId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ status })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating outlet status:', error);
+    throw error;
+  }
 };
 
 const OutletsManagement = () => {

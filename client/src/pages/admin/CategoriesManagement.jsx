@@ -12,14 +12,50 @@ import {
   XCircle
 } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
-
 import { adminAPI } from '../../utils/api';
 
 // Use the real API function from our API utility
 const fetchCategories = async (params) => {
   try {
-    const response = await adminAPI.getCategories(params);
-    return response.data;
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    const queryParams = new URLSearchParams();
+    if (params.search) queryParams.append('search', params.search);
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    
+    const queryString = queryParams.toString();
+    const url = `/api/route/allcategories${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    // Normalize the data to prevent undefined errors
+    const normalizedCategories = (data.allCategory || []).map(category => ({
+      ...category,
+      id: category._id || '', // Use _id as id
+      categoryName: category.categoryName || 'Unknown',
+      slug: category.slug || '',
+      image: category.image || null,
+      parentName: category.parent?.categoryName || null,
+      productCount: category.productCount ?? 0,
+      status: category.status || 'inactive',
+      featured: category.featured ?? false,
+    }));
+    
+    return {
+      categories: normalizedCategories,
+      total: data.total || normalizedCategories.length,
+      currentPage: data.currentPage || 1,
+      totalPages: data.totalPages || 1
+    };
   } catch (error) {
     console.error('Error fetching categories:', error);
     throw error;
@@ -28,8 +64,23 @@ const fetchCategories = async (params) => {
 
 const deleteCategory = async (id) => {
   try {
-    const response = await adminAPI.deleteCategory(id);
-    return response.data;
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    const response = await fetch(`/api/route/category/delete/${id}`, {
+      method: 'DELETE',
+      headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Error deleting category:', error);
     throw error;
@@ -38,8 +89,24 @@ const deleteCategory = async (id) => {
 
 const updateCategoryStatus = async (id, status) => {
   try {
-    const response = await adminAPI.updateCategory(id, { status });
-    return response.data;
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    const response = await fetch(`/api/route/update-categories/${id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ status })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Error updating category status:', error);
     throw error;
@@ -48,8 +115,24 @@ const updateCategoryStatus = async (id, status) => {
 
 const updateCategoryFeatured = async (id, featured) => {
   try {
-    const response = await adminAPI.updateCategory(id, { featured });
-    return response.data;
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    
+    const response = await fetch(`/api/route/update-categories/${id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ featured })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Error updating category featured:', error);
     throw error;
@@ -113,6 +196,9 @@ const CategoriesManagement = () => {
   
   // Handle delete
   const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      return;
+    }
     try {
       setIsDeleting(true);
       setDeleteId(id);
@@ -122,13 +208,9 @@ const CategoriesManagement = () => {
       
       if (result.success) {
         setSuccessMessage(result.message);
-        // Remove from state
         setCategories(prev => prev.filter(cat => cat.id !== id));
-        // Update total count
         setTotalCategories(prev => prev - 1);
-        // Update total pages
         setTotalPages(Math.ceil((totalCategories - 1) / 10));
-        // If current page is now empty and not the first page, go to previous page
         if (categories.length === 1 && currentPage > 1) {
           setCurrentPage(prev => prev - 1);
         }
@@ -141,7 +223,6 @@ const CategoriesManagement = () => {
       setIsDeleting(false);
       setDeleteId(null);
       
-      // Clear success message after 3 seconds
       if (successMessage) {
         setTimeout(() => {
           setSuccessMessage('');
@@ -153,10 +234,7 @@ const CategoriesManagement = () => {
   // Handle status change
   const handleStatusChange = async (id, currentStatus) => {
     try {
-      setActionLoading({
-        id,
-        type: 'status'
-      });
+      setActionLoading({ id, type: 'status' });
       setError(null);
       
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
@@ -164,7 +242,6 @@ const CategoriesManagement = () => {
       
       if (result.success) {
         setSuccessMessage(result.message);
-        // Update in state
         setCategories(prev => prev.map(cat => 
           cat.id === id ? { ...cat, status: newStatus } : cat
         ));
@@ -174,12 +251,8 @@ const CategoriesManagement = () => {
     } catch (err) {
       setError('An error occurred while updating the category status');
     } finally {
-      setActionLoading({
-        id: null,
-        type: null
-      });
+      setActionLoading({ id: null, type: null });
       
-      // Clear success message after 3 seconds
       if (successMessage) {
         setTimeout(() => {
           setSuccessMessage('');
@@ -191,17 +264,13 @@ const CategoriesManagement = () => {
   // Handle featured change
   const handleFeaturedChange = async (id, currentFeatured) => {
     try {
-      setActionLoading({
-        id,
-        type: 'featured'
-      });
+      setActionLoading({ id, type: 'featured' });
       setError(null);
       
       const result = await updateCategoryFeatured(id, !currentFeatured);
       
       if (result.success) {
         setSuccessMessage(result.message);
-        // Update in state
         setCategories(prev => prev.map(cat => 
           cat.id === id ? { ...cat, featured: !currentFeatured } : cat
         ));
@@ -211,12 +280,8 @@ const CategoriesManagement = () => {
     } catch (err) {
       setError('An error occurred while updating the category featured status');
     } finally {
-      setActionLoading({
-        id: null,
-        type: null
-      });
+      setActionLoading({ id: null, type: null });
       
-      // Clear success message after 3 seconds
       if (successMessage) {
         setTimeout(() => {
           setSuccessMessage('');
@@ -248,7 +313,6 @@ const CategoriesManagement = () => {
           </div>
         </div>
         
-        {/* Success message */}
         {successMessage && (
           <div className="mb-4 bg-green-50 border-l-4 border-green-400 p-4">
             <div className="flex">
@@ -262,7 +326,6 @@ const CategoriesManagement = () => {
           </div>
         )}
         
-        {/* Error message */}
         {error && (
           <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
             <div className="flex">
@@ -276,7 +339,6 @@ const CategoriesManagement = () => {
           </div>
         )}
         
-        {/* Search and filters */}
         <div className="bg-white shadow rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
             <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
@@ -307,7 +369,6 @@ const CategoriesManagement = () => {
           </div>
         </div>
         
-        {/* Categories table */}
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           {isLoading && !categories.length ? (
             <div className="px-4 py-12 text-center">
@@ -349,19 +410,37 @@ const CategoriesManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <img className="h-10 w-10 rounded-full object-cover" src={category.image} alt={category.name} />
+                            {category.image ? (
+                              <img 
+                                className="h-10 w-10 rounded-full object-cover" 
+                                src={`http://localhost:3000${category.image}`} 
+                                alt={category.categoryName || 'Category'} 
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span className="text-gray-500 text-xs">No Image</span>
+                              </div>
+                            )}
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{category.name}</div>
-                            <div className="text-sm text-gray-500">{category.slug}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {category.categoryName || 'Unknown'}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {category.slug || 'No slug'}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{category.parentName || '-'}</div>
+                        <div className="text-sm text-gray-900">
+                          {category.parentName || '-'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{category.productCount}</div>
+                        <div className="text-sm text-gray-900">
+                          {category.productCount ?? 0}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
@@ -398,7 +477,7 @@ const CategoriesManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <Link
-                            to={`/admin/categories/edit/${category.id}`}
+                            to={`/admin/categories/${category.id}`}
                             className="text-indigo-600 hover:text-indigo-900"
                           >
                             <Edit className="h-5 w-5" />
@@ -423,7 +502,6 @@ const CategoriesManagement = () => {
             </div>
           )}
           
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">

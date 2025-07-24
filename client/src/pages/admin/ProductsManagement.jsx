@@ -27,7 +27,7 @@ const fetchProducts = async (params) => {
       featured: params.featured !== 'all' ? params.featured === 'featured' : ''
     });
 
-    const response = await fetch(`/api/allproducts?${queryParams}`, {
+    const response = await fetch(`/api/route/allproducts?${queryParams}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

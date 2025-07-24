@@ -21,7 +21,7 @@ router.post('/upload', upload.array('images', 10), async (req, res) => {
   try {
     const images = req.files.map(file => ({
       fileName: file.filename,
-      filePath: `http://localhost:3000/uploads/${file.filename}`, // Full URL
+      filePath: `https://localhost:3000/uploads/${file.filename}`, // Relative path
 
     }));
 

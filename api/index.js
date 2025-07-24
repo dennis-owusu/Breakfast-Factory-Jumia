@@ -11,6 +11,7 @@ import orderRoute from './routes/order.route.js';
 import categoryRoute from './routes/categories.route.js';
 import feedbackRoute from './routes/feedbackRoutes.js';
 import paymentRoute from './routes/payment.route.js';
+import dashboardRoute from './routes/dashboard.route.js';
 import aiRoute from './routes/ai.route.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -111,6 +112,7 @@ app.use('/api/route', categoryRoute);
 app.use('/api/route', analyticsRoute);
 app.use('/api/feedback', feedbackRoute);
 app.use('/api/route', paymentRoute);
+app.use('/api/route/dashboard', dashboardRoute);
 app.use('/api/ai', aiRoute);
 
 // Global error handler

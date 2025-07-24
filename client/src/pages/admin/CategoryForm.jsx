@@ -11,87 +11,85 @@ import {
 import Loader from '../../components/ui/Loader';
 
 // This would be imported from an API utility file in a real app
-const fetchCategory = async (id) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      if (id === 'new') {
-        resolve({
-          id: '',
-          name: '',
-          slug: '',
-          description: '',
-          image: '',
-          parent: '',
-          featured: false,
-          status: 'active'
-        });
-      } else {
-        resolve({
-          id: id,
-          name: `Category ${id.replace('cat', '')}`,
-          slug: `category-${id.replace('cat', '')}`,
-          description: `Description for category ${id.replace('cat', '')}`,
-          image: `https://picsum.photos/seed/${id}/200/200`,
-          parent: parseInt(id.replace('cat', '')) % 5 === 0 ? '' : `cat${Math.floor(parseInt(id.replace('cat', '')) / 5) * 5 + 1}`,
-          featured: parseInt(id.replace('cat', '')) % 7 === 0,
-          status: 'active'
-        });
-      }
-    }, 1000);
+async function fetchCategory(id) {
+  if (id === 'new') {
+    return {
+      _id: '',
+      categoryName: '',
+      slug: '',
+      description: '',
+      image: '',
+      parent: '',
+      featured: false,
+      status: 'active'
+    };
+  }
+  const token = localStorage.getItem('token');
+  const response = await fetch(`/api/route/categories/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-};
+  if (!response.ok) throw new Error('Failed to fetch category');
+  return await response.json();
+}
 
-const fetchParentCategories = async () => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const parentCategories = Array.from({ length: 10 }, (_, i) => ({
-        id: `cat${i * 5 + 1}`,
-        name: [
-          'Electronics', 'Fashion', 'Home & Kitchen', 'Beauty & Health', 'Books & Media',
-          'Sports & Outdoors', 'Toys & Games', 'Automotive', 'Jewelry & Accessories', 'Baby & Kids'
-        ][i]
-      }));
-      
-      resolve(parentCategories);
-    }, 800);
+async function fetchParentCategories() {
+  const token = localStorage.getItem('token');
+  const response = await fetch('/api/route/allcategories', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-};
+  if (!response.ok) throw new Error('Failed to fetch parent categories');
+  const data = await response.json();
+  return data.allCategory || [];
+}
 
-const saveCategory = async (categoryData) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Generate a slug if not provided
-      if (!categoryData.slug && categoryData.name) {
-        categoryData.slug = categoryData.name
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, '')
-          .replace(/[\s_-]+/g, '-')
-          .replace(/^-+|-+$/g, '');
-      }
-      
-      resolve({
-        success: true,
-        message: categoryData.id ? 'Category updated successfully' : 'Category created successfully',
-        category: {
-          ...categoryData,
-          id: categoryData.id || `cat${Math.floor(Math.random() * 1000) + 100}`
-        }
-      });
-    }, 1500);
+async function uploadImage(file) {
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('images', file);
+  const response = await fetch('/api/route/upload', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
   });
-};
+  if (!response.ok) throw new Error('Failed to upload image');
+  const data = await response.json();
+  return data.images[0].filePath; // Assuming it returns { success: true, images: [{filePath}] }
+}
 
+async function saveCategory(categoryData, imageFile, isNew, id) {
+  const token = localStorage.getItem('token');
+  let image = categoryData.image;
+  if (imageFile) {
+    image = await uploadImage(imageFile);
+  }
+  const updatedCategoryData = { ...categoryData, image };
+  const url = isNew ? '/api/route/categories' : `/api/route/update-categories/${id}`;
+  const method = isNew ? 'POST' : 'PUT';
+  const response = await fetch(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(updatedCategoryData),
+  });
+  if (!response.ok) throw new Error('Failed to save category');
+  return await response.json();
+}
 const CategoryForm = () => {
   const { id = 'new' } = useParams();
   const navigate = useNavigate();
   const isNewCategory = id === 'new';
   
   const [category, setCategory] = useState({
-    id: '',
-    name: '',
+    _id: '',
+    categoryName: '',
     slug: '',
     description: '',
     image: '',
@@ -117,13 +115,24 @@ const CategoryForm = () => {
         
         // Load category data if editing
         const categoryData = await fetchCategory(id);
-        setCategory(categoryData);
-        setImagePreview(categoryData.image);
+        const imageFromData = categoryData.image || '';
+        const normalizedImage = imageFromData.startsWith('/') ? imageFromData : (imageFromData ? `/uploads/${imageFromData}` : '');
+        setCategory({
+          _id: categoryData._id || '',
+          categoryName: categoryData.categoryName || '',
+          slug: categoryData.slug || '',
+          description: categoryData.description || '',
+          image: normalizedImage,
+          parent: categoryData.parent?._id || '',
+          featured: categoryData.featured ?? false,
+          status: categoryData.status || 'active'
+        });
+        setImagePreview(normalizedImage ? `http://localhost:5000${normalizedImage}` : '');
         
         // Load parent categories
         const parents = await fetchParentCategories();
         // Filter out the current category from parent options if editing
-        setParentCategories(parents.filter(p => p.id !== id));
+        setParentCategories(parents.filter(p => p._id?.toString() !== categoryData._id?.toString()));
       } catch (err) {
         setError('Failed to load category data. Please try again.');
       } finally {
@@ -163,13 +172,14 @@ const CategoryForm = () => {
     setImagePreview('');
     setImageFile(null);
     setCategory(prev => ({ ...prev, image: '' }));
+    setImagePreview('');
   };
   
   // Generate slug from name
   const generateSlug = () => {
-    if (!category.name) return;
+    if (!category.categoryName) return;
     
-    const slug = category.name
+    const slug = category.categoryName
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/[\s_-]+/g, '-')
@@ -183,7 +193,7 @@ const CategoryForm = () => {
     e.preventDefault();
     
     // Validate form
-    if (!category.name) {
+    if (!category.categoryName) {
       setError('Category name is required');
       return;
     }
@@ -191,21 +201,9 @@ const CategoryForm = () => {
     try {
       setIsSaving(true);
       setError(null);
-      
-      // In a real app, you would upload the image file to a server/cloud storage
-      // and get back a URL to store in the category object
-      // For this example, we'll just use the preview URL if there's a new file
-      const categoryToSave = {
-        ...category,
-        image: imagePreview || category.image
-      };
-      
-      const result = await saveCategory(categoryToSave);
-      
+      const result = await saveCategory(category, imageFile, isNewCategory, category._id);
       if (result.success) {
         setSuccessMessage(result.message);
-        
-        // Redirect after a short delay
         setTimeout(() => {
           navigate('/admin/categories');
         }, 2000);
@@ -292,11 +290,10 @@ const CategoryForm = () => {
                   <div className="mt-1">
                     <input
                       type="text"
-                      name="name"
+                      name="categoryName"
                       id="name"
-                      value={category.name}
+                      value={category.categoryName}
                       onChange={handleChange}
-                      onBlur={() => !category.slug && generateSlug()}
                       className="shadow-sm focus:ring-orange-500 focus:border-orange-500 block w-full sm:text-sm border-gray-300 rounded-md"
                       required
                     />
@@ -343,8 +340,8 @@ const CategoryForm = () => {
                     >
                       <option value="">None (Top Level Category)</option>
                       {parentCategories.map((parent) => (
-                        <option key={parent.id} value={parent.id}>
-                          {parent.name}
+                        <option key={parent._id} value={parent._id}>
+                          {parent.categoryName}
                         </option>
                       ))}
                     </select>
