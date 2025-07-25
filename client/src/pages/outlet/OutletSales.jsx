@@ -53,7 +53,8 @@ const OutletSales = () => {
           throw new Error(data.message || 'Failed to fetch sales data');
         }
         
-        setSales(data.sales);
+        const sortedSales = [...data.sales].sort((a, b) => new Date(b.date) - new Date(a.date));
+        setSales(sortedSales);
         setSummary(data.summary);
         setPagination(prev => ({
           ...prev,

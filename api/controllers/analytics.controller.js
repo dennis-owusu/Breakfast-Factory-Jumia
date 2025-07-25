@@ -329,6 +329,7 @@ export const getSales = async (req, res, next) => {
        if (search) matchStage._id = { $regex: search, $options: 'i' };
 
        const sales = await Order.find(matchStage)
+         .sort({ createdAt: -1 })
          .skip((page - 1) * limit)
          .limit(Number(limit))
          .select('_id createdAt totalPrice products status')
@@ -362,14 +363,14 @@ export const getSales = async (req, res, next) => {
        
        console.log('Sales summary results:', summary);
 
-       const totalSales = await Order.countDocuments(matchStage);
-       const totalPages = Math.ceil(totalSales / limit);
+       const totalSalesCount = await Order.countDocuments(matchStage);
+       const totalPages = Math.ceil(totalSalesCount / limit);
 
        res.status(200).json({
          success: true,
          sales,
          summary,
-         totalSales,
+         totalSales: totalSalesCount,
          totalPages,
        });
      } catch (error) {

@@ -126,9 +126,14 @@ const OutletOrders = () => {
           return;
         }
 
+        // Sort orders by createdAt in descending order (newest first)
+        const sortOrders = (ordersArray) => {
+          return [...ordersArray].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        };
+
         // Check if data has orders property (from getOutletOrders endpoint)
         if (data.orders) {
-          setOrders(data.orders);
+          setOrders(sortOrders(data.orders));
           setPagination({
             ...pagination,
             totalOrders: data.totalOrders || 0,
@@ -136,11 +141,12 @@ const OutletOrders = () => {
           });
         } else {
           // Handle case where data is directly an array of orders
-          setOrders(Array.isArray(data) ? data : []);
+          const ordersArray = Array.isArray(data) ? data : [];
+          setOrders(sortOrders(ordersArray));
           setPagination({
             ...pagination,
-            totalOrders: Array.isArray(data) ? data.length : 0,
-            totalPages: Math.ceil((Array.isArray(data) ? data.length : 0) / pagination.limit) || 1,
+            totalOrders: ordersArray.length,
+            totalPages: Math.ceil(ordersArray.length / pagination.limit) || 1,
           });
         }
         setError(null);
@@ -461,7 +467,7 @@ const OutletOrders = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {orders.map((order) => (
+                  {[...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map((order) => (
                     <tr key={order._id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
