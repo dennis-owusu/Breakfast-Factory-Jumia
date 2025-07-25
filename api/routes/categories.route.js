@@ -1,6 +1,5 @@
 import express from 'express';
 import { category, deleteCategory, fetchCategory, updateCategory, getCategoryById } from '../controllers/categories.controller.js';
-import { upload } from '../utils/multer.js';
 
 
 const router = express.Router()

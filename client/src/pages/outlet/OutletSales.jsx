@@ -102,28 +102,34 @@ const OutletSales = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="text-green-500 mr-2" />
-            <div>
-              <p className="text-sm text-gray-500">Total Sales</p>
-              <p className="text-xl font-bold">{formatPrice(summary.totalSales)}</p>
+            <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+              <DollarSign className="h-6 w-6 text-orange-500" />
+            </div>
+            <div className="ml-5 w-0 flex-1">
+              <p className="text-sm font-medium text-gray-500 truncate">Total Sales</p>
+              <p className="text-lg font-medium text-gray-900">{formatPrice(summary.totalSales)}</p>
             </div>
           </div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
-            <TrendingUp className="text-blue-500 mr-2" />
-            <div>
-              <p className="text-sm text-gray-500">Average Sale</p>
-              <p className="text-xl font-bold">{formatPrice(summary.averageSale)}</p>
+            <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+              <TrendingUp className="h-6 w-6 text-orange-500" />
+            </div>
+            <div className="ml-5 w-0 flex-1">
+              <p className="text-sm font-medium text-gray-500 truncate">Average Sale</p>
+              <p className="text-lg font-medium text-gray-900">{formatPrice(summary.averageSale)}</p>
             </div>
           </div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
-            <ShoppingBag className="text-purple-500 mr-2" />
-            <div>
-              <p className="text-sm text-gray-500">Sale Count</p>
-              <p className="text-xl font-bold">{summary.saleCount}</p>
+            <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+              <ShoppingBag className="h-6 w-6 text-orange-500" />
+            </div>
+            <div className="ml-5 w-0 flex-1">
+              <p className="text-sm font-medium text-gray-500 truncate">Sale Count</p>
+              <p className="text-lg font-medium text-gray-900">{summary.saleCount}</p>
             </div>
           </div>
         </div>

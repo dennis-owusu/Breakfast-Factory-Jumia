@@ -186,8 +186,16 @@ export const getOutletOrders = async (req, res) => {
   const status = req.query.status;
   const dateRange = req.query.dateRange;
 
-  let query = { 'products.product.outlet': outletId };
-
+  console.log('Outlet ID received:', outletId);
+  
+  // Find all products for this outlet
+  const products = await Product.find({ outlet: outletId });
+  const productIds = products.map(product => product._id.toString());
+  console.log('Product IDs for this outlet:', productIds);
+  
+  // Find orders containing these products
+  let query = {};
+  
   if (status && status !== 'all') {
     query.status = status;
   }
@@ -223,14 +231,32 @@ export const getOutletOrders = async (req, res) => {
   }
 
   try {
-    const totalOrders = await Order.countDocuments(query);
-    const orders = await Order.find(query)
+    // Get all orders
+    const allOrders = await Order.find(query)
       .populate('user', 'name email phoneNumber')
-      .sort({ createdAt: -1 })
-      .skip(startIndex)
-      .limit(limit);
-    res.status(200).json({ orders, totalOrders });
+      .sort({ createdAt: -1 });
+    
+    // Filter orders that contain products from this outlet
+    const outletOrders = allOrders.filter(order => {
+      // Check if any product in the order matches the outlet's products
+      return order.products.some(item => {
+        // For each product in the order, check if it's from our outlet
+        // This requires the original product ID which we don't have in the embedded data
+        // Instead, we'll check if the product name matches any of our outlet's products
+        return products.some(outletProduct => 
+          outletProduct.productName === item.product.name
+        );
+      });
+    });
+    
+    console.log(`Found ${outletOrders.length} orders for outlet ${outletId} out of ${allOrders.length} total orders`);
+    
+    // Apply pagination
+    const paginatedOrders = outletOrders.slice(startIndex, startIndex + limit);
+    
+    res.status(200).json({ orders: paginatedOrders, totalOrders: outletOrders.length });
   } catch (error) {
+    console.error('Error fetching outlet orders:', error);
     res.status(500).json({ message: error.message || 'Failed to fetch outlet orders' });
   }
 };

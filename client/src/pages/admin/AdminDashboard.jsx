@@ -132,8 +132,11 @@ const AdminDashboard = () => {
         </div>
 
         {/* AI Query Section */}
-        <div className="mt-8">
-          <AIQuery />
+        <div className="bg-white overflow-hidden shadow rounded-lg mb-8">
+          <div className="p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Ask AI Assistant</h2>
+            <AIQuery />
+          </div>
         </div>
 
         {/* Stats Cards */}

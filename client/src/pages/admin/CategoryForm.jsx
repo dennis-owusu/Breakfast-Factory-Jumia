@@ -46,29 +46,11 @@ async function fetchParentCategories() {
   return data.allCategory || [];
 }
 
-async function uploadImage(file) {
-  const token = localStorage.getItem('token');
-  const formData = new FormData();
-  formData.append('images', file);
-  const response = await fetch('/api/route/upload', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
-  if (!response.ok) throw new Error('Failed to upload image');
-  const data = await response.json();
-  return data.images[0].filePath; // Assuming it returns { success: true, images: [{filePath}] }
-}
+// Image upload functionality removed as requested
 
-async function saveCategory(categoryData, imageFile, isNew, id) {
+async function saveCategory(categoryData, isNew, id) {
   const token = localStorage.getItem('token');
-  let image = categoryData.image;
-  if (imageFile) {
-    image = await uploadImage(imageFile);
-  }
-  const updatedCategoryData = { ...categoryData, image };
+  const updatedCategoryData = { ...categoryData };
   const url = isNew ? '/api/route/categories' : `/api/route/update-categories/${id}`;
   const method = isNew ? 'POST' : 'PUT';
   const response = await fetch(url, {
@@ -92,7 +74,6 @@ const CategoryForm = () => {
     categoryName: '',
     slug: '',
     description: '',
-    image: '',
     parent: '',
     featured: false,
     status: 'active'
@@ -103,8 +84,6 @@ const CategoryForm = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
-  const [imagePreview, setImagePreview] = useState('');
-  const [imageFile, setImageFile] = useState(null);
   
   // Load category data and parent categories
   useEffect(() => {
@@ -115,19 +94,15 @@ const CategoryForm = () => {
         
         // Load category data if editing
         const categoryData = await fetchCategory(id);
-        const imageFromData = categoryData.image || '';
-        const normalizedImage = imageFromData.startsWith('/') ? imageFromData : (imageFromData ? `/uploads/${imageFromData}` : '');
         setCategory({
           _id: categoryData._id || '',
           categoryName: categoryData.categoryName || '',
           slug: categoryData.slug || '',
           description: categoryData.description || '',
-          image: normalizedImage,
           parent: categoryData.parent?._id || '',
           featured: categoryData.featured ?? false,
           status: categoryData.status || 'active'
         });
-        setImagePreview(normalizedImage ? `http://localhost:5000${normalizedImage}` : '');
         
         // Load parent categories
         const parents = await fetchParentCategories();
@@ -152,28 +127,7 @@ const CategoryForm = () => {
     }));
   };
   
-  // Handle image upload
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    setImageFile(file);
-    
-    // Create a preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-  
-  // Remove image
-  const handleRemoveImage = () => {
-    setImagePreview('');
-    setImageFile(null);
-    setCategory(prev => ({ ...prev, image: '' }));
-    setImagePreview('');
-  };
+  // Image upload functionality removed as requested
   
   // Generate slug from name
   const generateSlug = () => {
@@ -201,7 +155,7 @@ const CategoryForm = () => {
     try {
       setIsSaving(true);
       setError(null);
-      const result = await saveCategory(category, imageFile, isNewCategory, category._id);
+      const result = await saveCategory(category, isNewCategory, category._id);
       if (result.success) {
         setSuccessMessage(result.message);
         setTimeout(() => {
@@ -406,81 +360,7 @@ const CategoryForm = () => {
                   </div>
                 </div>
                 
-                {/* Category Image */}
-                <div className="sm:col-span-6">
-                  <label className="block text-sm font-medium text-gray-700">Category Image</label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                    {imagePreview ? (
-                      <div className="space-y-1 text-center">
-                        <div className="relative">
-                          <img
-                            src={imagePreview}
-                            alt="Category preview"
-                            className="mx-auto h-32 w-32 object-cover rounded-md"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleRemoveImage}
-                            className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-100 rounded-full p-1 text-red-600 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                        <div className="flex text-sm text-gray-600">
-                          <label
-                            htmlFor="image-upload"
-                            className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
-                          >
-                            <span>Change image</span>
-                            <input
-                              id="image-upload"
-                              name="image-upload"
-                              type="file"
-                              accept="image/*"
-                              className="sr-only"
-                              onChange={handleImageChange}
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-1 text-center">
-                        <svg
-                          className="mx-auto h-12 w-12 text-gray-400"
-                          stroke="currentColor"
-                          fill="none"
-                          viewBox="0 0 48 48"
-                          aria-hidden="true"
-                        >
-                          <path
-                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <div className="flex text-sm text-gray-600">
-                          <label
-                            htmlFor="image-upload"
-                            className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
-                          >
-                            <span>Upload an image</span>
-                            <input
-                              id="image-upload"
-                              name="image-upload"
-                              type="file"
-                              accept="image/*"
-                              className="sr-only"
-                              onChange={handleImageChange}
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
-                        <p className="text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {/* Category Image section removed as requested */}
               </div>
             </div>
             

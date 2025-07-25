@@ -11,8 +11,7 @@ export const category = async(req, res, next) => {
             featured,
             outlet,
             parent: parentValue,
-            status,
-            image: req.body.image || null
+            status
         });
         await newCategory.save(); 
         res.json(newCategory);
@@ -86,7 +85,6 @@ export const updateCategory = async (req, res, next) => {
       } else if (req.body.parent === '') {
         updateData.parent = null;
       }
-      if (req.body.image) updateData.image = req.body.image;
       
       const updatedCategory = await Categories.findByIdAndUpdate(
         req.params.id, 

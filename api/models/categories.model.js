@@ -16,10 +16,6 @@ const categorySchema = mongoose.Schema({
         ref: 'User',
         required: false
     },
-    image: {
-        type: String,
-        required: false
-    },
     parent: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Categories',

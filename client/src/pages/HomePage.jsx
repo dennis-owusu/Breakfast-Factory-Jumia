@@ -244,7 +244,7 @@ const HomePage = () => {
                 category={{
                   _id: category._id,
                   name: category.name,
-                  image: category.image || 'https://via.placeholder.com/150',
+                  productCount: category.productCount || 0
                 }}
               />
             ))}

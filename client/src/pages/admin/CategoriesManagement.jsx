@@ -43,7 +43,6 @@ const fetchCategories = async (params) => {
       id: category._id || '', // Use _id as id
       categoryName: category.categoryName || 'Unknown',
       slug: category.slug || '',
-      image: category.image || null,
       parentName: category.parent?.categoryName || null,
       productCount: category.productCount ?? 0,
       status: category.status || 'inactive',
@@ -409,19 +408,6 @@ const CategoriesManagement = () => {
                     <tr key={category.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            {category.image ? (
-                              <img 
-                                className="h-10 w-10 rounded-full object-cover" 
-                                src={`http://localhost:3000${category.image}`} 
-                                alt={category.categoryName || 'Category'} 
-                              />
-                            ) : (
-                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <span className="text-gray-500 text-xs">No Image</span>
-                              </div>
-                            )}
-                          </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
                               {category.categoryName || 'Unknown'}

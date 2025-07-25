@@ -17,9 +17,9 @@ export const getAnalytics = async (req, res, next) => {
       return next(errorHandler(400, 'Invalid date format'));
     }
 
-    // Define time range - Using fixed dates for July 2025 since that's when the data exists
+    // Define time range based on current date
     let startDate;
-    let endDate = new Date('2025-07-31T23:59:59.999Z'); // End of July 2025
+    let endDate = new Date(); // Current date
     let dateFormat;
     let groupBy;
 
@@ -32,20 +32,27 @@ export const getAnalytics = async (req, res, next) => {
       groupBy = { $hour: '$createdAt' }; // Group by hour for specific date
       dateFormat = { hour: 'numeric', hour12: true };
     } else if (period === 'daily') {
-      startDate = new Date('2025-07-01T00:00:00.000Z'); // Start of July 2025
+      // Last 7 days
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
       dateFormat = { month: 'short', day: 'numeric' };
       groupBy = { $dayOfMonth: '$createdAt' };
     } else if (period === 'weekly') {
-      startDate = new Date('2025-07-01T00:00:00.000Z'); // Start of July 2025
+      // Last 4 weeks
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 28);
       dateFormat = { week: 'numeric' };
       groupBy = { $week: '$createdAt' };
     } else if (period === 'yearly') {
-      startDate = new Date('2025-01-01T00:00:00.000Z'); // Start of 2025
+      // Last 12 months
+      startDate = new Date();
+      startDate.setFullYear(startDate.getFullYear() - 1);
       dateFormat = { month: 'short' };
       groupBy = { $month: '$createdAt' };
     } else {
-      // Default to monthly (July 2025)
-      startDate = new Date('2025-07-01T00:00:00.000Z'); // Start of July 2025
+      // Default to monthly (last 6 months)
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 6);
       dateFormat = { month: 'short' };
       groupBy = { $month: '$createdAt' };
     }
@@ -81,8 +88,8 @@ export const getAnalytics = async (req, res, next) => {
                     format: date ? '%H:%M' : period === 'yearly' || period === 'monthly' ? '%b' : '%b %d',
                     date: {
                       $dateFromParts: {
-                        year: 2025,
-                        month: period === 'yearly' || period === 'monthly' ? '$_id' : 7,
+                        year: { $year: new Date() },
+                        month: period === 'yearly' || period === 'monthly' ? '$_id' : { $month: new Date() },
                         day: period === 'daily' ? '$_id' : 1,
                         hour: date ? '$_id' : 0,
                       },
@@ -290,14 +297,30 @@ export const getSales = async (req, res, next) => {
        // Remove outletId validation as requested
        
        if (period && period !== 'all') {
-         // Use fixed dates for July 2025 since that's when the data exists
+         // Use current date ranges
          let startDate;
-         let endDate = new Date('2025-07-31T23:59:59.999Z'); // End of July 2025
+         let endDate = new Date(); // Current date
          
-         if (period === 'daily') startDate = new Date('2025-07-17T00:00:00.000Z'); // Start from July 17, 2025 (based on data)
-         else if (period === 'weekly') startDate = new Date('2025-07-01T00:00:00.000Z'); // Start of July 2025
-         else if (period === 'monthly') startDate = new Date('2025-07-01T00:00:00.000Z'); // Start of July 2025
-         else if (period === 'yearly') startDate = new Date('2025-01-01T00:00:00.000Z'); // Start of 2025
+         if (period === 'daily') {
+           // Last day
+           startDate = new Date();
+           startDate.setDate(startDate.getDate() - 1);
+         }
+         else if (period === 'weekly') {
+           // Last 7 days
+           startDate = new Date();
+           startDate.setDate(startDate.getDate() - 7);
+         }
+         else if (period === 'monthly') {
+           // Last 30 days
+           startDate = new Date();
+           startDate.setDate(startDate.getDate() - 30);
+         }
+         else if (period === 'yearly') {
+           // Last 365 days
+           startDate = new Date();
+           startDate.setDate(startDate.getDate() - 365);
+         }
          
          matchStage.createdAt = { $gte: startDate, $lte: endDate };
        }
