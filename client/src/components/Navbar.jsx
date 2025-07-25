@@ -65,14 +65,24 @@ const Navbar = () => {
                 </button>
                 <div className="absolute right-0 w-48 mt-0 py-2 bg-white rounded-md shadow-xl hidden group-hover:block">
                   {currentUser.usersRole === 'admin' && (
-                    <Link to="/admin/dashboard" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
-                      Admin Dashboard
-                    </Link>
+                    <>
+                      <Link to="/admin/dashboard" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
+                        Admin Dashboard
+                      </Link>
+                      <Link to="/admin/subscription" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
+                        Subscription
+                      </Link>
+                    </>
                   )}
                   {currentUser.usersRole === 'outlet' && (
-                    <Link to="/outlet/dashboard" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
-                      Outlet Dashboard
-                    </Link>
+                    <>
+                      <Link to="/outlet/dashboard" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
+                        Outlet Dashboard
+                      </Link>
+                      <Link to="/outlet/subscription" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
+                        Subscription
+                      </Link>
+                    </>
                   )}
                   <Link to="/profile" className="block px-4 py-2 text-gray-800 hover:bg-orange-500 hover:text-white">
                     My Profile
@@ -154,22 +164,40 @@ const Navbar = () => {
             {currentUser ? (
               <>
                 {currentUser.usersRole === 'admin' && (
-                  <Link 
-                    to="/admin/dashboard" 
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Admin Dashboard
-                  </Link>
+                  <>
+                    <Link 
+                      to="/admin/dashboard" 
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                    <Link 
+                      to="/admin/subscription" 
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Subscription
+                    </Link>
+                  </>
                 )}
                 {currentUser.usersRole === 'outlet' && (
-                  <Link 
-                    to="/outlet/dashboard" 
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Outlet Dashboard
-                  </Link>
+                  <>
+                    <Link 
+                      to="/outlet/dashboard" 
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Outlet Dashboard
+                    </Link>
+                    <Link 
+                      to="/outlet/subscription" 
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-gray-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Subscription
+                    </Link>
+                  </>
                 )}
                 <Link 
                   to="/profile" 

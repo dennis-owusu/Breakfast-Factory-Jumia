@@ -20,6 +20,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/user/OrderConfirmationPage';
 import OrdersPage from './pages/user/OrdersPage';
 import MomoTestPage from './pages/MomoTestPage';
+import SubscriptionPage from './pages/SubscriptionPage';
 
 // Lazy loaded pages for better performance
 const UserDashboard = React.lazy(() => import('./pages/user/UserDashboard'));
@@ -316,6 +317,18 @@ function App() {
                 />
               } 
             />
+            <Route 
+              path="/outlet/subscription" 
+              element={
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <SubscriptionPage />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
             
             {/* Admin Routes */}
             <Route 
@@ -457,6 +470,18 @@ function App() {
                   element={
                     <React.Suspense fallback={<LoadingFallback />}>
                       <CategoryForm />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+            <Route 
+              path="/admin/subscription" 
+              element={
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <SubscriptionPage />
                     </React.Suspense>
                   }
                 />

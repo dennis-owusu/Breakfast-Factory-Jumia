@@ -21,10 +21,9 @@ router.post('/upload', upload.array('images', 10), async (req, res) => {
   try {
     const images = req.files.map(file => ({
       fileName: file.filename,
-      filePath: `https://localhost:3000/uploads/${file.filename}`, // Relative path
-
+      filePath: `http://localhost:3000/uploads/${file.filename}`, // Relative path for proper resolution
     }));
-
+ 
 
     const savedImages = await Image.insertMany(images);
     res.status(201).json({ success: true, images: savedImages });
