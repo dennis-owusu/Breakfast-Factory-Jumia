@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import User from '../models/users.model.js'
 
 export const getAnalytics = async (req, res, next) => {
-  try {
+  try { 
     const { period, outletId, date } = req.query;
 
     // Validate inputs
@@ -128,14 +128,7 @@ export const getAnalytics = async (req, res, next) => {
               totalValue: { $sum: { $multiply: ['$products.quantity', '$products.product.price'] } },
             }
           },
-          {
-            $project: {
-              name: '$name',
-              value: '$totalValue',
-              _id: 0,
-            },
-          },
-          { $sort: { value: -1 } },
+          {            $project: {              name: '$name',              value: '$totalValue',              units: { $sum: '$products.quantity' },              _id: 0,            },          },          { $sort: { units: -1 } },
           { $limit: 5 },
         ]);
       }
@@ -233,7 +226,7 @@ export const getAnalytics = async (req, res, next) => {
               _id: 0,
             },
           },
-          { $sort: { sales: -1 } },
+          { $sort: { units: -1 } },
           { $limit: 5 },
         ]);
       }

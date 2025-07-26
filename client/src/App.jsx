@@ -28,6 +28,7 @@ const UserOrders = React.lazy(() => import('./pages/user/UserOrders'));
 const UserProfile = React.lazy(() => import('./pages/user/UserProfile'));
 
 const OutletDashboard = React.lazy(() => import('./pages/outlet/OutletDashboard'));
+const OutletRestock = React.lazy(() => import('./pages/outlet/OutletRestock'));
 const OutletProducts = React.lazy(() => import('./pages/outlet/OutletProducts'));
 const OutletOrders = React.lazy(() => import('./pages/outlet/OutletOrders'));
 const OutletCategoryForm = React.lazy(() => import('./pages/outlet/OutletCategoryForm'));
@@ -53,6 +54,7 @@ const AdminOrderDetail = React.lazy(() => import('./pages/admin/OrderDetail'));
 const Analytics = React.lazy(() => import('./pages/admin/Analytics'));
 const CategoriesManagement = React.lazy(() => import('./pages/admin/CategoriesManagement'));
 const CategoryForm = React.lazy(() => import('./pages/admin/CategoryForm'));
+const RestockManagement = React.lazy(() => import('./pages/admin/RestockManagement'));
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -192,6 +194,30 @@ function App() {
                   element={
                     <React.Suspense fallback={<LoadingFallback />}>
                       <OutletCategories />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+            <Route 
+              path="/admin/restock" 
+              element={
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <RestockManagement />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+            <Route 
+              path="/outlet/restock" 
+              element={
+                <OutletRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <OutletRestock />
                     </React.Suspense>
                   }
                 />

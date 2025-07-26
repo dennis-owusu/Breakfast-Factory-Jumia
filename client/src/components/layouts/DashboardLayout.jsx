@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard, Star } from 'lucide-react';
+import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard, Star, RefreshCw } from 'lucide-react';
 import Sidebar from '../Sidebar';
 
 const DashboardLayout = ({ children }) => {
@@ -19,6 +19,7 @@ const DashboardLayout = ({ children }) => {
         { to: '/outlet/transactions', icon: <CreditCard size={20} />, label: 'Transactions' },
         { to: '/outlet/sell', icon: <CreditCard size={20} />, label: 'Sell' },
         { to: '/outlet/products', icon: <Package size={20} />, label: 'Products' },
+        { to: '/outlet/restock', icon: <RefreshCw size={20} />, label: 'Restock' },
         { to: '/outlet/orders', icon: <ShoppingBag size={20} />, label: 'Orders' },
         { to: '/outlet/subscription', icon: <Star size={20} />, label: 'Subscription' },
         { to: '/outlet/profile', icon: <User size={20} />, label: 'Profile' },
@@ -31,6 +32,7 @@ const DashboardLayout = ({ children }) => {
         { to: '/admin/users', icon: <User size={20} />, label: 'Users' },
         { to: '/admin/outlets', icon: <Settings size={20} />, label: 'Outlets' },
         { to: '/admin/categories', icon: <Settings size={20} />, label: 'Categories' },
+        { to: '/admin/restock', icon: <RefreshCw size={20} />, label: 'Restock Requests' },
         { to: '/admin/analytics', icon: <BarChart2 size={20} />, label: 'Analytics' },
         { to: '/admin/subscription', icon: <Star size={20} />, label: 'Subscription' },
       ];

@@ -9,7 +9,8 @@ import {
   ArrowUpDown,
   Trash2,
   Edit,
-  Eye
+  Eye,
+  RefreshCw
 } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { Button } from '../../components/ui/button';
@@ -272,6 +273,13 @@ const handleDeleteProduct = async (productId) => {
                       onClick={() => navigate(`/outlet/product/${product._id}/edit`)}
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/outlet/restock?productId=${product._id}&quantity=${product.numberOfProductsAvailable}`)}
+                    >
+                      <RefreshCw className="h-4 w-4 text-green-500" />
                     </Button>
                     <Button
                       variant="outline"

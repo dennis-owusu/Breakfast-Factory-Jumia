@@ -13,6 +13,7 @@ import feedbackRoute from './routes/feedbackRoutes.js';
 import paymentRoute from './routes/payment.route.js';
 import dashboardRoute from './routes/dashboard.route.js';
 import subscriptionRoute from './routes/subscription.route.js';
+import restockRoute from './routes/restock.route.js'
 import aiRoute from './routes/ai.route.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -115,6 +116,7 @@ app.use('/api/feedback', feedbackRoute);
 app.use('/api/route', paymentRoute);
 app.use('/api/route/dashboard', dashboardRoute);
 app.use('/api/route', subscriptionRoute);
+app.use('/api/route', restockRoute);
 app.use('/api/ai', aiRoute);
 
 // Global error handler

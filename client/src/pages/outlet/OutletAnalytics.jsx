@@ -442,7 +442,7 @@ const OutletAnalytics = () => {
           {/* Sales by Product */}
           <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Sales by Category</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Sales by Product</h3>
             </div>
 
             <div className="px-4 pb-5">
