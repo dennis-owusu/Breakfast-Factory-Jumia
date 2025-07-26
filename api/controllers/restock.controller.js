@@ -5,7 +5,7 @@ import Product from '../models/product.model.js';
 // Create a restock request
 export const createRestockRequest = async (req, res, next) => {
     try {
-        const { productId, requestedQuantity } = req.body;
+        const { productId, requestedQuantity, outlet } = req.body;
 
         // Validate inputs
         if (!productId || !requestedQuantity) {
@@ -23,6 +23,7 @@ export const createRestockRequest = async (req, res, next) => {
             product: productId,
             requestedQuantity,
             currentQuantity: product.numberOfProductsAvailable,
+            outlet,
             reason: 'Stock replenishment'
         });
 
@@ -43,7 +44,7 @@ export const getRestockRequests = async (req, res, next) => {
     try {
         const requests = await RestockRequest.find()
             .populate('product', 'productName numberOfProductsAvailable')
-            .populate('outlet', 'username email')
+            .populate('outlet', 'name email storeName')
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -60,6 +61,7 @@ export const getOutletRestockRequests = async (req, res, next) => {
     try {
         const requests = await RestockRequest.find()
             .populate('product', 'productName numberOfProductsAvailable')
+            .populate('outlet', 'name storeName')
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -76,7 +78,6 @@ export const processRestockRequest = async (req, res, next) => {
     try {
         const { requestId } = req.params;
         const { status, adminNote } = req.body;
-        const adminId = req.user._id;
 
         if (!['approved', 'rejected'].includes(status)) {
             return next(errorHandler(400, 'Invalid status'));
@@ -95,7 +96,7 @@ export const processRestockRequest = async (req, res, next) => {
         request.status = status;
         request.adminNote = adminNote;
         request.processedAt = new Date();
-        request.processedBy = adminId;
+
 
         // If approved, update product quantity
         if (status === 'approved') {

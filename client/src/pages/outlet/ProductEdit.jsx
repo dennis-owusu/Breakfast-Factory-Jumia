@@ -400,20 +400,7 @@ const ProductEdit = () => {
                   </div>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stock</label>
-                  <div className="mt-1">
-                    <Input
-                      type="text"
-                      name="stock"
-                      id="stock"
-                      value={formData.stock}
-                      onChange={handleChange}
-                      className={formErrors.stock ? 'border-red-300' : ''}
-                    />
-                    {formErrors.stock && <p className="mt-2 text-sm text-red-600 error-message">{formErrors.stock}</p>}
-                  </div>
-                </div>
+
 
                 <div className="sm:col-span-6">
                   <div className="flex items-center">

@@ -3,14 +3,15 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 // Async thunks
 export const createRestockRequest = createAsyncThunk(
   'restock/createRequest',
-  async ({ productId, requestedQuantity, reason }, { rejectWithValue }) => {
+  async ({ productId, requestedQuantity }, { getState, rejectWithValue }) => {
+    const { currentUser } = getState().user;
     try {
       const response = await fetch('/api/route/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ productId, requestedQuantity, reason }),
+        body: JSON.stringify({ productId, requestedQuantity, outlet: currentUser._id }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);

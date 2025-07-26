@@ -16,7 +16,7 @@ const RestockManagement = () => {
   const fetchRestockRequests = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/restock/all');
+      const response = await fetch('/api/route/all');
       const data = await response.json();
       setRequests(data.requests);
     } catch (err) {
@@ -29,7 +29,7 @@ const RestockManagement = () => {
   const handleProcessRequest = async (requestId, status, adminNote) => {
     try {
       setProcessingId(requestId);
-      const response = await fetch(`/api/restock/process/${requestId}`, {
+      const response = await fetch(`/api/route/process/${requestId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ const RestockManagement = () => {
                 <tbody>
                   {requests.map((request) => (
                     <tr key={request._id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">{request.outlet.username}</td>
+                      <td className="py-3 px-4">{request.outlet.name}</td>
                       <td className="py-3 px-4">{request.product.productName}</td>
                       <td className="py-3 px-4">{request.currentQuantity}</td>
                       <td className="py-3 px-4">{request.requestedQuantity}</td>

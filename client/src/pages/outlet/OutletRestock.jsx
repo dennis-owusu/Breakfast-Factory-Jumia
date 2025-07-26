@@ -119,6 +119,7 @@ const OutletRestock = () => {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4">Product</th>
+                    <th className="text-left py-3 px-4">Outlet</th>
                     <th className="text-left py-3 px-4">Requested Qty</th>
                     <th className="text-left py-3 px-4">Current Qty</th>
                     <th className="text-left py-3 px-4">Status</th>
@@ -130,6 +131,7 @@ const OutletRestock = () => {
                   {requests.map((request) => (
                     <tr key={request._id} className="border-b hover:bg-gray-50">
                       <td className="py-3 px-4">{request.product.productName}</td>
+                      <td className="py-3 px-4">{request.outlet?.storeName || request.outlet?.name || request.outlet?.email || 'Unknown Outlet'}</td>
                       <td className="py-3 px-4">{request.requestedQuantity}</td>
                       <td className="py-3 px-4">{request.currentQuantity}</td>
                       <td className="py-3 px-4">

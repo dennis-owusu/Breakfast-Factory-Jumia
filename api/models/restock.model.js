@@ -8,7 +8,7 @@ const restockSchema = mongoose.Schema({
     },
     outlet: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Users',
         required: false
     },
     requestedQuantity: {
@@ -38,7 +38,7 @@ const restockSchema = mongoose.Schema({
     },
     processedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'Users'
     }
 }, {timestamps: true});
 
