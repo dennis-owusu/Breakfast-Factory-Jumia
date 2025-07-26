@@ -100,37 +100,37 @@ const OutletSales = () => {
   return (
     <div className="bg-gray-50 min-h-screen p-6">
       <h1 className="text-2xl font-bold mb-6">Sales</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-              <DollarSign className="h-6 w-6 text-orange-500" />
+            <div className="flex-shrink-0 bg-orange-100 rounded-lg p-3">
+              <DollarSign className="h-8 w-8 text-orange-500" />
             </div>
-            <div className="ml-5 w-0 flex-1">
-              <p className="text-sm font-medium text-gray-500 truncate">Total Sales</p>
-              <p className="text-lg font-medium text-gray-900">{formatPrice(summary.totalSales)}</p>
+            <div className="ml-5">
+              <p className="text-sm font-medium text-gray-600">Total Sales</p>
+              <p className="text-2xl font-semibold text-gray-900">{formatPrice(summary.totalSales)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-              <TrendingUp className="h-6 w-6 text-orange-500" />
+            <div className="flex-shrink-0 bg-orange-100 rounded-lg p-3">
+              <TrendingUp className="h-8 w-8 text-orange-500" />
             </div>
-            <div className="ml-5 w-0 flex-1">
-              <p className="text-sm font-medium text-gray-500 truncate">Average Sale</p>
-              <p className="text-lg font-medium text-gray-900">{formatPrice(summary.averageSale)}</p>
+            <div className="ml-5">
+              <p className="text-sm font-medium text-gray-600">Average Sale</p>
+              <p className="text-2xl font-semibold text-gray-900">{formatPrice(summary.averageSale)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-              <ShoppingBag className="h-6 w-6 text-orange-500" />
+            <div className="flex-shrink-0 bg-orange-100 rounded-lg p-3">
+              <ShoppingBag className="h-8 w-8 text-orange-500" />
             </div>
-            <div className="ml-5 w-0 flex-1">
-              <p className="text-sm font-medium text-gray-500 truncate">Sale Count</p>
-              <p className="text-lg font-medium text-gray-900">{summary.saleCount}</p>
+            <div className="ml-5">
+              <p className="text-sm font-medium text-gray-600">Sale Count</p>
+              <p className="text-2xl font-semibold text-gray-900">{summary.saleCount}</p>
             </div>
           </div>
         </div>
@@ -160,27 +160,36 @@ const OutletSales = () => {
           </div>
         )}
       </form>
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="min-w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="p-4 text-left">Date</th>
-              <th className="p-4 text-left">Amount</th>
-              <th className="p-4 text-left">Items</th>
-              <th className="p-4 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sales.map((sale) => (
-              <tr key={sale._id} className="border-t">
-                <td className="p-4">{formatDate(sale.date)}</td>
-                <td className="p-4">{formatPrice(sale.amount)}</td>
-                <td className="p-4">{sale.items}</td>
-                <td className="p-4"><Badge>{sale.status}</Badge></td>
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {sales.map((sale) => (
+                <tr key={sale._id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(sale.date)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatPrice(sale.amount)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.items}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <Badge className={`${
+                      sale.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                      sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      sale.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>{sale.status}</Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div className="flex justify-between mt-4">
         <Button onClick={() => handlePageChange(pagination.page - 1)} disabled={pagination.page === 1}><ChevronLeft /></Button>

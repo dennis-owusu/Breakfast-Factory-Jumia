@@ -44,7 +44,7 @@ const OutletAnalytics = () => {
         { date: 'Jul 14', sales: 20000, orders: 30 },
         { date: 'Jul 15', sales: 22000, orders: 35 },
       ],
-      categoryData: [
+      productData: [
         { name: 'Electronics', value: 25000 },
         { name: 'Clothing', value: 18000 },
         { name: 'Food', value: 15000 },
@@ -205,8 +205,7 @@ const OutletAnalytics = () => {
           'Content-Type': 'application/json',
           ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
         };
-        // Removed outletId parameter as it's causing filtering issues
-        const response = await fetch(`/api/route/analytics?period=${period}`, { headers });
+        const response = await fetch(`/api/route/analytics?period=${period}&outletId=${outlet._id}`, { headers });
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -431,7 +430,7 @@ const OutletAnalytics = () => {
                   <YAxis yAxisId="right" orientation="right" stroke="#3D9BFF" />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="sales" name="Sales (₦)" stroke="#FF6B3D" activeDot={{ r: 8 }} />
+                  <Line yAxisId="left" type="monotone" dataKey="sales" name="Sales (₵)" stroke="#FF6B3D" activeDot={{ r: 8 }} />
                   <Line yAxisId="right" type="monotone" dataKey="orders" name="Orders" stroke="#3D9BFF" />
                 </LineChart>
               </ResponsiveContainer>
@@ -440,7 +439,7 @@ const OutletAnalytics = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
-          {/* Sales by Category */}
+          {/* Sales by Product */}
           <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:px-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Sales by Category</h3>
@@ -451,7 +450,7 @@ const OutletAnalytics = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={data.categoryData}
+                      data={data.productData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -461,7 +460,7 @@ const OutletAnalytics = () => {
                       nameKey="name"
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
-                      {data.categoryData.map((entry, index) => (
+                      {data.productData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -491,7 +490,7 @@ const OutletAnalytics = () => {
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend />
-                    <Bar dataKey="sales" name="Sales (₦)" fill="#FF6B3D" />
+                    <Bar dataKey="sales" name="Sales (₵)" fill="#FF6B3D" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -531,7 +530,7 @@ const OutletAnalytics = () => {
                         {product.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.category?.categoryName || product.category || 'Uncategorized'}
+                        {product.name || product.category || 'Uncategorized'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatPrice(product.sales)}

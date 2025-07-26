@@ -206,7 +206,7 @@ const Analytics = () => {
           ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
         };
         // Removed outletId parameter as it's causing filtering issues
-        const response = await fetch(`/api/route/analytics?period=${period}`, { headers });
+        const response = await fetch(`/api/route/analytics?period=${period}`, { headers }); // No outletId needed for admin
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }

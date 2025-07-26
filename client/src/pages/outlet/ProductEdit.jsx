@@ -10,19 +10,7 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 import Loader from '../../components/ui/Loader';
 
-// Sample categories for UI and backend compatibility
-const sampleCategories = [
-  { _id: 1, name: 'Electronics', stringId: 'electronics' },
-  { _id: 2, name: 'Clothing', stringId: 'clothing' },
-  { _id: 3, name: 'Food', stringId: 'food' },
-  { _id: 4, name: 'Furniture', stringId: 'furniture' },
-  { _id: 5, name: 'Beauty', stringId: 'beauty' },
-  { _id: 6, name: 'Health', stringId: 'health' },
-  { _id: 7, name: 'Sports', stringId: 'sports' },
-  { _id: 8, name: 'Books', stringId: 'books' },
-  { _id: 9, name: 'Toys', stringId: 'toys' },
-  { _id: 10, name: 'Other', stringId: 'other' }
-];
+
 
 const ProductEdit = () => {
   const { id } = useParams();
@@ -32,7 +20,8 @@ const ProductEdit = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [categories] = useState(sampleCategories);
+  const [categories, setCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -52,6 +41,34 @@ const ProductEdit = () => {
 
   // Fetch product data
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoadingCategories(true);
+        const res = await fetch('/api/route/allcategories', {
+          headers: { Authorization: `Bearer ${currentUser?.token}` },
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
+        }
+        const data = await res.json();
+        const categoryData = Array.isArray(data.allCategory)
+          ? data.allCategory.map((cat) => ({
+              _id: cat._id,
+              name: cat.categoryName,
+            }))
+          : [];
+        setCategories(categoryData);
+      } catch (err) {
+        console.error('Fetch categories error:', err.message);
+        setError('Failed to load categories');
+        toast.error('Failed to load categories');
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
@@ -70,7 +87,7 @@ const ProductEdit = () => {
           price: product.productPrice?.toString() || '',
           discountPrice: product.discountPrice?.toString() || '',
           stock: product.numberOfProductsAvailable?.toString() || '',
-          category: product.category || '',
+          category: product.category?._id || product.category || '',
           specifications: product.specifications || [],
           featured: product.featured || false
         });
@@ -212,7 +229,6 @@ const ProductEdit = () => {
       // Append all form data
       formDataToSend.append('productName', formData.title);
       formDataToSend.append('category', formData.category);
-      formDataToSend.append('categoryId', categories.find(cat => cat.stringId === formData.category)?._id || 1);
       formDataToSend.append('numberOfProductsAvailable', parseInt(formData.stock, 10));
       formDataToSend.append('productPrice', parseFloat(formData.price));
       
@@ -331,7 +347,7 @@ const ProductEdit = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
-                          <SelectItem key={category.stringId} value={category.stringId}>
+                          <SelectItem key={category._id} value={category._id}>
                             {category.name}
                           </SelectItem>
                         ))}

@@ -19,9 +19,11 @@ export const createOrder = async (req, res) => {
         }
         return {
           product: {
+            id: product._id,
             name: product.productName,
             price: product.productPrice,
             images: product.productImage ? [product.productImage] : [],
+            category: product.category,
             outlet: product.outlet || { name: 'Unknown Outlet' },
           },
           quantity: item.quantity,

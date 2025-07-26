@@ -112,49 +112,43 @@ export const getAnalytics = async (req, res, next) => {
     }
 
     // Aggregate sales by category
-    let categoryData = [];
+    let productData = [];
     try {
       // Check if there are any orders matching the criteria before running the aggregation
       const hasOrders = await Order.countDocuments(matchStage);
       
       if (hasOrders > 0) {
-        categoryData = await Order.aggregate([
+        productData = await Order.aggregate([
           { $match: matchStage },
           { $unwind: '$products' },
           {
-            $lookup: {
-              from: 'products',
-              localField: 'products.product._id',
-              foreignField: '_id',
-              as: 'productDetails',
-            },
-          },
-          { $unwind: { path: '$productDetails', preserveNullAndEmptyArrays: true } },
-          {
             $group: {
-              _id: { $ifNull: ['$productDetails.category', 'Uncategorized'] },
-              value: { $sum: { $multiply: ['$products.quantity', '$products.product.price'] } },
-            },
+              _id: { name: '$products.product.name', price: '$products.product.price' },
+              name: { $first: '$products.product.name' },
+              totalValue: { $sum: { $multiply: ['$products.quantity', '$products.product.price'] } },
+            }
           },
           {
             $project: {
-              name: '$_id',
-              value: 1,
+              name: '$name',
+              value: '$totalValue',
               _id: 0,
             },
           },
+          { $sort: { value: -1 } },
+          { $limit: 5 },
         ]);
       }
       
       // If no data or empty result, ensure we return a properly formatted empty array
-      if (!categoryData || categoryData.length === 0) {
-        categoryData = [];
+      if (!productData || productData.length === 0) {
+        productData = [];
       }
       
-      console.log('Category data results:', categoryData);
-    } catch (categoryError) {
-      console.error('Error aggregating category data:', categoryError);
-      categoryData = [];
+      console.log('Product data results:', productData);
+    } catch (productError) {
+      console.error('Error aggregating product data:', productError);
+      productData = [];
     }
 
     // User and outlet growth
@@ -183,9 +177,38 @@ export const getAnalytics = async (req, res, next) => {
           { $match: matchStage },
           { $unwind: '$products' },
           {
+            $group: {
+              _id: { name: '$products.product.name', price: '$products.product.price' },
+              name: { $first: '$products.product.name' },
+              price: { $first: '$products.product.price' },
+              sales: { $sum: { $multiply: ['$products.quantity', '$products.product.price'] } },
+              units: { $sum: '$products.quantity' },
+            }
+          },
+          {
             $lookup: {
               from: 'products',
-              localField: 'products.product._id',
+              let: { productName: '$name', productPrice: '$price' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ['$productName', '$$productName'] },
+                        { $eq: ['$productPrice', '$$productPrice'] }
+                      ]
+                    }
+                  }
+                }
+              ],
+              as: 'productDetails'
+            }
+          },
+          // Now lookup product details for additional info
+          {
+            $lookup: {
+              from: 'products',
+              localField: '_id',
               foreignField: '_id',
               as: 'productDetails',
             },
@@ -200,27 +223,18 @@ export const getAnalytics = async (req, res, next) => {
             }
           },
           { $unwind: { path: '$categoryDetails', preserveNullAndEmptyArrays: true } },
-          {
-            $group: {
-              _id: { $ifNull: ['$productDetails._id', '$products.product._id'] },
-              name: { $first: { $ifNull: ['$productDetails.productName', '$products.product.name'] } },
-              category: { $first: { $ifNull: ['$categoryDetails.categoryName', 'Uncategorized'] } },
-              sales: { $sum: { $multiply: ['$products.quantity', { $ifNull: ['$productDetails.productPrice', '$products.product.price'] }] } },
-              units: { $sum: '$products.quantity' },
-            },
-          },
-          { $sort: { sales: -1 } },
-          { $limit: 5 },
+          // Final projection with all needed fields
           {
             $project: {
-              id: '$_id',
-              name: 1,
-              category: 1,
+              name: '$name',
+              category: { $ifNull: [{ $arrayElemAt: ['$categoryDetails.categoryName', 0] }, 'Uncategorized'] },
               sales: 1,
               units: 1,
               _id: 0,
             },
           },
+          { $sort: { sales: -1 } },
+          { $limit: 5 },
         ]);
       }
       
@@ -276,7 +290,7 @@ export const getAnalytics = async (req, res, next) => {
       success: true,
       data: {
         salesData,
-        categoryData,
+        productData,
         topProducts,
         summaryData,
         userGrowth,
