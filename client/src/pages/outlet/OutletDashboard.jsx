@@ -6,6 +6,7 @@ import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { toast } from 'react-hot-toast';
 import AIQuery from '../../components/ui/AIQuery';
+import { saveAs } from 'file-saver';
 
 // Fetch outlet dashboard statistics from the API
 
@@ -16,7 +17,57 @@ const OutletDashboard = () => {
   const [stats, setStats] = useState(null);
   const [allOrders, setAllOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState(null);
+
+  const handleDownloadReport = async () => {
+    setIsDownloading(true);
+    try {
+      const res = await fetch(`/api/route/dashboard/outlet/${outlet._id}/daily-report`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch daily report');
+      }
+      const data = await res.json();
+
+      // Convert JSON to CSV
+      const { summary, report } = data;
+      const csvRows = [];
+      
+      // Add summary headers and data
+      csvRows.push(['Daily Sales Report Summary']);
+      csvRows.push(['Outlet', summary.outletName]);
+      csvRows.push(['Date', summary.date]);
+      csvRows.push(['Total Sales', formatPrice(summary.totalSales)]);
+      csvRows.push(['Total Units Sold', summary.totalUnitsSold]);
+      csvRows.push(['']); // Spacer
+
+      // Add report headers
+      const headers = ['Product Name', 'Quantity Sold', 'Total Value', 'Current Stock', 'Reorder Point'];
+      csvRows.push(headers.join(','));
+
+      // Add report data
+      for (const item of report) {
+        const values = [
+          `"${item.productName}"`,
+          item.totalQuantity,
+          formatPrice(item.totalValue),
+          item.currentStock,
+          item.reorderPoint
+        ];
+        csvRows.push(values.join(','));
+      }
+
+      const csvString = csvRows.join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      saveAs(blob, `daily-sales-report-${summary.date}.csv`);
+
+    } catch (error) {
+      console.error('Download failed', error);
+      toast.error('Failed to download report.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
   
   // Fetch dashboard statistics
   useEffect(() => {
@@ -141,6 +192,13 @@ const OutletDashboard = () => {
             </h1>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
+            <button
+              onClick={handleDownloadReport}
+              disabled={isDownloading}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+            >
+              {isDownloading ? 'Downloading...' : 'Download Daily Report'}
+            </button>
             <Link
               to="/outlet/product/new"
               className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"

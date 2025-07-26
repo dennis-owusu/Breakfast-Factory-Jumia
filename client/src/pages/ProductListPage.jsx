@@ -152,17 +152,7 @@ const ProductListPage = () => {
     <div className="max-w-[1280px] mx-auto px-4 py-4">
       <h1 className="text-2xl font-bold mb-4">Products</h1>
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="md:hidden mb-4">
-          <Button
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            {isFilterOpen ? 'Hide Filters' : 'Show Filters'}
-          </Button>
-        </div>
-
-        <div className={`${isFilterOpen ? 'block' : 'hidden'} md:block md:w-1/4 bg-white p-4 rounded-lg shadow-sm`}>
+        <div className="w-full md:w-1/4 bg-white p-4 rounded-lg shadow-sm">
           <h2 className="text-lg font-bold mb-4">Filters</h2>
           <div className="mb-4">
             <Label htmlFor="search" className="text-sm font-medium">Search</Label>

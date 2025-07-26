@@ -1,4 +1,4 @@
- import Order from '../models/order.model.js';
+import Order from '../models/order.model.js';
 import Users from '../models/users.model.js';
 import Product from '../models/product.model.js';
 import Analytics from '../models/analytics.model.js';
@@ -11,7 +11,7 @@ export const getDashboardStats = async (req, res) => {
       { $group: { _id: null, total: { $sum: '$totalPrice' } } }
     ]);
     const totalSales = totalSalesData[0]?.total || 0;
-
+ 
     // Total Orders
     const totalOrders = await Order.countDocuments();
 
@@ -128,6 +128,88 @@ export const getDashboardStats = async (req, res) => {
       success: false,
       message: 'Failed to load dashboard statistics',
       error: error.message
+    });
+  }
+};
+// Helper function to get daily sales report for an outlet
+const getDailySalesReport = async (outletId, date) => {
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  // 1. Aggregate sales data from delivered orders for the given day
+  const salesData = await Order.aggregate([
+    {
+      $match: {
+        'products.product.outlet': outletId,
+        status: 'delivered',
+        createdAt: { $gte: startOfDay, $lte: endOfDay },
+      },
+    },
+    { $unwind: '$products' },
+    {
+      $match: {
+        'products.product.outlet': outletId, // Ensure product belongs to the outlet
+      },
+    },
+    {
+      $group: {
+        _id: '$products.product.id',
+        productName: { $first: '$products.product.name' },
+        totalQuantity: { $sum: '$products.quantity' },
+        totalValue: { $sum: { $multiply: ['$products.quantity', '$products.product.price'] } },
+      },
+    },
+  ]);
+
+  // 2. Get all products for the outlet to include stock info
+  const allProducts = await Product.find({ outlet: outletId }).lean();
+
+  // 3. Combine sales data with all products
+  const report = allProducts.map(product => {
+    const sale = salesData.find(s => s._id.toString() === product._id.toString());
+    return {
+      productId: product._id,
+      productName: product.productName,
+      totalQuantity: sale ? sale.totalQuantity : 0,
+      totalValue: sale ? sale.totalValue : 0,
+      currentStock: product.numberOfProductsAvailable, // Correct field for stock
+      reorderPoint: product.reorderPoint,
+    };
+  });
+
+  return report;
+};
+
+// Main controller to generate and send the daily report
+export const getOutletDailySalesReport = async (req, res) => {
+  try {
+    const { outletId } = req.params;
+    const outlet = await Users.findById(outletId);
+
+    if (!outlet) {
+      return res.status(404).json({ message: 'Outlet not found' });
+    }
+
+    const today = new Date();
+    const reportData = await getDailySalesReport(outletId, today);
+
+    const summary = {
+      totalSales: reportData.reduce((sum, item) => sum + item.totalValue, 0),
+      totalUnitsSold: reportData.reduce((sum, item) => sum + item.totalQuantity, 0),
+      totalProducts: reportData.length,
+      date: today.toISOString().split('T')[0],
+      outletName: outlet.storeName || 'Unnamed Outlet',
+    };
+
+    res.status(200).json({ summary, report: reportData });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate daily sales report',
+      error: error.message,
     });
   }
 };

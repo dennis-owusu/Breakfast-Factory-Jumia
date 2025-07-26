@@ -77,75 +77,7 @@ const CartPage = () => {
         <div className="flex flex-col lg:flex-row lg:gap-6">
           <div className="lg:w-3/4 mb-6 lg:mb-0">
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="md:hidden">
-                {cart.map((item) => (
-                  <div key={item._id} className="border-b border-gray-200 p-4">
-                    <div className="flex items-start">
-                      <Link to={`/product/${item.product._id}`} className="flex-shrink-0">
-                        <img
-                          src={Array.isArray(item.product.images) && item.product.images.length > 0 ? item.product.images[0] : 'https://via.placeholder.com/150'}
-                          alt={(item.product.productName || item.product.name) || 'Product'}
-                          className="h-24 w-24 object-contain rounded-md"
-                        />
-                      </Link>
-                      <div className="ml-4 flex-1">
-                        <Link to={`/product/${item.product._id}`} className="text-sm font-medium text-gray-900 hover:text-orange-500">
-                          {(item.product.productName || item.product.name) || 'Unnamed Product'}
-                        </Link>
-                        {item.product.outlet && (
-                          <p className="text-xs text-gray-500 mt-1">Sold by: {item.product.outlet.name}</p>
-                        )}
-                        <div className="flex items-center mt-2">
-                          {item.product.discountPrice ? (
-                            <div className="flex items-center">
-                              <span className="text-sm font-bold text-orange-600 mr-2">
-                                {formatPrice(item.product.discountPrice)}
-                              </span>
-                              <span className="text-xs text-gray-500 line-through">
-                                {formatPrice(item.product.productPrice || item.product.price || 0)}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-sm font-bold text-orange-600">
-                              {formatPrice(item.product.productPrice || item.product.price || 0)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center mt-2">
-                          <button
-                            onClick={() => handleDecrementQuantity(item._id)}
-                            disabled={processingItem === item._id || item.quantity <= 1}
-                            className="p-1 border border-gray-300 rounded-l-md disabled:opacity-50"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </button>
-                          <span className="px-3 py-1 border-t border-b border-gray-300 text-sm">
-                            {processingItem === item._id ? <Loader size="xs" /> : item.quantity}
-                          </span>
-                          <button
-                            onClick={() => handleIncrementQuantity(item._id)}
-                            disabled={processingItem === item._id || item.quantity >= 10}
-                            className="p-1 border border-gray-300 rounded-r-md disabled:opacity-50"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleRemoveItem(item._id)}
-                            disabled={processingItem === item._id}
-                            className="ml-4 text-red-500 hover:text-red-700 disabled:opacity-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                        <p className="text-sm font-medium text-gray-900 mt-2">
-                          Total: {formatPrice((item.product.discountPrice || item.product.productPrice || item.product.price) * item.quantity)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <table className="hidden md:table min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>

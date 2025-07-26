@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard, Star, RefreshCw } from 'lucide-react';
+import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard, Star, RefreshCw, Menu } from 'lucide-react';
 import Sidebar from '../Sidebar';
 
 const DashboardLayout = ({ children }) => {
@@ -34,6 +34,7 @@ const DashboardLayout = ({ children }) => {
         { to: '/admin/categories', icon: <Settings size={20} />, label: 'Categories' },
         { to: '/admin/restock', icon: <RefreshCw size={20} />, label: 'Restock Requests' },
         { to: '/admin/analytics', icon: <BarChart2 size={20} />, label: 'Analytics' },
+        { to: '/admin/sales', icon: <DollarSign size={20} />, label: 'Sales Reports' },
         { to: '/admin/subscription', icon: <Star size={20} />, label: 'Subscription' },
       ];
     } else {
@@ -56,10 +57,30 @@ const DashboardLayout = ({ children }) => {
     }
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar links={getSidebarLinks()} title={getTitle()} />
-      <div className="flex-1 overflow-auto pl-64"> {/* Add left padding to account for sidebar width */}
+      <Sidebar 
+        links={getSidebarLinks()} 
+        title={getTitle()} 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+      />
+      <div className="flex-1 overflow-auto md:pl-64 transition-all duration-300"> 
+        <div className="sticky top-0 z-10 bg-white md:hidden p-4 shadow-sm flex items-center">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            <Menu size={24} />
+          </button>
+          <h1 className="ml-4 text-lg font-semibold text-gray-800">{getTitle()}</h1>
+        </div>
         <main className="p-6">
           {children}
         </main>

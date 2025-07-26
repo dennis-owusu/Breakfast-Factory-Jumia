@@ -52,6 +52,7 @@ const ProductsManagement = React.lazy(() => import('./pages/admin/ProductsManage
 const OrdersManagement = React.lazy(() => import('./pages/admin/OrdersManagement'));
 const AdminOrderDetail = React.lazy(() => import('./pages/admin/OrderDetail'));
 const Analytics = React.lazy(() => import('./pages/admin/Analytics'));
+const AdminSales = React.lazy(() => import('./pages/admin/AdminSales'));
 const CategoriesManagement = React.lazy(() => import('./pages/admin/CategoriesManagement'));
 const CategoryForm = React.lazy(() => import('./pages/admin/CategoryForm'));
 const RestockManagement = React.lazy(() => import('./pages/admin/RestockManagement'));
@@ -460,6 +461,18 @@ function App() {
                   element={
                     <React.Suspense fallback={<LoadingFallback />}>
                       <Analytics />
+                    </React.Suspense>
+                  }
+                />
+              } 
+            />
+            <Route 
+              path="/admin/sales" 
+              element={
+                <AdminRouteWithLayout 
+                  element={
+                    <React.Suspense fallback={<LoadingFallback />}>
+                      <AdminSales />
                     </React.Suspense>
                   }
                 />

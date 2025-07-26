@@ -161,7 +161,8 @@ const OutletSales = () => {
         )}
       </form>
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -189,6 +190,42 @@ const OutletSales = () => {
               ))}
             </tbody>
           </table>
+        </div>
+        
+        {/* Mobile Card View - Two Column Grid */}
+        <div className="sm:hidden p-4">
+          <div className="grid grid-cols-2 gap-4">
+            {sales.map((sale) => (
+              <div key={sale._id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
+                <div className="flex flex-col space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-gray-500">Date</span>
+                    <span className="text-xs font-semibold">{formatDate(sale.date)}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-gray-500">Amount</span>
+                    <span className="text-xs font-semibold">{formatPrice(sale.amount)}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-gray-500">Items</span>
+                    <span className="text-xs font-semibold">{sale.items}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-gray-500">Status</span>
+                    <Badge className={`text-xs ${
+                      sale.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                      sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      sale.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>{sale.status}</Badge>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <div className="flex justify-between mt-4">

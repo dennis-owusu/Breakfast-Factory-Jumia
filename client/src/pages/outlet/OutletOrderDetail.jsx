@@ -76,36 +76,39 @@ const OutletOrderDetail = () => {
   return (
     <div className="container mx-auto p-4 md:p-6">
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 border-b">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Order #{order.orderNumber || order._id}</h1>
-          <div className="flex space-x-3">
-            <Button variant="outline" className="border-gray-300 hover:bg-gray-100" onClick={() => navigate(-1)}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border-b">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">Order #{order.orderNumber || order._id}</h1>
+          <div className="flex flex-col xs:flex-row w-full sm:w-auto space-y-2 xs:space-y-0 xs:space-x-3">
+            <Button variant="outline" className="w-full sm:w-auto border-gray-300 hover:bg-gray-100" onClick={() => navigate(-1)}>
               <ChevronLeft className="mr-2 h-4 w-4" /> Back
             </Button>
-            <Button variant="outline" className="border-gray-300 hover:bg-gray-100">
+            <Button variant="outline" className="w-full sm:w-auto border-gray-300 hover:bg-gray-100">
               <Printer className="mr-2 h-4 w-4" /> Print
             </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h2 className="text-lg font-semibold text-gray-700 mb-3">Customer Information</h2>
-            <div className="space-y-2 text-sm text-gray-600">
-              <p><span className="font-medium">Name:</span> {order.user?.name || order.userInfo?.name || 'N/A'}</p>
-              <p><span className="font-medium">Email:</span> {order.user?.email || order.userInfo?.email || 'N/A'}</p>
-              <p><span className="font-medium">Phone:</span> {order.user?.phoneNumber || order.userInfo?.phoneNumber || order.phoneNumber || 'N/A'}</p>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">Customer Information</h2>
+            <div className="space-y-2">
+              <p className="text-gray-600"><span className="font-medium">Name:</span> {order.user?.name || order.userInfo?.name || 'N/A'}</p>
+              <p className="text-gray-600"><span className="font-medium">Email:</span> {order.user?.email || order.userInfo?.email || 'N/A'}</p>
+              <p className="text-gray-600"><span className="font-medium">Phone:</span> {order.user?.phoneNumber || order.userInfo?.phoneNumber || order.phoneNumber || 'N/A'}</p>
             </div>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h2 className="text-lg font-semibold text-gray-700 mb-3">Shipping Address</h2>
-            <p className="text-sm text-gray-600">{order.address}, {order.city}, {order.state} {order.postalCode}</p>
+          
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">Shipping Address</h2>
+            <div className="space-y-2">
+              <p className="text-gray-600">{order.address}, {order.city}, {order.state} {order.postalCode}</p>
+            </div>
           </div>
         </div>
 
         <div className="p-6 border-t">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Order Details</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-blue-50 rounded-lg p-3">
               <p className="text-sm font-medium text-blue-800">Status</p>
               <Badge className="mt-1 bg-blue-100 text-blue-800">{order.status}</Badge>
@@ -124,24 +127,27 @@ const OutletOrderDetail = () => {
             </div>
           </div>
           <div className="mb-6">
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Update Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="processing">Processing</SelectItem>
-                <SelectItem value="shipped">Shipped</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={handleStatusChange} className="ml-2">Update Status</Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Update Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={handleStatusChange} className="w-full sm:w-auto">Update Status</Button>
+            </div>
           </div>
         </div>
 
         <div className="p-6 border-t">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Products</h2>
+          
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-500">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50">
@@ -162,7 +168,7 @@ const OutletOrderDetail = () => {
                         alt={item.product.name}
                         className="w-16 h-16 object-cover rounded"
                         onError={(e) => {
-                          e.target.src = 'https:h/via.ttps://via.pcom/150?text=Imace+Not+Foundeholder.com/150?text=Image+Not+Found';
+                          e.target.src = 'https://via.placeholder.com/150?text=Image+Not+Found';
                           toast.error(`Failed to load image for ${item.product.name}`);
                         }}
                       />

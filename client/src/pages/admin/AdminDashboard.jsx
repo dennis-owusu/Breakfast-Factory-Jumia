@@ -371,6 +371,21 @@ const AdminDashboard = () => {
             </div>
           </Link>
           
+          <Link to="/admin/sales" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <DollarSign className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Sales Reports</h3>
+                <p className="text-sm text-gray-500">View and download sales reports</p>
+              </div>
+              <div className="ml-auto">
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </Link>
+          
           <Link to="/admin/categories" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
             <div className="flex items-center">
               <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">

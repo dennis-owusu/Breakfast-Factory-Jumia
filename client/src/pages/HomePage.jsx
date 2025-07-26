@@ -194,7 +194,7 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-          <div className="hidden md:block relative">
+          <div className="relative">
             <img
               src={heroBanners[currentBanner].image}
               alt={heroBanners[currentBanner].title}

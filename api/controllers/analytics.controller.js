@@ -385,3 +385,102 @@ export const getSales = async (req, res, next) => {
        next(errorHandler(500, error.message));
      }
    };
+
+// Get all sales data for download (CSV/Excel format)
+export const getAdminSalesReport = async (req, res, next) => {
+  try {
+    const { period, startDate, endDate, format = 'csv' } = req.query;
+  
+
+    // Build date range filter
+    const dateFilter = {};
+    const currentDate = new Date();
+    
+    if (startDate && endDate) {
+      // Custom date range
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      
+      dateFilter.createdAt = { $gte: start, $lte: end };
+    } else if (period) {
+      // Predefined periods
+      const end = new Date();
+      let start = new Date();
+      
+      switch (period) {
+        case 'daily':
+          // Today
+          start.setHours(0, 0, 0, 0);
+          end.setHours(23, 59, 59, 999);
+          break;
+        case 'weekly':
+          // Last 7 days
+          start.setDate(start.getDate() - 7);
+          break;
+        case 'monthly':
+          // Last 30 days
+          start.setDate(start.getDate() - 30);
+          break;
+        case 'yearly':
+          // Last 365 days
+          start.setDate(start.getDate() - 365);
+          break;
+        default:
+          // Default to last 30 days
+          start.setDate(start.getDate() - 30);
+      }
+      
+      dateFilter.createdAt = { $gte: start, $lte: end };
+    } else {
+      // Default to last 30 days if no period or date range specified
+      const start = new Date();
+      start.setDate(start.getDate() - 30);
+      dateFilter.createdAt = { $gte: start, $lte: currentDate };
+    }
+
+    // Get all sales data with detailed information
+    const salesData = await Order.find(dateFilter)
+      .sort({ createdAt: -1 })
+      .populate('user', 'name email')
+      .lean();
+
+    // Transform data for report
+    const reportData = salesData.map(order => ({
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      date: order.createdAt.toISOString().split('T')[0],
+      time: order.createdAt.toISOString().split('T')[1].substring(0, 8),
+      customerName: order.userInfo?.name || 'Guest',
+      customerEmail: order.userInfo?.email || 'N/A',
+      totalAmount: order.totalPrice,
+      itemCount: order.products.reduce((sum, p) => sum + p.quantity, 0),
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.momoTransactionId ? 'paid' : 'pending',
+      orderStatus: order.status,
+      shippingAddress: `${order.address}, ${order.city}, ${order.state}`,
+      phoneNumber: order.phoneNumber || 'N/A'
+    }));
+
+    // Calculate summary
+    const summary = {
+      totalOrders: reportData.length,
+      totalSales: reportData.reduce((sum, order) => sum + order.totalAmount, 0),
+      averageOrderValue: reportData.length > 0 ? 
+        reportData.reduce((sum, order) => sum + order.totalAmount, 0) / reportData.length : 0,
+      reportGeneratedAt: new Date().toISOString(),
+      dateRange: `${dateFilter.createdAt.$gte.toISOString().split('T')[0]} to ${dateFilter.createdAt.$lte.toISOString().split('T')[0]}`
+    };
+
+    res.status(200).json({
+      success: true,
+      reportData,
+      summary
+    });
+  } catch (error) {
+    console.error('Get admin sales report error:', error);
+    next(errorHandler(500, error.message));
+  }
+};
