@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Search, Filter, ChevronLeft, ChevronRight, DollarSign, TrendingUp, ShoppingBag } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight, DollarSign, TrendingUp, ShoppingBag, Download } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -17,6 +17,10 @@ const OutletSales = () => {
   const [filters, setFilters] = useState({ period: 'all', minAmount: '', maxAmount: '' });
   const [pagination, setPagination] = useState({ page: 1, limit: 10, totalSales: 0, totalPages: 1 });
   const [summary, setSummary] = useState({ totalSales: 0, averageSale: 0, saleCount: 0 });
+  const [reportFormat, setReportFormat] = useState('pdf');
+  const [reportPeriod, setReportPeriod] = useState('all');
+  const [reportDates, setReportDates] = useState({ startDate: '', endDate: '' });
+  const [showReportOptions, setShowReportOptions] = useState(false);
 
   useEffect(() => {
     const fetchSales = async () => {
@@ -94,12 +98,159 @@ const OutletSales = () => {
     }
   };
 
+  const handleDownloadReport = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Build query parameters
+      const queryParams = new URLSearchParams({
+        format: reportFormat,
+        period: reportPeriod
+      });
+      
+      // Add date range if custom period is selected
+      if (reportPeriod === 'custom') {
+        if (!reportDates.startDate || !reportDates.endDate) {
+          toast.error('Please select both start and end dates for custom range');
+          setIsLoading(false);
+          return;
+        }
+        queryParams.append('startDate', reportDates.startDate);
+        queryParams.append('endDate', reportDates.endDate);
+      }
+      
+      // Set headers with authentication token
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
+      };
+      
+      // Get outlet ID from current user
+      const outletId = currentUser?.outletId || currentUser?._id;
+      
+      if (!outletId) {
+        toast.error('Outlet ID not found. Please ensure you are logged in as an outlet user.');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Make API call to download report
+      const response = await fetch(`/api/route/outlet/${outletId}/sales-report?${queryParams.toString()}`, { 
+        headers,
+        method: 'GET'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      }
+      
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Set the file name based on the format
+      const fileExtension = reportFormat === 'excel' ? 'xlsx' : reportFormat;
+      link.setAttribute('download', `sales-report.${fileExtension}`);
+      
+      // Append the link to the body
+      document.body.appendChild(link);
+      
+      // Click the link to trigger the download
+      link.click();
+      
+      // Clean up
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Report downloaded successfully');
+    } catch (err) {
+      console.error('Error downloading report:', err);
+      toast.error(err.message || 'Failed to download report');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isLoading) return <Loader />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="bg-gray-50 min-h-screen p-6">
-      <h1 className="text-2xl font-bold mb-6">Sales</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Sales</h1>
+        <Button 
+          onClick={() => setShowReportOptions(!showReportOptions)} 
+          className="flex items-center gap-2">
+          <Download size={16} />
+          Download Report
+        </Button>
+      </div>
+      
+      {showReportOptions && (
+        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Download Sales Report</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
+              <select 
+                value={reportFormat} 
+                onChange={(e) => setReportFormat(e.target.value)}
+                className="w-full p-2 border rounded">
+                <option value="pdf">PDF</option>
+                <option value="csv">CSV</option>
+                <option value="excel">Excel</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Period</label>
+              <select 
+                value={reportPeriod} 
+                onChange={(e) => setReportPeriod(e.target.value)}
+                className="w-full p-2 border rounded">
+                <option value="all">All Time</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
+            {reportPeriod === 'custom' && (
+              <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                  <input 
+                    type="date" 
+                    value={reportDates.startDate} 
+                    onChange={(e) => setReportDates({...reportDates, startDate: e.target.value})}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                  <input 
+                    type="date" 
+                    value={reportDates.endDate} 
+                    onChange={(e) => setReportDates({...reportDates, endDate: e.target.value})}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <Button 
+            onClick={handleDownloadReport}
+            className="w-full md:w-auto">
+            Download Report
+          </Button>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">

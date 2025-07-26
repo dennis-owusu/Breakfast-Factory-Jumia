@@ -131,6 +131,7 @@ const AdminSales = () => {
       // Set headers with authentication token
       const headers = {
         'Content-Type': 'application/json',
+        'Accept': format === 'excel' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv',
         ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
       };
       
@@ -144,11 +145,17 @@ const AdminSales = () => {
         throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
       }
       
-      // Get the blob from the response
+      // Get the blob from the response with the correct MIME type
       const blob = await response.blob();
+      const contentType = format === 'excel' ? 
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 
+        'text/csv';
+      
+      // Create a new blob with the correct content type
+      const fileBlob = new Blob([blob], { type: contentType });
       
       // Create a URL for the blob
-      const url = window.URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(fileBlob);
       
       // Create a temporary link element
       const a = document.createElement('a');

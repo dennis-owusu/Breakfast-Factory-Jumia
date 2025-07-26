@@ -69,44 +69,33 @@ export const getDashboardStats = async (req, res) => {
       outlet.productsCount = count;
     }
 
-    // Sales by Category (sum of totalPrice for delivered orders grouped by category)
-    const salesByCategoryData = await Order.aggregate([
+    // Sales by Product (top selling products)
+    const salesByProductData = await Order.aggregate([
       { $match: { status: 'delivered' } },
       { $unwind: '$products' },
-      { $lookup: {
-          from: 'products',
-          localField: 'products.product._id',
-          foreignField: '_id',
-          as: 'productDetails'
-      }},
-      { $unwind: { path: '$productDetails', preserveNullAndEmptyArrays: true } },
-      { $lookup: {
-          from: 'categories',
-          localField: 'productDetails.category',
-          foreignField: '_id',
-          as: 'category'
-      }},
-      { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
       { $group: {
-          _id: '$category.name',
-          value: { $sum: { $multiply: ['$products.quantity', '$products.product.price'] } }
+          _id: '$products.product.name',
+          value: { $sum: { $multiply: ['$products.quantity', '$products.product.price'] } },
+          units: { $sum: '$products.quantity' }
       }},
-      { $match: { _id: { $ne: null } } }, // Exclude orders without a category
+      { $match: { _id: { $ne: null } } }, // Exclude orders without a product name
       { $project: {
           name: '$_id',
           value: 1,
+          units: 1,
           _id: 0
       }},
-      { $sort: { value: -1 } }
+      { $sort: { value: -1 } },
+      { $limit: 5 }
     ]);
 
-    // Fallback sales by category if no data
-    const salesByCategory = salesByCategoryData.length > 0 ? salesByCategoryData : [
-      { name: 'Electronics', value: 0 },
-      { name: 'Fashion', value: 0 },
-      { name: 'Home & Kitchen', value: 0 },
-      { name: 'Beauty & Personal Care', value: 0 },
-      { name: 'Books & Media', value: 0 }
+    // Fallback sales by product if no data
+    const salesByProduct = salesByProductData.length > 0 ? salesByProductData : [
+      { name: 'Product 1', value: 0, units: 0 },
+      { name: 'Product 2', value: 0, units: 0 },
+      { name: 'Product 3', value: 0, units: 0 },
+      { name: 'Product 4', value: 0, units: 0 },
+      { name: 'Product 5', value: 0, units: 0 }
     ];
 
     const stats = {
@@ -119,7 +108,7 @@ export const getDashboardStats = async (req, res) => {
       pendingOutlets,
       recentOrders,
       newOutlets,
-      salesByCategory
+      salesByProduct
     };
 
     res.status(200).json(stats);

@@ -557,24 +557,27 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Sales by Category */}
+        {/* Sales by Product */}
         <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Sales by Category</h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">Distribution of sales across product categories</p>
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Sales by Product</h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">Top selling products by revenue</p>
           </div>
           <div className="px-4 py-5 sm:p-6">
             <div className="space-y-4">
-              {stats.salesByCategory.map((category, index) => (
+              {stats.salesByProduct && stats.salesByProduct.map((product, index) => (
                 <div key={index}>
                   <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-gray-900">{category.name}</div>
-                    <div className="text-sm font-medium text-gray-500">{formatPrice(category.value)}</div>
+                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500">{product.units} units</span>
+                      <span className="text-sm font-medium text-gray-500">{formatPrice(product.value)}</span>
+                    </div>
                   </div>
                   <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
                     <div 
                       className="bg-orange-500 h-2.5 rounded-full" 
-                      style={{ width: `${(category.value / stats.totalSales) * 100}%` }}
+                      style={{ width: `${(product.value / stats.totalSales) * 100}%` }}
                     ></div>
                   </div>
                 </div>

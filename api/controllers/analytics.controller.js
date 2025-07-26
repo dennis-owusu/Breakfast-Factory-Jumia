@@ -386,12 +386,11 @@ export const getSales = async (req, res, next) => {
      }
    };
 
-// Get all sales data for download (CSV/Excel format)
+// Get all sales data for download (CSV/Excel/PDF format)
 export const getAdminSalesReport = async (req, res, next) => {
   try {
-    const { period, startDate, endDate, format = 'csv' } = req.query;
+    const { period, startDate, endDate, format = 'pdf' } = req.query;
   
-
     // Build date range filter
     const dateFilter = {};
     const currentDate = new Date();
@@ -474,6 +473,100 @@ export const getAdminSalesReport = async (req, res, next) => {
       dateRange: `${dateFilter.createdAt.$gte.toISOString().split('T')[0]} to ${dateFilter.createdAt.$lte.toISOString().split('T')[0]}`
     };
 
+    // Set the appropriate content type based on the requested format
+    if (format === 'excel') {
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=sales_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } else if (format === 'csv') {
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+    } else if (format === 'pdf') {
+      // For PDF format
+      const PDFDocument = require('pdfkit');
+      const doc = new PDFDocument();
+      
+      // Set response headers for PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=sales_report_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      // Pipe the PDF document to the response
+      doc.pipe(res);
+      
+      // Add content to the PDF
+      doc.fontSize(20).text('Sales Report', { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(12).text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(12).text(`Date Range: ${summary.dateRange}`, { align: 'center' });
+      doc.moveDown().moveDown();
+      
+      // Add summary section
+      doc.fontSize(16).text('Summary', { underline: true });
+      doc.moveDown();
+      doc.fontSize(12).text(`Total Orders: ${summary.totalOrders}`);
+      doc.fontSize(12).text(`Total Sales: $${summary.totalSales.toFixed(2)}`);
+      doc.fontSize(12).text(`Average Order Value: $${summary.averageOrderValue.toFixed(2)}`);
+      doc.moveDown().moveDown();
+      
+      // Add table headers
+      doc.fontSize(16).text('Order Details', { underline: true });
+      doc.moveDown();
+      
+      // Define table columns
+      const tableTop = doc.y;
+      const tableHeaders = ['Order #', 'Date', 'Customer', 'Amount', 'Status'];
+      const columnWidth = 100;
+      
+      // Draw table headers
+      let currentX = 50;
+      tableHeaders.forEach(header => {
+        doc.fontSize(10).text(header, currentX, tableTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+      });
+      
+      // Draw a line under headers
+      doc.moveTo(50, tableTop + 20).lineTo(550, tableTop + 20).stroke();
+      
+      // Draw table rows
+      let rowTop = tableTop + 30;
+      reportData.slice(0, 20).forEach(order => { // Limit to first 20 orders to avoid large PDFs
+        currentX = 50;
+        
+        doc.fontSize(9).text(order.orderNumber || order.orderId.toString().substring(0, 8), currentX, rowTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+        
+        doc.fontSize(9).text(`${order.date}`, currentX, rowTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+        
+        doc.fontSize(9).text(order.customerName, currentX, rowTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+        
+        doc.fontSize(9).text(`$${order.totalAmount.toFixed(2)}`, currentX, rowTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+        
+        doc.fontSize(9).text(order.orderStatus, currentX, rowTop, { width: columnWidth, align: 'left' });
+        
+        rowTop += 20;
+        
+        // Add a new page if we're near the bottom
+        if (rowTop > 700) {
+          doc.addPage();
+          rowTop = 50;
+        }
+      });
+      
+      // If there are more orders than shown in the PDF
+      if (reportData.length > 20) {
+        doc.moveDown().moveDown();
+        doc.fontSize(10).text(`Note: Showing 20 of ${reportData.length} total orders. Download in Excel or CSV format for complete data.`, { align: 'center', italic: true });
+      }
+      
+      // Finalize the PDF and end the stream
+      doc.end();
+      return; // Important: return here to prevent further execution
+    }
+
+    // For Excel and CSV formats, send JSON response
     res.status(200).json({
       success: true,
       reportData,
@@ -481,6 +574,220 @@ export const getAdminSalesReport = async (req, res, next) => {
     });
   } catch (error) {
     console.error('Get admin sales report error:', error);
+    next(errorHandler(500, error.message));
+  }
+};
+
+// Get outlet sales data for download (CSV/Excel/PDF format)
+export const getOutletSalesReport = async (req, res, next) => {
+  try {
+    const { outletId } = req.params;
+    const { period, startDate, endDate, format = 'pdf' } = req.query;
+    
+    // Verify the outlet exists and the user has permission
+    if (req.user.id !== outletId && req.user.usersRole !== 'outlet') {
+      return next(errorHandler(403, 'You do not have permission to access this outlet\'s sales data'));
+    }
+    
+    // Build date range filter
+    const dateFilter = { 'products.product.outlet': outletId };
+    const currentDate = new Date();
+    
+    if (startDate && endDate) {
+      // Custom date range
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      
+      dateFilter.createdAt = { $gte: start, $lte: end };
+    } else if (period) {
+      // Predefined periods
+      const end = new Date();
+      let start = new Date();
+      
+      switch (period) {
+        case 'daily':
+          // Today
+          start.setHours(0, 0, 0, 0);
+          end.setHours(23, 59, 59, 999);
+          break;
+        case 'weekly':
+          // Last 7 days
+          start.setDate(start.getDate() - 7);
+          break;
+        case 'monthly':
+          // Last 30 days
+          start.setDate(start.getDate() - 30);
+          break;
+        case 'yearly':
+          // Last 365 days
+          start.setDate(start.getDate() - 365);
+          break;
+        default:
+          // Default to last 30 days
+          start.setDate(start.getDate() - 30);
+      }
+      
+      dateFilter.createdAt = { $gte: start, $lte: end };
+    } else {
+      // Default to last 30 days if no period or date range specified
+      const start = new Date();
+      start.setDate(start.getDate() - 30);
+      dateFilter.createdAt = { $gte: start, $lte: currentDate };
+    }
+
+    // Get all orders that contain products from this outlet
+    const orders = await Order.find(dateFilter)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Filter out products that don't belong to this outlet and calculate outlet-specific totals
+    const reportData = orders.map(order => {
+      // Filter products to only include those from this outlet
+      const outletProducts = order.products.filter(p => p.product.outlet.toString() === outletId);
+      
+      // Calculate outlet-specific totals
+      const outletTotal = outletProducts.reduce((sum, p) => sum + (p.quantity * p.product.price), 0);
+      const outletItemCount = outletProducts.reduce((sum, p) => sum + p.quantity, 0);
+      
+      return {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        date: order.createdAt.toISOString().split('T')[0],
+        time: order.createdAt.toISOString().split('T')[1].substring(0, 8),
+        customerName: order.userInfo?.name || 'Guest',
+        customerEmail: order.userInfo?.email || 'N/A',
+        totalAmount: outletTotal, // Only the outlet's portion of the order
+        itemCount: outletItemCount, // Only the outlet's items
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.momoTransactionId ? 'paid' : 'pending',
+        orderStatus: order.status,
+        products: outletProducts.map(p => ({
+          name: p.product.name,
+          price: p.product.price,
+          quantity: p.quantity,
+          total: p.quantity * p.product.price
+        }))
+      };
+    }).filter(order => order.itemCount > 0); // Only include orders with items from this outlet
+
+    // Calculate summary
+    const summary = {
+      totalOrders: reportData.length,
+      totalSales: reportData.reduce((sum, order) => sum + order.totalAmount, 0),
+      averageOrderValue: reportData.length > 0 ? 
+        reportData.reduce((sum, order) => sum + order.totalAmount, 0) / reportData.length : 0,
+      totalItems: reportData.reduce((sum, order) => sum + order.itemCount, 0),
+      reportGeneratedAt: new Date().toISOString(),
+      dateRange: dateFilter.createdAt ? 
+        `${dateFilter.createdAt.$gte.toISOString().split('T')[0]} to ${dateFilter.createdAt.$lte.toISOString().split('T')[0]}` :
+        'All time'
+    };
+
+    // Set the appropriate content type based on the requested format
+    if (format === 'excel') {
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=outlet_sales_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } else if (format === 'csv') {
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=outlet_sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+    } else if (format === 'pdf') {
+      // For PDF format
+      const PDFDocument = require('pdfkit');
+      const doc = new PDFDocument();
+      
+      // Set response headers for PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=outlet_sales_report_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      // Pipe the PDF document to the response
+      doc.pipe(res);
+      
+      // Add content to the PDF
+      doc.fontSize(20).text('Outlet Sales Report', { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(12).text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(12).text(`Date Range: ${summary.dateRange}`, { align: 'center' });
+      doc.moveDown().moveDown();
+      
+      // Add summary section
+      doc.fontSize(16).text('Summary', { underline: true });
+      doc.moveDown();
+      doc.fontSize(12).text(`Total Orders: ${summary.totalOrders}`);
+      doc.fontSize(12).text(`Total Sales: $${summary.totalSales.toFixed(2)}`);
+      doc.fontSize(12).text(`Total Items Sold: ${summary.totalItems}`);
+      doc.fontSize(12).text(`Average Order Value: $${summary.averageOrderValue.toFixed(2)}`);
+      doc.moveDown().moveDown();
+      
+      // Add table headers
+      doc.fontSize(16).text('Order Details', { underline: true });
+      doc.moveDown();
+      
+      // Define table columns
+      const tableTop = doc.y;
+      const tableHeaders = ['Order #', 'Date', 'Items', 'Amount', 'Status'];
+      const columnWidth = 100;
+      
+      // Draw table headers
+      let currentX = 50;
+      tableHeaders.forEach(header => {
+        doc.fontSize(10).text(header, currentX, tableTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+      });
+      
+      // Draw a line under headers
+      doc.moveTo(50, tableTop + 20).lineTo(550, tableTop + 20).stroke();
+      
+      // Draw table rows
+      let rowTop = tableTop + 30;
+      reportData.slice(0, 20).forEach(order => { // Limit to first 20 orders to avoid large PDFs
+        currentX = 50;
+        
+        doc.fontSize(9).text(order.orderNumber || order.orderId.toString().substring(0, 8), currentX, rowTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+        
+        doc.fontSize(9).text(`${order.date}`, currentX, rowTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+        
+        doc.fontSize(9).text(order.itemCount.toString(), currentX, rowTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+        
+        doc.fontSize(9).text(`$${order.totalAmount.toFixed(2)}`, currentX, rowTop, { width: columnWidth, align: 'left' });
+        currentX += columnWidth;
+        
+        doc.fontSize(9).text(order.orderStatus, currentX, rowTop, { width: columnWidth, align: 'left' });
+        
+        rowTop += 20;
+        
+        // Add a new page if we're near the bottom
+        if (rowTop > 700) {
+          doc.addPage();
+          rowTop = 50;
+        }
+      });
+      
+      // If there are more orders than shown in the PDF
+      if (reportData.length > 20) {
+        doc.moveDown().moveDown();
+        doc.fontSize(10).text(`Note: Showing 20 of ${reportData.length} total orders. Download in Excel or CSV format for complete data.`, { align: 'center', italic: true });
+      }
+      
+      // Finalize the PDF and end the stream
+      doc.end();
+      return; // Important: return here to prevent further execution
+    }
+
+    // For Excel and CSV formats, send JSON response
+    res.status(200).json({
+      success: true,
+      reportData,
+      summary
+    });
+  } catch (error) {
+    console.error('Get outlet sales report error:', error);
     next(errorHandler(500, error.message));
   }
 };
