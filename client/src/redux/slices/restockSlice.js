@@ -24,12 +24,13 @@ export const createRestockRequest = createAsyncThunk(
 
 export const fetchOutletRestockRequests = createAsyncThunk(
   'restock/fetchOutletRequests',
-  async (_, { rejectWithValue }) => {
+  async (query = '', { rejectWithValue }) => {
     try {
-      const response = await fetch('/api/route/outlet-requests');
+      const url = query ? `/api/route/outlet-requests?${query}` : '/api/route/outlet-requests';
+      const response = await fetch(url);
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
-      return data.requests;
+      return { requests: data.requests, totalRequests: data.totalRequests };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -40,6 +41,7 @@ const restockSlice = createSlice({
   name: 'restock',
   initialState: {
     requests: [],
+    totalRequests: 0,
     loading: false,
     error: null,
     success: false,
@@ -75,7 +77,8 @@ const restockSlice = createSlice({
       })
       .addCase(fetchOutletRestockRequests.fulfilled, (state, action) => {
         state.loading = false;
-        state.requests = action.payload;
+        state.requests = action.payload.requests;
+        state.totalRequests = action.payload.totalRequests;
       })
       .addCase(fetchOutletRestockRequests.rejected, (state, action) => {
         state.loading = false;

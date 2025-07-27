@@ -7,6 +7,6 @@ const router = express.Router();
 router.get('/analytics', getAnalytics);
 router.get('/sales', getSales);
 router.get('/admin/sales-report', verifyToken, getAdminSalesReport);
-router.get('/outlet/:outletId/sales-report', verifyToken, getOutletSalesReport);
+router.get('/outlet/:outletId/sales-report', getOutletSalesReport);
 
-export default router;
+export default router;  

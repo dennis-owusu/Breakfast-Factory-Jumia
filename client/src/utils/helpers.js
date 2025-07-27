@@ -9,6 +9,11 @@ export const formatPrice = (price, currency = '₵') => {
   return `${currency}${parseFloat(price).toFixed(2)}`;
 };
 
+export const pdfFormatPrice = (price) => {
+  if (price === undefined || price === null) return 'GHS 0.00';
+  return `GHS ${parseFloat(price).toFixed(2)}`;
+};
+
 /**
  * Format date to readable format
  * @param {string|Date} date - The date to format

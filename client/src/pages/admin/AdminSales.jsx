@@ -136,7 +136,7 @@ const AdminSales = () => {
       };
       
       // Make API call to download report
-      const response = await fetch(`/api/route/admin/sales-report?${queryParams.toString()}`, { 
+      const response = await fetch(`/api/route/analytics/admin/sales-report?${queryParams.toString()}`, { 
         headers,
         method: 'GET'
       });

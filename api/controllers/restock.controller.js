@@ -58,19 +58,65 @@ export const getRestockRequests = async (req, res, next) => {
 
 // Get outlet's restock requests
 export const getOutletRestockRequests = async (req, res, next) => {
-    try {
-        const requests = await RestockRequest.find()
-            .populate('product', 'productName numberOfProductsAvailable')
-            .populate('outlet', 'name storeName')
-            .sort({ createdAt: -1 });
+  try {
+    const outletId = req.user.id; // From verifyOutlet
+    const startIndex = parseInt(req.query.startIndex) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const searchTerm = req.query.searchTerm || '';
+    const status = req.query.status;
+    const dateRange = req.query.dateRange;
 
-        res.status(200).json({
-            success: true,
-            requests
-        });
-    } catch (error) {
-        next(error);
+    let query = { outlet: outletId };
+
+    if (status && status !== 'all') {
+      query.status = status;
     }
+
+    if (searchTerm) {
+      query.$or = [
+        { 'product.productName': { $regex: searchTerm, $options: 'i' } },
+      ];
+    }
+
+    let dateFilter = {};
+    if (dateRange && dateRange !== 'all') {
+      const now = new Date();
+      switch (dateRange) {
+        case 'today':
+          dateFilter = { createdAt: { $gte: new Date(now.setHours(0,0,0,0)) } };
+          break;
+        case 'thisWeek':
+          const lastWeek = new Date(now);
+          lastWeek.setDate(lastWeek.getDate() - 7);
+          dateFilter = { createdAt: { $gte: lastWeek } };
+          break;
+        case 'thisMonth':
+          const lastMonth = new Date(now);
+          lastMonth.setDate(lastMonth.getDate() - 30);
+          dateFilter = { createdAt: { $gte: lastMonth } };
+          break;
+        // Add more as needed
+      }
+      query = { ...query, ...dateFilter };
+    }
+
+    const requests = await RestockRequest.find(query)
+      .populate('product', 'productName numberOfProductsAvailable')
+      .populate('outlet', 'name storeName')
+      .sort({ createdAt: -1 })
+      .skip(startIndex)
+      .limit(limit);
+
+    const totalRequests = await RestockRequest.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      requests,
+      totalRequests
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Process restock request (admin only)

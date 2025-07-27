@@ -51,7 +51,7 @@ const CreditPaymentModal = ({ creditId, remainingAmount, onClose, onPaymentSucce
   };
 
   const onClosePayment = () => {
-    toast.info('Payment cancelled');
+    toast('Payment cancelled');
   };
 
   return (

@@ -5,11 +5,11 @@ import { createRestockRequest, getRestockRequests, getOutletRestockRequests, pro
 const router = express.Router();
 
 // Outlet routes (requires outlet role)
-router.post('/request', createRestockRequest);
-router.get('/outlet-requests', getOutletRestockRequests);
+router.post('/request', verifyOutlet, createRestockRequest);
+router.get('/outlet-requests', verifyOutlet, getOutletRestockRequests);
 
 // Admin routes (requires admin role)
 router.get('/all', getRestockRequests);
 router.put('/process/:requestId', processRestockRequest);
 
-export default router;  
+export default router;

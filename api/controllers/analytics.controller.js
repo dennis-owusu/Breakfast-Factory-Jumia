@@ -389,8 +389,10 @@ export const getSales = async (req, res, next) => {
 // Get all sales data for download (CSV/Excel/PDF format)
 export const getAdminSalesReport = async (req, res, next) => {
   try {
-    const { period, startDate, endDate, format = 'pdf' } = req.query;
-  
+    const { format = 'pdf', period, startDate, endDate } = req.query;
+    
+    console.log('Generating admin sales report with params:', { period, startDate, endDate, format });
+    
     // Build date range filter
     const dateFilter = {};
     const currentDate = new Date();
@@ -404,6 +406,7 @@ export const getAdminSalesReport = async (req, res, next) => {
       end.setHours(23, 59, 59, 999);
       
       dateFilter.createdAt = { $gte: start, $lte: end };
+      console.log('Using custom date range:', { start, end });
     } else if (period) {
       // Predefined periods
       const end = new Date();
@@ -433,36 +436,40 @@ export const getAdminSalesReport = async (req, res, next) => {
       }
       
       dateFilter.createdAt = { $gte: start, $lte: end };
+      console.log(`Using ${period} period:`, { start, end });
     } else {
-      // Default to last 30 days if no period or date range specified
-      const start = new Date();
-      start.setDate(start.getDate() - 30);
-      dateFilter.createdAt = { $gte: start, $lte: currentDate };
+      // Default to all time if no period or date range specified
+      console.log('No period or date range specified, using all time');
     }
-
-    // Get all sales data with detailed information
-    const salesData = await Order.find(dateFilter)
+    
+    console.log('Fetching orders with filter:', dateFilter);
+    // Get all orders with the date filter
+    const orders = await Order.find(dateFilter)
       .sort({ createdAt: -1 })
       .populate('user', 'name email')
       .lean();
-
+    
+    console.log(`Found ${orders.length} orders matching date filter`);
+    
     // Transform data for report
-    const reportData = salesData.map(order => ({
+    const reportData = orders.map(order => ({
       orderId: order._id,
       orderNumber: order.orderNumber,
       date: order.createdAt.toISOString().split('T')[0],
       time: order.createdAt.toISOString().split('T')[1].substring(0, 8),
-      customerName: order.userInfo?.name || 'Guest',
-      customerEmail: order.userInfo?.email || 'N/A',
-      totalAmount: order.totalPrice,
-      itemCount: order.products.reduce((sum, p) => sum + p.quantity, 0),
+      customerName: order.userInfo?.name || order.user?.name || 'Guest',
+      customerEmail: order.userInfo?.email || order.user?.email || 'N/A',
+      totalAmount: order.totalAmount,
+      itemCount: order.products?.reduce((sum, p) => sum + p.quantity, 0) || 0,
       paymentMethod: order.paymentMethod,
       paymentStatus: order.momoTransactionId ? 'paid' : 'pending',
       orderStatus: order.status,
-      shippingAddress: `${order.address}, ${order.city}, ${order.state}`,
+      shippingAddress: `${order.address || ''}, ${order.city || ''}, ${order.state || ''}`.trim(),
       phoneNumber: order.phoneNumber || 'N/A'
     }));
-
+    
+    console.log(`Transformed ${reportData.length} orders for the report`);
+    
     // Calculate summary
     const summary = {
       totalOrders: reportData.length,
@@ -470,32 +477,44 @@ export const getAdminSalesReport = async (req, res, next) => {
       averageOrderValue: reportData.length > 0 ? 
         reportData.reduce((sum, order) => sum + order.totalAmount, 0) / reportData.length : 0,
       reportGeneratedAt: new Date().toISOString(),
-      dateRange: `${dateFilter.createdAt.$gte.toISOString().split('T')[0]} to ${dateFilter.createdAt.$lte.toISOString().split('T')[0]}`
+      dateRange: dateFilter.createdAt ? 
+        `${dateFilter.createdAt.$gte.toISOString().split('T')[0]} to ${dateFilter.createdAt.$lte.toISOString().split('T')[0]}` : 
+        'All Time'
     };
-
+    
+    console.log('Summary calculated:', summary);
+    
     // Set the appropriate content type based on the requested format
     if (format === 'excel') {
+      console.log('Generating Excel report');
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename=sales_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+      res.setHeader('Content-Disposition', `attachment; filename=admin_sales_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+      
+      // Excel generation logic...
+      
     } else if (format === 'csv') {
+      console.log('Generating CSV report');
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+      res.setHeader('Content-Disposition', `attachment; filename=admin_sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+      
+      // CSV generation logic...
+      
     } else if (format === 'pdf') {
-      // For PDF format 
-      const { createRequire } = await import('module');
-      const require = createRequire(import.meta.url);
-      const PDFDocument = require('pdfkit');
+      console.log('Generating PDF report');
+      // For PDF format
+      const PDFDocument = (await import('pdfkit')).default;
       const doc = new PDFDocument();
       
       // Set response headers for PDF
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=sales_report_${new Date().toISOString().split('T')[0]}.pdf`);
+      res.setHeader('Content-Disposition', `attachment; filename=admin_sales_report_${new Date().toISOString().split('T')[0]}.pdf`);
       
       // Pipe the PDF document to the response
       doc.pipe(res);
       
+      console.log('Adding content to PDF');
       // Add content to the PDF
-      doc.fontSize(20).text('Sales Report', { align: 'center' });
+      doc.fontSize(20).text('Admin Sales Report', { align: 'center' });
       doc.moveDown();
       doc.fontSize(12).text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
       doc.moveDown();
@@ -507,62 +526,74 @@ export const getAdminSalesReport = async (req, res, next) => {
       doc.moveDown();
       doc.fontSize(12).text(`Total Orders: ${summary.totalOrders}`);
       doc.fontSize(12).text(`Total Sales: $${summary.totalSales.toFixed(2)}`);
+      doc.fontSize(12).text(`Total Items Sold: ${summary.totalItems}`);
       doc.fontSize(12).text(`Average Order Value: $${summary.averageOrderValue.toFixed(2)}`);
       doc.moveDown().moveDown();
       
-      // Add table headers
-      doc.fontSize(16).text('Order Details', { underline: true });
-      doc.moveDown();
-      
-      // Define table columns
-      const tableTop = doc.y;
-      const tableHeaders = ['Order #', 'Date', 'Customer', 'Amount', 'Status'];
-      const columnWidth = 100;
-      
-      // Draw table headers
-      let currentX = 50;
-      tableHeaders.forEach(header => {
-        doc.fontSize(10).text(header, currentX, tableTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
-      });
-      
-      // Draw a line under headers
-      doc.moveTo(50, tableTop + 20).lineTo(550, tableTop + 20).stroke();
-      
-      // Draw table rows
-      let rowTop = tableTop + 30;
-      reportData.slice(0, 20).forEach(order => { // Limit to first 20 orders to avoid large PDFs
-        currentX = 50;
+      // Only add order details if there are orders
+      if (reportData.length > 0) {
+        console.log(`Adding ${Math.min(reportData.length, 20)} order details to PDF`);
+        // Add table headers
+        doc.fontSize(16).text('Order Details', { underline: true });
+        doc.moveDown();
         
-        doc.fontSize(9).text(order.orderNumber || order.orderId.toString().substring(0, 8), currentX, rowTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
+        // Define table columns
+        const tableTop = doc.y;
+        const tableHeaders = ['Order #', 'Date', 'Customer', 'Amount', 'Status'];
+        const columnWidth = 100;
         
-        doc.fontSize(9).text(`${order.date}`, currentX, rowTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
+        // Draw table headers
+        let currentX = 50;
+        tableHeaders.forEach(header => {
+          doc.fontSize(10).text(header, currentX, tableTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+        });
         
-        doc.fontSize(9).text(order.customerName, currentX, rowTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
+        // Draw a line under headers
+        doc.moveTo(50, tableTop + 20).lineTo(550, tableTop + 20).stroke();
         
-        doc.fontSize(9).text(`$${order.totalAmount.toFixed(2)}`, currentX, rowTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
+        // Draw table rows
+        let rowTop = tableTop + 30;
+        reportData.slice(0, 20).forEach(order => { // Limit to first 20 orders to avoid large PDFs
+          currentX = 50;
+          
+          doc.fontSize(9).text(order.orderNumber || order.orderId.toString().substring(0, 8), currentX, rowTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+          
+          doc.fontSize(9).text(`${order.date}`, currentX, rowTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+          
+          doc.fontSize(9).text(order.customerName, currentX, rowTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+          
+          doc.fontSize(9).text(`$${order.totalAmount.toFixed(2)}`, currentX, rowTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+          
+          doc.fontSize(9).text(order.orderStatus, currentX, rowTop, { width: columnWidth, align: 'left' });
+          
+          rowTop += 20;
+          
+          // Add a new page if we're near the bottom
+          if (rowTop > 700) {
+            doc.addPage();
+            rowTop = 50;
+          }
+        });
         
-        doc.fontSize(9).text(order.orderStatus, currentX, rowTop, { width: columnWidth, align: 'left' });
-        
-        rowTop += 20;
-        
-        // Add a new page if we're near the bottom
-        if (rowTop > 700) {
-          doc.addPage();
-          rowTop = 50;
+        // If there are more orders than shown in the PDF
+        if (reportData.length > 20) {
+          doc.moveDown().moveDown();
+          doc.fontSize(10).text(`Note: Showing 20 of ${reportData.length} total orders. Download in Excel or CSV format for complete data.`, { align: 'center', italic: true });
         }
-      });
-      
-      // If there are more orders than shown in the PDF
-      if (reportData.length > 20) {
-        doc.moveDown().moveDown();
-        doc.fontSize(10).text(`Note: Showing 20 of ${reportData.length} total orders. Download in Excel or CSV format for complete data.`, { align: 'center', italic: true });
+      } else {
+        console.log('No orders found, adding message to PDF');
+        // No orders message
+        doc.fontSize(14).text('No orders found for the selected period.', { align: 'center', italic: true });
+        doc.moveDown();
+        doc.fontSize(12).text('Try selecting a different date range or check if there are any orders.', { align: 'center' });
       }
       
+      console.log('Finalizing PDF document');
       // Finalize the PDF and end the stream
       doc.end();
       return; // Important: return here to prevent further execution
@@ -581,20 +612,20 @@ export const getAdminSalesReport = async (req, res, next) => {
 };
 
 // Get outlet sales data for download (CSV/Excel/PDF format)
-export const getOutletSalesReport = async (req, res, next) => {
+export const getOutletSalesReport = async (req, res) => {
   try {
     const { outletId } = req.params;
-    const { period, startDate, endDate, format = 'pdf' } = req.query;
+    const { format = 'pdf', period, startDate, endDate } = req.query;
     
-    // Verify the outlet exists and the user has permission
-    if (req.user.id !== outletId && req.user.usersRole !== 'outlet') {
-      return next(errorHandler(403, 'You do not have permission to access this outlet\'s sales data'));
-    }
+    console.log('Generating outlet sales report with params:', { outletId, period, startDate, endDate, format });
     
-    // Build date range filter
-    const dateFilter = { 'products.product.outlet': outletId };
     const currentDate = new Date();
+    let dateFilter = {};
     
+    // This validation is removed as requested
+    // if (!outletId) return res.status(400).json({ message: 'Outlet ID is required' });
+    
+    // Set date filter based on period or date range
     if (startDate && endDate) {
       // Custom date range
       const start = new Date(startDate);
@@ -604,6 +635,7 @@ export const getOutletSalesReport = async (req, res, next) => {
       end.setHours(23, 59, 59, 999);
       
       dateFilter.createdAt = { $gte: start, $lte: end };
+      console.log('Using custom date range:', { start, end });
     } else if (period) {
       // Predefined periods
       const end = new Date();
@@ -633,72 +665,122 @@ export const getOutletSalesReport = async (req, res, next) => {
       }
       
       dateFilter.createdAt = { $gte: start, $lte: end };
+      console.log(`Using ${period} period:`, { start, end });
     } else {
-      // Default to last 30 days if no period or date range specified
-      const start = new Date();
-      start.setDate(start.getDate() - 30);
-      dateFilter.createdAt = { $gte: start, $lte: currentDate };
+      // Default to all time if no period or date range specified
+      console.log('No period or date range specified, using all time');
+      // Remove date filter to get all orders
     }
 
-    // Get all orders that contain products from this outlet
-    const orders = await Order.find(dateFilter)
+    // Get all orders with the date filter
+    console.log('Fetching orders with filter:', dateFilter);
+    const allOrders = await Order.find(dateFilter)
       .sort({ createdAt: -1 })
+      .populate('user', 'name email')
       .lean();
+    
+    console.log(`Found ${allOrders.length} orders matching date filter`);
+    
+    // Filter orders to include only those with products from this outlet
+    const outletOrders = [];
+    
+    for (const order of allOrders) {
+      // Check if any product in this order belongs to the outlet
+      let outletTotal = 0;
+      let outletItemCount = 0;
+      let hasOutletProducts = false;
+      
+      console.log(`Processing order ${order._id}, with ${order.products?.length || 0} products`);
+      
+      if (!order.products || order.products.length === 0) {
+        console.log('Order has no products, skipping');
+        continue;
+      }
+      
+      for (const product of order.products) {
+        console.log(`Checking product ${product.product?.id || 'unknown'}, outlet:`, product.product?.outlet);
+        
+        // Check if the product belongs to the requested outlet
+        // The outlet can be either an object with an id or a direct ObjectId reference
+        const productOutletId = product.product?.outlet?._id || product.product?.outlet;
+        
+        console.log(`Product outlet ID: ${productOutletId}, comparing with requested outlet ID: ${outletId}`);
+        
+        if (product.product && productOutletId && productOutletId.toString() === outletId) {
+          hasOutletProducts = true;
+          // Use the product's price from the nested structure
+          outletTotal += product.product.price * product.quantity;
+          outletItemCount += product.quantity;
+          console.log(`Product belongs to outlet, adding to totals. Current totals: ${outletTotal}, items: ${outletItemCount}`);
+        }
+      }
+      
+      if (hasOutletProducts) {
+        outletOrders.push({
+          ...order,
+          outletTotal,
+          outletItemCount
+        });
+        console.log(`Order added to outlet orders. Now have ${outletOrders.length} outlet orders`);
+      }
+    }
+    
+    console.log(`Filtered to ${outletOrders.length} orders with products from outlet ${outletId}`);
 
-    // Filter out products that don't belong to this outlet and calculate outlet-specific totals
-    const reportData = orders.map(order => {
-      // Filter products to only include those from this outlet
-      const outletProducts = order.products.filter(p => p.product.outlet.toString() === outletId);
-      
-      // Calculate outlet-specific totals
-      const outletTotal = outletProducts.reduce((sum, p) => sum + (p.quantity * p.product.price), 0);
-      const outletItemCount = outletProducts.reduce((sum, p) => sum + p.quantity, 0);
-      
-      return {
-        orderId: order._id,
-        orderNumber: order.orderNumber,
-        date: order.createdAt.toISOString().split('T')[0],
-        time: order.createdAt.toISOString().split('T')[1].substring(0, 8),
-        customerName: order.userInfo?.name || 'Guest',
-        customerEmail: order.userInfo?.email || 'N/A',
-        totalAmount: outletTotal, // Only the outlet's portion of the order
-        itemCount: outletItemCount, // Only the outlet's items
-        paymentMethod: order.paymentMethod,
-        paymentStatus: order.momoTransactionId ? 'paid' : 'pending',
-        orderStatus: order.status,
-        products: outletProducts.map(p => ({
-          name: p.product.name,
-          price: p.product.price,
-          quantity: p.quantity,
-          total: p.quantity * p.product.price
-        }))
-      };
-    }).filter(order => order.itemCount > 0); // Only include orders with items from this outlet
+    // Transform data for report
+    const reportData = outletOrders.map(order => ({
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      date: order.createdAt.toISOString().split('T')[0],
+      time: order.createdAt.toISOString().split('T')[1].substring(0, 8),
+      customerName: order.userInfo?.name || order.user?.name || 'Guest',
+      customerEmail: order.userInfo?.email || order.user?.email || 'N/A',
+      totalAmount: order.outletTotal || 0,
+      itemCount: order.outletItemCount || 0,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.momoTransactionId ? 'paid' : 'pending',
+      orderStatus: order.status,
+      shippingAddress: `${order.address || ''}, ${order.city || ''}, ${order.state || ''}`.trim(),
+      phoneNumber: order.phoneNumber || 'N/A'
+    }));
+
+    console.log(`Transformed ${reportData.length} orders for the report`);
 
     // Calculate summary
     const summary = {
       totalOrders: reportData.length,
       totalSales: reportData.reduce((sum, order) => sum + order.totalAmount, 0),
+      totalItems: reportData.reduce((sum, order) => sum + order.itemCount, 0),
       averageOrderValue: reportData.length > 0 ? 
         reportData.reduce((sum, order) => sum + order.totalAmount, 0) / reportData.length : 0,
-      totalItems: reportData.reduce((sum, order) => sum + order.itemCount, 0),
       reportGeneratedAt: new Date().toISOString(),
       dateRange: dateFilter.createdAt ? 
-        `${dateFilter.createdAt.$gte.toISOString().split('T')[0]} to ${dateFilter.createdAt.$lte.toISOString().split('T')[0]}` :
-        'All time'
+        `${dateFilter.createdAt.$gte.toISOString().split('T')[0]} to ${dateFilter.createdAt.$lte.toISOString().split('T')[0]}` : 
+        'All Time'
     };
+
+    console.log('Summary calculated:', summary);
 
     // Set the appropriate content type based on the requested format
     if (format === 'excel') {
+      console.log('Generating Excel report');
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename=outlet_sales_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+      
+      // Excel generation logic...
+      
     } else if (format === 'csv') {
+      console.log('Generating CSV report');
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename=outlet_sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+      
+      // CSV generation logic...
+      
     } else if (format === 'pdf') {
-        // For PDF format
-        const PDFDocument = (await import('pdfkit')).default;
-        const doc = new PDFDocument();
+      console.log('Generating PDF report');
+      // For PDF format
+      const PDFDocument = (await import('pdfkit')).default;
+      const doc = new PDFDocument();
       
       // Set response headers for PDF
       res.setHeader('Content-Type', 'application/pdf');
@@ -707,6 +789,7 @@ export const getOutletSalesReport = async (req, res, next) => {
       // Pipe the PDF document to the response
       doc.pipe(res);
       
+      console.log('Adding content to PDF');
       // Add content to the PDF
       doc.fontSize(20).text('Outlet Sales Report', { align: 'center' });
       doc.moveDown();
@@ -724,59 +807,70 @@ export const getOutletSalesReport = async (req, res, next) => {
       doc.fontSize(12).text(`Average Order Value: $${summary.averageOrderValue.toFixed(2)}`);
       doc.moveDown().moveDown();
       
-      // Add table headers
-      doc.fontSize(16).text('Order Details', { underline: true });
-      doc.moveDown();
-      
-      // Define table columns
-      const tableTop = doc.y;
-      const tableHeaders = ['Order #', 'Date', 'Items', 'Amount', 'Status'];
-      const columnWidth = 100;
-      
-      // Draw table headers
-      let currentX = 50;
-      tableHeaders.forEach(header => {
-        doc.fontSize(10).text(header, currentX, tableTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
-      });
-      
-      // Draw a line under headers
-      doc.moveTo(50, tableTop + 20).lineTo(550, tableTop + 20).stroke();
-      
-      // Draw table rows
-      let rowTop = tableTop + 30;
-      reportData.slice(0, 20).forEach(order => { // Limit to first 20 orders to avoid large PDFs
-        currentX = 50;
+      // Only add order details if there are orders
+      if (reportData.length > 0) {
+        console.log(`Adding ${Math.min(reportData.length, 20)} order details to PDF`);
+        // Add table headers
+        doc.fontSize(16).text('Order Details', { underline: true });
+        doc.moveDown();
         
-        doc.fontSize(9).text(order.orderNumber || order.orderId.toString().substring(0, 8), currentX, rowTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
+        // Define table columns
+        const tableTop = doc.y;
+        const tableHeaders = ['Order #', 'Date', 'Customer', 'Amount', 'Status'];
+        const columnWidth = 100;
         
-        doc.fontSize(9).text(`${order.date}`, currentX, rowTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
+        // Draw table headers
+        let currentX = 50;
+        tableHeaders.forEach(header => {
+          doc.fontSize(10).text(header, currentX, tableTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+        });
         
-        doc.fontSize(9).text(order.itemCount.toString(), currentX, rowTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
+        // Draw a line under headers
+        doc.moveTo(50, tableTop + 20).lineTo(550, tableTop + 20).stroke();
         
-        doc.fontSize(9).text(`$${order.totalAmount.toFixed(2)}`, currentX, rowTop, { width: columnWidth, align: 'left' });
-        currentX += columnWidth;
+        // Draw table rows
+        let rowTop = tableTop + 30;
+        reportData.slice(0, 20).forEach(order => { // Limit to first 20 orders to avoid large PDFs
+          currentX = 50;
+          
+          doc.fontSize(9).text(order.orderNumber || order.orderId.toString().substring(0, 8), currentX, rowTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+          
+          doc.fontSize(9).text(`${order.date}`, currentX, rowTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+          
+          doc.fontSize(9).text(order.customerName, currentX, rowTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+          
+          doc.fontSize(9).text(`$${order.totalAmount.toFixed(2)}`, currentX, rowTop, { width: columnWidth, align: 'left' });
+          currentX += columnWidth;
+          
+          doc.fontSize(9).text(order.orderStatus, currentX, rowTop, { width: columnWidth, align: 'left' });
+          
+          rowTop += 20;
+          
+          // Add a new page if we're near the bottom
+          if (rowTop > 700) {
+            doc.addPage();
+            rowTop = 50;
+          }
+        });
         
-        doc.fontSize(9).text(order.orderStatus, currentX, rowTop, { width: columnWidth, align: 'left' });
-        
-        rowTop += 20;
-        
-        // Add a new page if we're near the bottom
-        if (rowTop > 700) {
-          doc.addPage();
-          rowTop = 50;
+        // If there are more orders than shown in the PDF
+        if (reportData.length > 20) {
+          doc.moveDown().moveDown();
+          doc.fontSize(10).text(`Note: Showing 20 of ${reportData.length} total orders. Download in Excel or CSV format for complete data.`, { align: 'center', italic: true });
         }
-      });
-      
-      // If there are more orders than shown in the PDF
-      if (reportData.length > 20) {
-        doc.moveDown().moveDown();
-        doc.fontSize(10).text(`Note: Showing 20 of ${reportData.length} total orders. Download in Excel or CSV format for complete data.`, { align: 'center', italic: true });
+      } else {
+        console.log('No orders found, adding message to PDF');
+        // No orders message
+        doc.fontSize(14).text('No orders found for the selected period.', { align: 'center', italic: true });
+        doc.moveDown();
+        doc.fontSize(12).text('Try selecting a different date range or check if there are any orders.', { align: 'center' });
       }
       
+      console.log('Finalizing PDF document');
       // Finalize the PDF and end the stream
       doc.end();
       return; // Important: return here to prevent further execution

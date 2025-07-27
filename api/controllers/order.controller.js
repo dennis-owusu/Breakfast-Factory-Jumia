@@ -31,7 +31,7 @@ export const createOrder = async (req, res) => {
           },
           quantity: item.quantity,
         };
-      })
+      })  
     );
 
     let orderUserInfo = userInfo;

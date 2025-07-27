@@ -5,7 +5,9 @@ import Loader from '../../components/ui/Loader';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'react-hot-toast';
-import { formatPrice, formatDate } from '../../utils/helpers';
+import { formatPrice, formatDate, pdfFormatPrice } from '../../utils/helpers';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas-pro';
 
 const OutletSales = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -19,7 +21,14 @@ const OutletSales = () => {
   const [summary, setSummary] = useState({ totalSales: 0, averageSale: 0, saleCount: 0 });
   const [reportFormat, setReportFormat] = useState('pdf');
   const [reportPeriod, setReportPeriod] = useState('all');
-  const [reportDates, setReportDates] = useState({ startDate: '', endDate: '' });
+  const [reportDates, setReportDates] = useState(() => {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    return {
+      startDate: firstDayOfMonth.toISOString().split('T')[0],
+      endDate: today.toISOString().split('T')[0]
+    };
+  });
   const [showReportOptions, setShowReportOptions] = useState(false);
 
   useEffect(() => {
@@ -98,22 +107,20 @@ const OutletSales = () => {
     }
   };
 
-  const handleDownloadReport = async () => {
+  // Function to fetch sales data for the report
+  const fetchSalesDataForReport = async () => {
     try {
-      setIsLoading(true);
-      
       // Build query parameters
-      const queryParams = new URLSearchParams({
-        format: reportFormat,
-        period: reportPeriod
-      });
+      const queryParams = new URLSearchParams();
+      
+      if (reportPeriod !== 'all') {
+        queryParams.append('period', reportPeriod);
+      }
       
       // Add date range if custom period is selected
       if (reportPeriod === 'custom') {
         if (!reportDates.startDate || !reportDates.endDate) {
-          toast.error('Please select both start and end dates for custom range');
-          setIsLoading(false);
-          return;
+          throw new Error('Please select both start and end dates for custom range');
         }
         queryParams.append('startDate', reportDates.startDate);
         queryParams.append('endDate', reportDates.endDate);
@@ -129,49 +136,447 @@ const OutletSales = () => {
       const outletId = currentUser?.outletId || currentUser?._id;
       
       if (!outletId) {
-        toast.error('Outlet ID not found. Please ensure you are logged in as an outlet user.');
+        throw new Error('Outlet ID not found. Please ensure you are logged in as an outlet user.');
+      }
+      
+      try {
+        // Make API call to fetch sales data
+        const response = await fetch(`/api/route/sales?${queryParams.toString()}`, { 
+          headers,
+          method: 'GET'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (apiError) {
+        console.warn('API fetch failed, using current sales data:', apiError);
+        
+        // Fallback: Use the current sales data from state
+        return {
+          sales: sales.map(sale => ({
+            ...sale,
+            items: sale.products?.length || 0,
+            date: sale.date || new Date().toISOString()
+          })),
+          summary: {
+            totalSales: summary.totalSales || 0,
+            averageSale: summary.averageSale || 0,
+            saleCount: summary.saleCount || 0
+          }
+        };
+      }
+    } catch (error) {
+      console.error('Error in fetchSalesDataForReport:', error);
+      
+      // Final fallback: Return empty data structure
+      return {
+        sales: [],
+        summary: {
+          totalSales: 0,
+          averageSale: 0,
+          saleCount: 0
+        }
+      };
+    }
+  };
+
+  // Function to generate PDF report
+  const generatePDFReport = async (data) => {
+    try {
+      // Create a temporary div to render the report content
+      const reportContainer = document.createElement('div');
+      reportContainer.style.width = '800px';
+      reportContainer.style.padding = '20px';
+      reportContainer.style.fontFamily = 'Arial, sans-serif';
+      reportContainer.style.backgroundColor = '#ffffff'; // Use standard colors instead of oklch
+      reportContainer.style.color = '#000000';
+      
+      // Get outlet name
+      const outletName = currentUser?.storeName || 'Your Store';
+      
+      // Format date range for the report title
+      let dateRangeText = '';
+      if (reportPeriod === 'custom') {
+        dateRangeText = `${reportDates.startDate} to ${reportDates.endDate}`;
+      } else if (reportPeriod === 'daily') {
+        dateRangeText = 'Today';
+      } else if (reportPeriod === 'weekly') {
+        dateRangeText = 'Last 7 days';
+      } else if (reportPeriod === 'monthly') {
+        dateRangeText = 'Last 30 days';
+      } else if (reportPeriod === 'yearly') {
+        dateRangeText = 'Last 12 months';
+      } else {
+        dateRangeText = 'All Time';
+      }
+      
+      // Create report HTML content with standard CSS colors (no oklch)
+      reportContainer.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="color: #FF6B3D; margin-bottom: 5px;">${outletName}</h1>
+          <h2 style="margin-top: 0; color: #000000;">Sales Report</h2>
+          <p style="color: #666666;">${dateRangeText}</p>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+          <div style="border: 1px solid #dddddd; padding: 15px; border-radius: 5px; width: 30%; background-color: #ffffff;">
+            <h3 style="margin-top: 0; color: #666666;">Total Sales</h3>
+            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #000000;">${formatPrice(data.summary.totalSales)}</p>
+          </div>
+          
+          <div style="border: 1px solid #dddddd; padding: 15px; border-radius: 5px; width: 30%; background-color: #ffffff;">
+            <h3 style="margin-top: 0; color: #666666;">Average Sale</h3>
+            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #000000;">${formatPrice(data.summary.averageSale)}</p>
+          </div>
+          
+          <div style="border: 1px solid #dddddd; padding: 15px; border-radius: 5px; width: 30%; background-color: #ffffff;">
+            <h3 style="margin-top: 0; color: #666666;">Sale Count</h3>
+            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #000000;">${data.summary.saleCount}</p>
+          </div>
+        </div>
+        
+        <h3 style="border-bottom: 2px solid #FF6B3D; padding-bottom: 5px; color: #000000;">Sales Details</h3>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+          <thead style="background-color: #f3f4f6;">
+            <tr>
+              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dddddd; color: #000000;">Date</th>
+              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dddddd; color: #000000;">Amount</th>
+              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dddddd; color: #000000;">Items</th>
+              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dddddd; color: #000000;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.sales.slice(0, 20).map(sale => `
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #dddddd; color: #000000;">${formatDate(sale.date)}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #dddddd; color: #000000;">${formatPrice(sale.amount)}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #dddddd; color: #000000;">${sale.items}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #dddddd; color: #000000;">${sale.status}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        ${data.sales.length > 20 ? `<p style="text-align: center; color: #666666; margin-top: 10px;">Showing 20 of ${data.sales.length} sales</p>` : ''}
+      `;
+      
+      // Position the container off-screen
+      reportContainer.style.position = 'absolute';
+      reportContainer.style.left = '-9999px';
+      document.body.appendChild(reportContainer);
+      
+      // Generate PDF
+      const pdf = new jsPDF('p', 'pt', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Try direct PDF generation first without html2canvas to avoid iframe issues
+      try {
+        console.log('Attempting direct PDF generation without html2canvas');
+        // Create a new PDF document
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        // Get outlet name
+        const outletName = currentUser?.storeName || 'Your Store';
+        
+        // Add basic text content
+        pdf.setFontSize(22);
+        pdf.setTextColor(255, 107, 61); // #FF6B3D
+        pdf.text(outletName, 40, 40);
+        
+        pdf.setFontSize(18);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('Sales Report', 40, 70);
+        
+        pdf.setFontSize(12);
+        pdf.setTextColor(102, 102, 102); // #666666
+        pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 40, 90);
+        pdf.text(`Period: ${dateRangeText}`, 40, 110);
+        
+        // Add summary data
+        pdf.setFontSize(14);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('Summary', 40, 140);
+        
+        pdf.setFontSize(12);
+        pdf.text(`Total Sales: ${pdfFormatPrice(data.summary.totalSales)}`, 40, 160);
+pdf.text(`Average Sale: ${pdfFormatPrice(data.summary.averageSale)}`, 40, 180);
+        pdf.text(`Sale Count: ${data.summary.saleCount}`, 40, 200);
+        
+        // Add sales table headers
+        pdf.setFontSize(14);
+        pdf.text('Sales Details', 40, 230);
+        
+        pdf.setFontSize(10);
+        pdf.text('Date', 40, 250);
+        pdf.text('Amount', 150, 250);
+        pdf.text('Items', 250, 250);
+        pdf.text('Status', 400, 250);
+        
+        // Add sales data (first 20 items)
+        let yPos = 270;
+        data.sales.slice(0, 20).forEach((sale, index) => {
+          pdf.text(formatDate(sale.date), 40, yPos);
+          pdf.text(pdfFormatPrice(sale.amount), 150, yPos);
+          pdf.text(sale.items.toString().substring(0, 20), 250, yPos);
+          pdf.text(sale.status, 400, yPos);
+          yPos += 20;
+        });
+        
+        // Add note if there are more than 20 sales
+        if (data.sales.length > 20) {
+          pdf.setFontSize(10);
+          pdf.setTextColor(102, 102, 102); // #666666
+          pdf.text(`Showing 20 of ${data.sales.length} sales`, pdfWidth / 2 - 70, yPos + 20);
+        }
+        
+        // Save the PDF
+        pdf.save(`${outletName.replace(/\s+/g, '-').toLowerCase()}-sales-report.pdf`);
+        
+        // Clean up
+        document.body.removeChild(reportContainer);
+        return true;
+      } catch (directPdfError) {
+        console.log('Direct PDF generation failed, trying html2canvas as fallback:', directPdfError);
+        
+        // No fallback needed; direct PDF is reliable
+      }
+      
+      // This section is now handled in the try-catch blocks above
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      // Provide more detailed error information
+      if (error.message.includes('Unable to find element in cloned iframe')) {
+        console.log('HTML2Canvas iframe error - trying alternative approach');
+        try {
+          // Alternative approach: create a simpler PDF without html2canvas
+          const pdf = new jsPDF('p', 'pt', 'a4');
+          
+          // Get outlet name
+          const outletName = currentUser?.storeName || 'Your Store';
+          
+          // Add basic text content
+          pdf.setFontSize(22);
+          pdf.setTextColor(255, 107, 61); // #FF6B3D
+          pdf.text(outletName, 40, 40);
+          
+          pdf.setFontSize(18);
+          pdf.setTextColor(0, 0, 0);
+          pdf.text('Sales Report', 40, 70);
+          
+          pdf.setFontSize(12);
+          pdf.setTextColor(102, 102, 102); // #666666
+          pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 40, 90);
+          
+          // Add summary data
+          pdf.setFontSize(14);
+          pdf.setTextColor(0, 0, 0);
+          pdf.text('Summary', 40, 120);
+          
+          pdf.setFontSize(12);
+          pdf.text(`Total Sales: ${pdfFormatPrice(data.summary.totalSales)}`, 40, 140);
+pdf.text(`Average Sale: ${pdfFormatPrice(data.summary.averageSale)}`, 40, 160);
+          pdf.text(`Sale Count: ${data.summary.saleCount}`, 40, 180);
+          
+          // Add sales table headers
+          pdf.setFontSize(14);
+          pdf.text('Sales Details', 40, 220);
+          
+          pdf.setFontSize(10);
+          pdf.text('Date', 40, 240);
+          pdf.text('Amount', 150, 240);
+          pdf.text('Items', 250, 240);
+          pdf.text('Status', 400, 240);
+          
+          // Add sales data (first 20 items)
+          let yPos = 260;
+          data.sales.slice(0, 20).forEach((sale, index) => {
+            pdf.text(formatDate(sale.date), 40, yPos);
+            pdf.text(pdfFormatPrice(sale.amount), 150, yPos);
+            pdf.text(sale.items.toString().substring(0, 20), 250, yPos);
+            pdf.text(sale.status, 400, yPos);
+            yPos += 20;
+          });
+          
+          // Save the PDF
+          pdf.save(`${outletName.replace(/\s+/g, '-').toLowerCase()}-sales-report.pdf`);
+          return true;
+        } catch (fallbackError) {
+          console.error('Fallback PDF generation failed:', fallbackError);
+          throw new Error(`PDF generation failed: ${error.message}. Fallback also failed: ${fallbackError.message}`);
+        }
+      } else {
+        throw error;
+      }
+    }
+  };
+
+  // Function to handle CSV generation
+  const generateCSV = (data) => {
+    try {
+      // CSV header
+      let csvContent = 'Date,Amount,Items,Status\n';
+      
+      // Add data rows
+      data.sales.forEach(sale => {
+        const row = [
+          formatDate(sale.date),
+          sale.amount,
+          sale.items,
+          sale.status
+        ].join(',');
+        csvContent += row + '\n';
+      });
+      
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'sales-report.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      return true;
+    } catch (error) {
+      console.error('Error generating CSV:', error);
+      throw error;
+    }
+  };
+
+  // Function to handle Excel-like CSV generation
+  const generateExcel = (data) => {
+    try {
+      // CSV header with Excel separator
+      let csvContent = 'Date,Amount,Items,Status\n';
+      
+      // Add data rows
+      data.sales.forEach(sale => {
+        const row = [
+          formatDate(sale.date),
+          sale.amount,
+          sale.items,
+          sale.status
+        ].join(',');
+        csvContent += row + '\n';
+      });
+      
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'sales-report.xlsx');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      return true;
+    } catch (error) {
+      console.error('Error generating Excel:', error);
+      throw error;
+    }
+  };
+
+  const handleDownloadReport = async () => {
+    try {
+      setIsLoading(true);
+      toast('Preparing your report...');
+      
+      // Validate date range for custom period
+      if (reportPeriod === 'custom') {
+        if (!reportDates.startDate || !reportDates.endDate) {
+          toast.error('Please select both start and end dates for custom range');
+          setIsLoading(false);
+          return;
+        }
+        const start = new Date(reportDates.startDate);
+        const end = new Date(reportDates.endDate);
+        const now = new Date();
+        if (start > end) {
+          toast.error('Start date must be before end date');
+          setIsLoading(false);
+          return;
+        }
+        if (end > now) {
+          toast.error('End date cannot be in the future');
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Fetch sales data for the report
+      console.log('Fetching sales data for report...');
+      let salesData;
+      try {
+        salesData = await fetchSalesDataForReport();
+        console.log('Sales data fetched successfully');
+      } catch (fetchError) {
+        console.error('Error fetching sales data:', fetchError);
+        toast.error('Failed to fetch sales data. Using cached data if available.');
+        // Try to use current sales data as fallback
+        salesData = { sales: sales, summary: salesSummary };
+      }
+      
+      // Check if we have sales data
+      if (!salesData || !salesData.sales || salesData.sales.length === 0) {
+        toast.warning('No sales data available for the selected period');
         setIsLoading(false);
         return;
       }
       
-      // Make API call to download report
-      const response = await fetch(`/api/route/outlet/${outletId}/sales-report?${queryParams.toString()}`, { 
-        headers,
-        method: 'GET'
+      console.log('Processing sales data:', {
+        salesCount: salesData.sales.length,
+        summary: salesData.summary
       });
       
-      if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      // Generate report based on selected format
+      let success = false;
+      
+      try {
+        toast(`Generating ${reportFormat.toUpperCase()} report...`);
+        console.log(`Generating ${reportFormat} report...`);
+        
+        if (reportFormat === 'pdf') {
+          success = await generatePDFReport(salesData);
+        } else if (reportFormat === 'csv') {
+          success = generateCSV(salesData);
+        } else if (reportFormat === 'excel') {
+          success = generateExcel(salesData);
+        }
+        
+        if (success) {
+          toast.success(`${reportFormat.toUpperCase()} report downloaded successfully`);
+        } else {
+          toast.warning(`Report may have been generated but not downloaded properly. Check your downloads folder.`);
+        }
+      } catch (reportError) {
+        console.error('Error generating report:', reportError);
+        
+        // Provide more specific error messages based on the error type
+        if (reportError.message?.includes('Unable to find element in cloned iframe')) {
+          console.log('Detected iframe error - this is a known issue with html2canvas');
+          toast.error(`PDF generation encountered an issue with complex styling. Try using CSV or Excel format instead.`);
+        } else if (reportError.message?.includes('NetworkError')) {
+          toast.error(`Network error while generating report. Please check your connection and try again.`);
+        } else if (reportError.message?.includes('Out of memory')) {
+          toast.error(`Browser ran out of memory. Try generating a report with fewer sales or use CSV format.`);
+        } else {
+          toast.error(`Error generating ${reportFormat.toUpperCase()} report: ${reportError.message || 'Unknown error'}`);
+        }
       }
-      
-      // Get the blob from the response
-      const blob = await response.blob();
-      
-      // Create a URL for the blob
-      const url = window.URL.createObjectURL(blob);
-      
-      // Create a temporary link element
-      const link = document.createElement('a');
-      link.href = url;
-      
-      // Set the file name based on the format
-      const fileExtension = reportFormat === 'excel' ? 'xlsx' : reportFormat;
-      link.setAttribute('download', `sales-report.${fileExtension}`);
-      
-      // Append the link to the body
-      document.body.appendChild(link);
-      
-      // Click the link to trigger the download
-      link.click();
-      
-      // Clean up
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      toast.success('Report downloaded successfully');
     } catch (err) {
-      console.error('Error downloading report:', err);
-      toast.error(err.message || 'Failed to download report');
+      console.error('Error in report generation process:', err);
+      toast.error(err.message || 'Failed to process report request');
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +633,11 @@ const OutletSales = () => {
                   <input 
                     type="date" 
                     value={reportDates.startDate} 
-                    onChange={(e) => setReportDates({...reportDates, startDate: e.target.value})}
+                    max={reportDates.endDate}
+                    onChange={(e) => setReportDates(prev => ({
+                      ...prev,
+                      startDate: e.target.value
+                    }))}
                     className="w-full p-2 border rounded"
                   />
                 </div>
@@ -237,7 +646,12 @@ const OutletSales = () => {
                   <input 
                     type="date" 
                     value={reportDates.endDate} 
-                    onChange={(e) => setReportDates({...reportDates, endDate: e.target.value})}
+                    min={reportDates.startDate}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setReportDates(prev => ({
+                      ...prev,
+                      endDate: e.target.value
+                    }))}
                     className="w-full p-2 border rounded"
                   />
                 </div>

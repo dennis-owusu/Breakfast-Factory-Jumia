@@ -164,7 +164,7 @@ const SubscriptionPage = () => {
 
   // Handle payment close/cancel
   const handlePaymentClose = () => {
-    toast.info('Payment cancelled');
+    toast('Payment cancelled');
   };
 
   // Format date for display

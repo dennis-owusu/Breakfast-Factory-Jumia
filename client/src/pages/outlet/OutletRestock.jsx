@@ -5,24 +5,87 @@ import { createRestockRequest, fetchOutletRestockRequests, clearSuccess, clearEr
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card } from '../../components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Filter, Search, X } from 'lucide-react';
 
 const OutletRestock = () => {
   const dispatch = useDispatch();
-  const { requests, loading, error, success } = useSelector((state) => state.restock);
-  
+  const { requests, loading, error, success, totalRequests } = useSelector((state) => state.restock);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
+  // Initialize pagination state with default values
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    totalRequests: 0,
+    totalPages: 1,
+  });
+
+  // Initialize other missing states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    status: 'all',
+    dateRange: 'all',
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Form data state
   const [formData, setFormData] = useState({
     productId: searchParams.get('productId') || '',
     requestedQuantity: '',
-    currentQuantity: searchParams.get('quantity') || ''
+    currentQuantity: searchParams.get('quantity') || '',
   });
 
-  useEffect(() => {
-    dispatch(fetchOutletRestockRequests());
-  }, [dispatch]);
+  // Handle search input
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination({ ...pagination, page: 1 });
+  };
 
+  // Handle filter changes
+  const handleFilterChange = (key, value) => {
+    setFilters({ ...filters, [key]: value });
+    setPagination({ ...pagination, page: 1 });
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setFilters({ status: 'all', dateRange: 'all' });
+    setPagination({ ...pagination, page: 1 });
+  };
+
+  // Handle page change
+  const handlePageChange = (direction) => {
+    const newPage = pagination.page + direction;
+    if (newPage > 0 && newPage <= pagination.totalPages) {
+      setPagination({ ...pagination, page: newPage });
+    }
+  };
+
+  // Fetch restock requests
+  useEffect(() => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('startIndex', (pagination.page - 1) * pagination.limit);
+    queryParams.append('limit', pagination.limit);
+    if (searchTerm) queryParams.append('searchTerm', searchTerm);
+    if (filters.status !== 'all') queryParams.append('status', filters.status);
+    if (filters.dateRange !== 'all') queryParams.append('dateRange', filters.dateRange);
+
+    dispatch(fetchOutletRestockRequests(queryParams.toString()));
+  }, [dispatch, pagination.page, pagination.limit, searchTerm, filters]);
+
+  // Update pagination when totalRequests changes
+  useEffect(() => {
+    setPagination((prev) => ({
+      ...prev,
+      totalRequests: totalRequests || 0,
+      totalPages: Math.ceil((totalRequests || 0) / prev.limit) || 1,
+    }));
+  }, [totalRequests]);
+
+  // Handle success and clear form
   useEffect(() => {
     if (success) {
       setFormData({ productId: '', requestedQuantity: '', reason: '' });
@@ -30,18 +93,21 @@ const OutletRestock = () => {
     }
   }, [success, dispatch]);
 
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(createRestockRequest(formData));
   };
 
+  // Handle form input changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
+  // Get status badge color
   const getStatusColor = (status) => {
     switch (status) {
       case 'approved':
@@ -105,9 +171,56 @@ const OutletRestock = () => {
       </Card>
 
       {/* Restock Requests List */}
-      <Card>
+      <Card className="mt-8">
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Your Restock Requests</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Your Restock Requests</h2>
+            <Button variant="ghost" onClick={() => setShowFilters(!showFilters)}>
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {showFilters && (
+            <div className="mb-4 space-y-4">
+              <div className="flex items-center space-x-2">
+                <Search className="h-4 w-4 text-gray-500" />
+                <Input
+                  placeholder="Search requests..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="flex-1"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filters.dateRange} onValueChange={(value) => handleFilterChange('dateRange', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Date Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="thisWeek">This Week</SelectItem>
+                    <SelectItem value="thisMonth">This Month</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button variant="outline" onClick={clearAllFilters} className="w-full">
+                <X className="h-4 w-4 mr-2" />
+                Clear Filters
+              </Button>
+            </div>
+          )}
 
           {loading ? (
             <p>Loading requests...</p>
@@ -130,7 +243,7 @@ const OutletRestock = () => {
                 <tbody>
                   {requests.map((request) => (
                     <tr key={request._id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">{request.product.productName}</td>
+                      <td className="py-3 px-4">{request.product?.productName || 'N/A'}</td>
                       <td className="py-3 px-4">{request.outlet?.storeName || request.outlet?.name || request.outlet?.email || 'Unknown Outlet'}</td>
                       <td className="py-3 px-4">{request.requestedQuantity}</td>
                       <td className="py-3 px-4">{request.currentQuantity}</td>
@@ -147,6 +260,13 @@ const OutletRestock = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          {pagination.totalPages > 1 && (
+            <div className="flex justify-between items-center mt-4">
+              <Button onClick={() => handlePageChange(-1)} disabled={pagination.page === 1}>Previous</Button>
+              <span>Page {pagination.page} of {pagination.totalPages}</span>
+              <Button onClick={() => handlePageChange(1)} disabled={pagination.page === pagination.totalPages}>Next</Button>
             </div>
           )}
         </div>
