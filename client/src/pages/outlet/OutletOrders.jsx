@@ -19,7 +19,7 @@ const OutletOrders = () => {
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({ status: 'all', dateRange: '' });
+  const [filters, setFilters] = useState({ status: 'all', dateRange: 'all' });
   const [pagination, setPagination] = useState({ page: 1, limit: 10, totalOrders: 0, totalPages: 1 });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
@@ -128,7 +128,7 @@ const OutletOrders = () => {
           limit: pagination.limit,
           ...(searchInput && { searchTerm: searchInput }),
           ...(filters.status !== 'all' && { status: filters.status }),
-          ...(filters.dateRange && { dateRange: filters.dateRange }),
+          ...(filters.dateRange !== 'all' && { dateRange: filters.dateRange }),
           timeRange: timeRange,
         });
 
@@ -203,7 +203,7 @@ const OutletOrders = () => {
           limit: pagination.limit,
           ...(searchInput && { searchTerm: searchInput }),
           ...(filters.status !== 'all' && { status: filters.status }),
-          ...(filters.dateRange && { dateRange: filters.dateRange }),
+          ...(filters.dateRange !== 'all' && { dateRange: filters.dateRange }),
         });
 
         const headers = {
@@ -370,11 +370,11 @@ const OutletOrders = () => {
                 </Button>
 
                 {/* Clear Filters */}
-                {(filters.status !== 'all' || filters.dateRange || searchInput) && (
+                {(filters.status !== 'all' || filters.dateRange !== 'all' || searchInput) && (
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setFilters({ status: 'all', dateRange: '' });
+                      setFilters({ status: 'all', dateRange: 'all' });
                       setSearchInput('');
                       setPagination({ ...pagination, page: 1 });
                     }}
@@ -423,7 +423,7 @@ const OutletOrders = () => {
                       <SelectValue placeholder="Select a date range" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Time</SelectItem>
+                      <SelectItem value="all">All Time</SelectItem>
                       <SelectItem value="today">Today</SelectItem>
                       <SelectItem value="yesterday">Yesterday</SelectItem>
                       <SelectItem value="last7days">Last 7 Days</SelectItem>
