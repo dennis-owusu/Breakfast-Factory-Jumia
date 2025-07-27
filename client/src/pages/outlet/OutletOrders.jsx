@@ -136,7 +136,7 @@ const OutletOrders = () => {
           'Content-Type': 'application/json',
         };
 
-        const response = await fetch(`/api/route/getOrdersByUser/${currentUser._id}`, { headers });
+        const response = await fetch(`/api/route/getOutletOrders/${currentUser._id}?${queryParams.toString()}`, { headers });
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -210,7 +210,7 @@ const OutletOrders = () => {
           'Content-Type': 'application/json',
         };
 
-        const response = await fetch(`/api/route/getOrdersByUser/${currentUser._id}`, { headers });
+        const response = await fetch(`/api/route/getOutletOrders/${currentUser._id}?${queryParams.toString()}`, { headers });
         if (!response.ok) return;
 
         const data = await response.json();
