@@ -202,11 +202,11 @@ const ProductEdit = () => {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.title.trim()) errors.title = 'Product title is required';
-    if (!formData.price) errors.price = 'Price is required';
-    if (!formData.stock) errors.stock = 'Stock quantity is required';
-    if (!formData.category) errors.category = 'Category is required';
-    if (imageFiles.length === 0 && !currentImage) errors.images = 'At least one image must be uploaded';
+    // Removed required validations for update
+    // Optional: Add type checks if needed, e.g.,
+    if (formData.price && isNaN(parseFloat(formData.price))) errors.price = 'Price must be a number';
+    if (formData.discountPrice && isNaN(parseFloat(formData.discountPrice))) errors.discountPrice = 'Discount price must be a number';
+    if (formData.stock && isNaN(parseInt(formData.stock))) errors.stock = 'Stock must be a number';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
