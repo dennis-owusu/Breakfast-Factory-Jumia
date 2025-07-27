@@ -14,6 +14,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@azure-rest/ai-inference": "^1.0.0-beta.6",
+    "@azure/core-auth": "^1.10.0",
+    "@azure/core-sse": "latest",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
@@ -29,13 +32,12 @@
     "mongose": "^0.0.2-security",
     "multer": "^2.0.1",
     "node-fetch": "^3.3.2",
+    "pdfkit": "^0.17.1",
     "socket.io": "^4.8.1",
-    "uuid": "^11.1.0",
-    "@azure-rest/ai-inference": "^1.0.0-beta.6",
-    "@azure/core-auth": "^1.10.0",
-    "@azure/core-sse": "latest"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/pdfkit": "^0.17.2",
     "nodemon": "^3.1.10"
   }
 }

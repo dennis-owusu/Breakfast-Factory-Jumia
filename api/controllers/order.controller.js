@@ -5,9 +5,12 @@ import { errorHandler } from '../utils/error.js';
 
 export const createOrder = async (req, res) => {
   try {
-    const { user, products, totalPrice, address, city, state, phoneNumber, orderNumber, postalCode, paymentMethod } = req.body;
-    if (!user || !products || products.length === 0 || totalPrice == null || !address || !city || !state || !phoneNumber || !postalCode || !paymentMethod) {
+    const { user, userInfo, products, totalPrice, address, city, state, phoneNumber, orderNumber, postalCode, paymentMethod } = req.body;
+    if (!products || products.length === 0 || totalPrice == null || !address || !city || !state || !phoneNumber || !postalCode || !paymentMethod) {
       return res.status(400).json({ message: 'All fields are required' });
+    }
+    if (!user && (!userInfo || !userInfo.name || !userInfo.email || !userInfo.phoneNumber)) {
+      return res.status(400).json({ message: 'User or userInfo is required' });
     }
 
     // Fetch product details and embed them
@@ -31,18 +34,22 @@ export const createOrder = async (req, res) => {
       })
     );
 
-    const userDoc = await User.findById(user);
-    if (!userDoc) {
-      throw new Error('User not found');
+    let orderUserInfo = userInfo;
+    if (user) {
+      const userDoc = await User.findById(user);
+      if (!userDoc) {
+        throw new Error('User not found');
+      }
+      orderUserInfo = {
+        name: userDoc.name,
+        email: userDoc.email,
+        phoneNumber: userDoc.phoneNumber
+      };
     }
 
     const order = new Order({
       user,
-      userInfo: {
-        name: userDoc.name,
-        email: userDoc.email,
-        phoneNumber: userDoc.phoneNumber
-      },
+      userInfo: orderUserInfo,
       products: populatedProducts,
       totalPrice,
       address,

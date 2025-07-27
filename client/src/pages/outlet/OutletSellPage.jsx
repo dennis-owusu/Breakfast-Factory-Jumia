@@ -228,11 +228,11 @@ const OutletSellPage = () => {
       
       // Prepare order data
       const orderData = {
-        user: currentUser._id, // Using outlet as the user for in-store orders
+        
         userInfo: {
-          name: customerInfo.name || 'Walk-in Customer',
-          email: customerInfo.email || 'walkin@example.com',
-          phoneNumber: customerInfo.phoneNumber || '0000000000'
+          name: customerInfo.name || 'No customer name',
+          email: customerInfo.email || currentUser.email || 'No email',
+          phoneNumber: customerInfo.phoneNumber || 'No phone Number'
         },
         products: cart.map(item => ({
           product: item._id,
@@ -490,7 +490,7 @@ const OutletSellPage = () => {
                   placeholder="Email"
                   name="email"
                   type="email"
-                  value={currentUser.email}
+                  defaultValue={customerInfo.email ? customerInfo.email : currentUser.email}
                   onChange={handleCustomerInfoChange}
                 />
               </div>

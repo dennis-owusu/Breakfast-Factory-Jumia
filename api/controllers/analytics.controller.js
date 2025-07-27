@@ -481,7 +481,9 @@ export const getAdminSalesReport = async (req, res, next) => {
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename=sales_report_${new Date().toISOString().split('T')[0]}.csv`);
     } else if (format === 'pdf') {
-      // For PDF format
+      // For PDF format 
+      const { createRequire } = await import('module');
+      const require = createRequire(import.meta.url);
       const PDFDocument = require('pdfkit');
       const doc = new PDFDocument();
       
@@ -694,9 +696,9 @@ export const getOutletSalesReport = async (req, res, next) => {
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename=outlet_sales_report_${new Date().toISOString().split('T')[0]}.csv`);
     } else if (format === 'pdf') {
-      // For PDF format
-      const PDFDocument = require('pdfkit');
-      const doc = new PDFDocument();
+        // For PDF format
+        const PDFDocument = (await import('pdfkit')).default;
+        const doc = new PDFDocument();
       
       // Set response headers for PDF
       res.setHeader('Content-Type', 'application/pdf');
