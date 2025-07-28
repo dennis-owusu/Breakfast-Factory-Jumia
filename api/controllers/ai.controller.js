@@ -87,9 +87,19 @@ export const askAI = async (req, res, next) => {
     } 
 
     if (question.toLowerCase().includes('stock')) {
-      const outOfStock = await Product.countDocuments({ numberOfProductsAvailable: 0 });
-      const inStock = await Product.countDocuments({ numberOfProductsAvailable: { $gt: 0 } });
-      context += `Products: ${inStock} in stock, ${outOfStock} out of stock. `;
+      const stockFilter = { numberOfProductsAvailable: 0 };
+      if (isOutlet) {
+        stockFilter.outlet = req.user.id;
+      }
+      const outOfStockProducts = await Product.find(stockFilter).select('productName');
+      const outOfStock = outOfStockProducts.length;
+      const inStockFilter = { numberOfProductsAvailable: { $gt: 0 } };
+      if (isOutlet) {
+        inStockFilter.outlet = req.user.id;
+      }
+      const inStock = await Product.countDocuments(inStockFilter);
+      let outOfStockList = outOfStockProducts.map(p => p.productName).join(', ') || 'None';
+      context += `Products: ${inStock} in stock, ${outOfStock} out of stock. Out of stock products: ${outOfStockList}. `;
     }
  
     if (question.toLowerCase().includes('best selling') || question.toLowerCase().includes('this week')) {
