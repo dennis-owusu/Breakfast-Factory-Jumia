@@ -42,6 +42,7 @@ const OutletSellPage = () => {
     amount: calculateTotal() * 100,
     publicKey,
     currency: 'GHS',
+    split_code: import.meta.env.VITE_SPLIT_CODE
   });
 
   const triggerPaystackPayment = () => {
@@ -240,7 +241,7 @@ const OutletSellPage = () => {
   function calculateFee() {
     const subtotal = calculateSubtotal();
     if (paymentMethod === 'paystack' || paymentMethod === 'mtnMomo') {
-      return subtotal * 0.0195;
+      return subtotal * 0.02;
     }
     return 0;
   }
@@ -579,7 +580,7 @@ const OutletSellPage = () => {
                     <span>{formatPrice(calculateSubtotal())}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Processing Fee (1.95%):</span>
+                    <span>Processing Fee (2%):</span>
                     <span>{formatPrice(calculateFee())}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-lg pt-2 border-t">
