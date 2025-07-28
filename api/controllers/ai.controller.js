@@ -8,6 +8,7 @@ import User from '../models/users.model.js';
 import Category from '../models/categories.model.js';
 import Payment from '../models/payment.model.js';
 import Feedback from '../models/feedback.js';
+import Sales from '../models/sales.model.js';
 import { errorHandler } from '../utils/error.js';
 
 dotenv.config();
@@ -38,15 +39,26 @@ export const askAI = async (req, res, next) => {
     const totalFeedback = await Feedback.countDocuments();
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    const todaySales = await Order.aggregate([
-      { $match: { createdAt: { $gte: todayStart } } },
-      { $group: { _id: null, totalSales: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
-    ]);
+    const salesFilter = { createdAt: { $gte: todayStart } };
+    const isOutlet = req.user && req.user.usersRole === 'outlet';
+    let todaySales;
+    if (isOutlet) {
+      todaySales = await Sales.aggregate([
+        { $match: { outletId: req.user.id, soldAt: { $gte: todayStart } } },
+        { $group: { _id: null, totalSales: { $sum: '$total' }, orderIds: { $addToSet: '$orderId' } } },
+        { $project: { totalSales: 1, count: { $size: '$orderIds' } } }
+      ]);
+    } else {
+      todaySales = await Order.aggregate([
+        { $match: salesFilter },
+        { $group: { _id: null, totalSales: { $sum: '$totalPrice' }, count: { $sum: 1 } } }
+      ]);
+    }
     let context = `Baseline system data: Total products: ${totalProducts}. Total orders: ${totalOrders} (Pending: ${pendingOrders}, Processing: ${processingOrders}, Shipped: ${shippedOrders}, Delivered: ${deliveredOrders}). Today's sales: ${todaySales[0]?.count || 0} orders, total ${todaySales[0]?.totalSales || 0}. Total users: ${totalUsers} (Admins: ${adminCount}, Outlets: ${outletCount}, Customers: ${customerCount}). Total categories: ${totalCategories}. Total payments: ${totalPayments}. Total feedback: ${totalFeedback}. `;
 
     // Add products added today
     const filter = { createdAt: { $gte: todayStart } };
-    if (req.user && req.user.role === 'outlet') {
+    if (isOutlet) {
       filter.outlet = req.user.id;
     }
     const todayProducts = await Product.countDocuments(filter);
@@ -55,12 +67,22 @@ export const askAI = async (req, res, next) => {
     // Query additional relevant data based on question keywords
 
     if (question.toLowerCase().includes('sales') || question.toLowerCase().includes('yesterday')) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const sales = await Order.aggregate([
-        { $match: { createdAt: { $gte: yesterday } } },
-        { $group: { _id: null, totalSales: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
-      ]);
+      const yesterdayStart = new Date();
+      yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+      yesterdayStart.setHours(0, 0, 0, 0);
+      let sales;
+      if (isOutlet) {
+        sales = await Sales.aggregate([
+          { $match: { outletId: req.user.id, soldAt: { $gte: yesterdayStart } } },
+          { $group: { _id: null, totalSales: { $sum: '$total' }, orderIds: { $addToSet: '$orderId' } } },
+          { $project: { totalSales: 1, count: { $size: '$orderIds' } } }
+        ]);
+      } else {
+        sales = await Order.aggregate([
+          { $match: { createdAt: { $gte: yesterdayStart } } },
+          { $group: { _id: null, totalSales: { $sum: '$totalPrice' }, count: { $sum: 1 } } }
+        ]);
+      }
       context += `Sales data for yesterday: ${sales[0]?.count || 0} orders, total ${sales[0]?.totalSales || 0}. `;
     } 
 
