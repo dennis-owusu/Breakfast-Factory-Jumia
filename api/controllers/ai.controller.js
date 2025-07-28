@@ -7,7 +7,7 @@ import Analytics from '../models/analytics.model.js';
 import User from '../models/users.model.js';
 import Category from '../models/categories.model.js';
 import Payment from '../models/payment.model.js';
-import Feedback from '../models/feedback.js';
+import Feedback from '../models/feedback.js'; 
 import Sales from '../models/sales.model.js';
 import { errorHandler } from '../utils/error.js';
 
@@ -23,24 +23,28 @@ export const askAI = async (req, res, next) => {
   const { question } = req.body;
 
   try {
+    const isOutlet = req.user && (req.user.usersRole === 'outlet' || req.user.usersRole === 'admin');
     // Fetch baseline summary data for comprehensive context
-    const totalProducts = await Product.countDocuments();
-    const totalOrders = await Order.countDocuments();
-    const pendingOrders = await Order.countDocuments({ status: 'pending' });
-    const processingOrders = await Order.countDocuments({ status: 'processing' });
-    const shippedOrders = await Order.countDocuments({ status: 'shipped' });
-    const deliveredOrders = await Order.countDocuments({ status: 'delivered' });
+    const totalProductsFilter = isOutlet ? { outlet: req.user.id } : {};
+    const totalProducts = await Product.countDocuments(totalProductsFilter);
+    const totalOrdersFilter = isOutlet ? { 'items.product': { $in: await Product.find({ outlet: req.user.id }).distinct('_id') } } : {};
+    const totalOrders = await Order.countDocuments(totalOrdersFilter);
+    const pendingOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'pending' });
+    const processingOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'processing' });
+    const shippedOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'shipped' });
+    const deliveredOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'delivered' });
     const totalUsers = await User.countDocuments();
     const adminCount = await User.countDocuments({ usersRole: 'admin' });
     const outletCount = await User.countDocuments({ usersRole: 'outlet' });
     const customerCount = await User.countDocuments({ usersRole: 'user' });
     const totalCategories = await Category.countDocuments();
-    const totalPayments = await Payment.countDocuments();
-    const totalFeedback = await Feedback.countDocuments();
+    const totalPaymentsFilter = isOutlet ? { order: { $in: await Order.find(totalOrdersFilter).distinct('_id') } } : {};
+    const totalPayments = await Payment.countDocuments(totalPaymentsFilter);
+    const totalFeedbackFilter = isOutlet ? { product: { $in: await Product.find({ outlet: req.user.id }).distinct('_id') } } : {};
+    const totalFeedback = await Feedback.countDocuments(totalFeedbackFilter);
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const salesFilter = { createdAt: { $gte: todayStart } };
-    const isOutlet = req.user && req.user.usersRole === 'outlet';
     let todaySales;
     if (isOutlet) {
       todaySales = await Sales.aggregate([
@@ -105,8 +109,12 @@ export const askAI = async (req, res, next) => {
     if (question.toLowerCase().includes('best selling') || question.toLowerCase().includes('this week')) {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
+      const bestSellingMatch = { createdAt: { $gte: weekAgo } };
+      if (isOutlet) {
+        bestSellingMatch['items.product'] = { $in: await Product.find({ outlet: req.user.id }).distinct('_id') };
+      }
       const bestSelling = await Order.aggregate([
-        { $match: { createdAt: { $gte: weekAgo } } },
+        { $match: bestSellingMatch },
         { $unwind: '$items' },
         { $group: { _id: '$items.product', totalSold: { $sum: '$items.quantity' } } },
         { $sort: { totalSold: -1 } },
@@ -122,15 +130,15 @@ export const askAI = async (req, res, next) => {
     }
 
     if (question.toLowerCase().includes('orders') || question.toLowerCase().includes('how many orders')) {
-      const totalOrders = await Order.countDocuments();
+      const totalOrders = await Order.countDocuments(totalOrdersFilter);
       context += `Total orders: ${totalOrders}. `;
       if (question.toLowerCase().includes('recent') || question.toLowerCase().includes('details') || question.toLowerCase().includes('list')) {
-        const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(5);
+        const recentOrders = await Order.find(totalOrdersFilter).sort({ createdAt: -1 }).limit(5);
         context += `Recent orders: ${JSON.stringify(recentOrders.map(o => ({ id: o._id, total: o.totalAmount })))}. `;
       }
     }
     if (question.toLowerCase().includes('pending orders') || question.toLowerCase().includes('how many pending orders')) {
-      const pendingOrders = await Order.countDocuments({ status: 'pending' });
+      const pendingOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'pending' });
       context += `Pending orders: ${pendingOrders}. `;
     }
 
@@ -140,7 +148,12 @@ export const askAI = async (req, res, next) => {
     }
 
     if (question.toLowerCase().includes('predict') || question.toLowerCase().includes('future') || question.toLowerCase().includes('best selling') || question.toLowerCase().includes('bestselling')) {
+      const historicalMatch = {};
+      if (isOutlet) {
+        historicalMatch['items.product'] = { $in: await Product.find({ outlet: req.user.id }).distinct('_id') };
+      }
       let historicalSales = await Order.aggregate([
+        { $match: historicalMatch },
         { $unwind: '$items' },
         { $group: { _id: '$items.product', totalSold: { $sum: '$items.quantity' } } },
         { $sort: { totalSold: -1 } },
@@ -149,7 +162,8 @@ export const askAI = async (req, res, next) => {
       ]);
       let predictionContext = `Top bestselling products based on all order data: ${JSON.stringify(historicalSales.map(s => ({ name: s.product[0]?.productName, description: s.product[0]?.description, price: s.product[0]?.price, sold: s.totalSold })))}. `;
       if (historicalSales.length === 0) {
-        const allProducts = await Product.find().limit(10);
+        const allProductsFilter = isOutlet ? { outlet: req.user.id } : {};
+        const allProducts = await Product.find(allProductsFilter).limit(10);
         predictionContext += `No sales data available yet. Here are some products in the system: ${JSON.stringify(allProducts.map(p => ({ name: p.productName, description: p.description, price: p.price })))}. `;
       }
       predictionContext += 'Use this data to make reasonable predictions for future best-sellers, such as based on current trends or product details if no sales history.';
@@ -168,12 +182,13 @@ export const askAI = async (req, res, next) => {
     }
 
     if (question.toLowerCase().includes('payments')) {
-      const recentPayments = await Payment.find().sort({ createdAt: -1 }).limit(5);
+      const recentPaymentsFilter = totalPaymentsFilter;
+      const recentPayments = await Payment.find(recentPaymentsFilter).sort({ createdAt: -1 }).limit(5);
       context += `Recent payments: ${JSON.stringify(recentPayments.map(p => ({ id: p._id, amount: p.amount, status: p.status })))}. `;
     }
 
     if (question.toLowerCase().includes('feedback') || question.toLowerCase().includes('reviews')) {
-      const recentFeedback = await Feedback.find().sort({ createdAt: -1 }).limit(5);
+      const recentFeedback = await Feedback.find(totalFeedbackFilter).sort({ createdAt: -1 }).limit(5);
       context += `Recent feedback: ${JSON.stringify(recentFeedback.map(f => ({ product: f.product, rating: f.rating, comment: f.comment })))}. `;
     }
 

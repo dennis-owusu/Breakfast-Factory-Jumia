@@ -309,9 +309,9 @@ export const getSales = async (req, res, next) => {
          let endDate = new Date(); // Current date
          
          if (period === 'daily') {
-           // Last day
+           // Today only
            startDate = new Date();
-           startDate.setDate(startDate.getDate() - 1);
+           startDate.setHours(0, 0, 0, 0);
          }
          else if (period === 'weekly') {
            // Last 7 days
