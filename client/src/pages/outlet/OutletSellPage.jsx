@@ -160,32 +160,70 @@ const OutletSellPage = () => {
   }, [searchTerm, products]);
 
   // Add product to cart
-  const addToCart = (product) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item._id === product._id);
-      if (existingItem) {
-        return prevCart.map(item =>
-          item._id === product._id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        return [...prevCart, { ...product, quantity: 1 }];
+  const addToCart = async (product) => {
+    try {
+      // Fetch latest product data
+      const response = await fetch(`/api/route/product/${product._id}`);
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch product');
       }
-    });
-    toast.success(`${product.productName} added to cart`);
+      const latestProduct = data.product;
+  
+      const existingItem = cart.find(item => item._id === product._id);
+      const newQuantity = existingItem ? existingItem.quantity + 1 : 1;
+  
+      if (latestProduct.numberOfProductsAvailable < newQuantity) {
+        toast.error(`${latestProduct.productName} is out of stock or insufficient quantity`);
+        return;
+      }
+  
+      setCart(prevCart => {
+        if (existingItem) {
+          return prevCart.map(item =>
+            item._id === product._id
+              ? { ...item, quantity: newQuantity }
+              : item
+          );
+        } else {
+          return [...prevCart, { ...latestProduct, quantity: 1 }];
+        }
+      });
+      toast.success(`${latestProduct.productName} added to cart`);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add to cart. Please try again.');
+    }
   };
 
   // Update product quantity in cart
-  const updateQuantity = (productId, newQuantity) => {
+  const updateQuantity = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
-    setCart(prevCart =>
-      prevCart.map(item =>
-        item._id === productId
-          ? { ...item, quantity: newQuantity }
-          : item
-      )
-    );
+    try {
+      // Fetch latest product data
+      const response = await fetch(`/api/route/product/${productId}`);
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch product');
+      }
+      const latestProduct = data.product;
+  
+      if (latestProduct.numberOfProductsAvailable < newQuantity) {
+        toast.error(`${latestProduct.productName} has only ${latestProduct.numberOfProductsAvailable} in stock`);
+        return;
+      }
+  
+      setCart(prevCart =>
+        prevCart.map(item =>
+          item._id === productId
+            ? { ...item, quantity: newQuantity }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      toast.error('Failed to update quantity. Please try again.');
+    }
   };
 
   // Remove product from cart

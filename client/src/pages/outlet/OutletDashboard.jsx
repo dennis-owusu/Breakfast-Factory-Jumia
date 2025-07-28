@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Package, BarChart2, Settings, ChevronRight, DollarSign, TrendingUp, Users, CreditCard } from 'lucide-react';
+import { ShoppingBag, Package, BarChart2, ChevronRight, DollarSign, TrendingUp, Users, CreditCard } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { toast } from 'react-hot-toast';
