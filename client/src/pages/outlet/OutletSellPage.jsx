@@ -233,10 +233,21 @@ const OutletSellPage = () => {
   };
 
   // Calculate cart total
-  function calculateTotal() {
+  function calculateSubtotal() {
     return cart.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
   };
-
+  
+  function calculateFee() {
+    const subtotal = calculateSubtotal();
+    if (paymentMethod === 'paystack' || paymentMethod === 'mtnMomo') {
+      return subtotal * 0.0195;
+    }
+    return 0;
+  }
+  
+  function calculateTotal() {
+    return calculateSubtotal() + calculateFee();
+  }
   // Handle customer info change
   const handleCustomerInfoChange = (e) => {
     const { name, value } = e.target;
@@ -562,9 +573,19 @@ const OutletSellPage = () => {
               
               {/* Order Summary */}
               <div className="mt-6 pt-4 border-t">
-                <div className="flex justify-between font-semibold text-lg">
-                  <span>Total:</span>
-                  <span>{formatPrice(calculateTotal())}</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal:</span>
+                    <span>{formatPrice(calculateSubtotal())}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Processing Fee (1.95%):</span>
+                    <span>{formatPrice(calculateFee())}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-lg pt-2 border-t">
+                    <span>Total:</span>
+                    <span>{formatPrice(calculateTotal())}</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
