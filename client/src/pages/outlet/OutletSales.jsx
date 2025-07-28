@@ -196,7 +196,7 @@ const OutletSales = () => {
       reportContainer.style.color = '#000000';
       
       // Get outlet name
-      const outletName = currentUser?.storeName || 'Your Store';
+      const outletName = 'Onyame Adepa';
       
       // Format date range for the report title
       let dateRangeText = '';
@@ -283,7 +283,7 @@ const OutletSales = () => {
         const pdfHeight = pdf.internal.pageSize.getHeight();
         
         // Get outlet name
-        const outletName = currentUser?.storeName || 'Your Store';
+        const outletName = 'Onyame Adepa';
         
         // Add basic text content
         pdf.setFontSize(22);
@@ -359,7 +359,7 @@ pdf.text(`Average Sale: ${pdfFormatPrice(data.summary.averageSale)}`, 40, 180);
           const pdf = new jsPDF('p', 'pt', 'a4');
           
           // Get outlet name
-          const outletName = currentUser?.storeName || 'Your Store';
+          const outletName = 'Onyame Adepa';
           
           // Add basic text content
           pdf.setFontSize(22);

@@ -44,6 +44,14 @@ export const askAI = async (req, res, next) => {
     ]);
     let context = `Baseline system data: Total products: ${totalProducts}. Total orders: ${totalOrders} (Pending: ${pendingOrders}, Processing: ${processingOrders}, Shipped: ${shippedOrders}, Delivered: ${deliveredOrders}). Today's sales: ${todaySales[0]?.count || 0} orders, total ${todaySales[0]?.totalSales || 0}. Total users: ${totalUsers} (Admins: ${adminCount}, Outlets: ${outletCount}, Customers: ${customerCount}). Total categories: ${totalCategories}. Total payments: ${totalPayments}. Total feedback: ${totalFeedback}. `;
 
+    // Add products added today
+    const filter = { createdAt: { $gte: todayStart } };
+    if (req.user && req.user.role === 'outlet') {
+      filter.outlet = req.user.id;
+    }
+    const todayProducts = await Product.countDocuments(filter);
+    context += `Products added today: ${todayProducts}. `;
+
     // Query additional relevant data based on question keywords
 
     if (question.toLowerCase().includes('sales') || question.toLowerCase().includes('yesterday')) {
