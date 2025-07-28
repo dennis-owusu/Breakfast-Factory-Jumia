@@ -1,6 +1,7 @@
 import Users from "../models/users.model.js";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import Subscription from "../models/subscription.model.js";
 
 export const createUser = async(req, res, next) => {
   const { name, email, password, phoneNumber, storeName, profilePicture, usersRole } = req.body;
@@ -20,6 +21,23 @@ export const createUser = async(req, res, next) => {
       usersRole: usersRole || 'user'
     });
     await newUser.save();
+    // Inside createUser after await newUser.save();
+    if (newUser.usersRole === 'outlet' || newUser.usersRole === 'admin') {
+      const startDate = new Date();
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 14);
+      const newSubscription = new Subscription({
+        userId: newUser._id,
+        plan: 'free',
+        status: 'active',
+        startDate,
+        endDate,
+        features: ['Basic Analytics', 'Limited Product Listings', 'Standard Support'],
+        price: 0,
+        currency: 'GHS'
+      });
+      await newSubscription.save();
+    }
     res.status(201).json({ message: 'User created successfully' });
   } catch (error) {
     next(error);
@@ -93,6 +111,23 @@ export const google = async (req, res, next) => {
           lastLogin: new Date() // Set initial login time
         });
         await newUser.save();
+        // Similarly inside google after await newUser.save() in the else block
+        if (newUser.usersRole === 'outlet' || newUser.usersRole === 'admin') {
+          const startDate = new Date();
+          const endDate = new Date(startDate);
+          endDate.setDate(endDate.getDate() + 14);
+          const newSubscription = new Subscription({
+            userId: newUser._id,
+            plan: 'free',
+            status: 'active',
+            startDate,
+            endDate,
+            features: ['Basic Analytics', 'Limited Product Listings', 'Standard Support'],
+            price: 0,
+            currency: 'GHS'
+          });
+          await newSubscription.save();
+        }
         const token = jwt.sign( 
           { id: newUser._id, role: newUser.usersRole },
           process.env.JWT_SECRET

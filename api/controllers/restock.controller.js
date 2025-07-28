@@ -29,6 +29,12 @@ export const createRestockRequest = async (req, res, next) => {
 
         await restockRequest.save();
 
+        // Since status is approved by default, update product quantity
+        if (restockRequest.status === 'approved') {
+            product.numberOfProductsAvailable += requestedQuantity;
+            await product.save();
+        }
+
         res.status(201).json({
             success: true,
             message: 'Restock request created successfully',
@@ -59,14 +65,13 @@ export const getRestockRequests = async (req, res, next) => {
 // Get outlet's restock requests
 export const getOutletRestockRequests = async (req, res, next) => {
   try {
-    const outletId = req.user.id; // From verifyOutlet
     const startIndex = parseInt(req.query.startIndex) || 0;
     const limit = parseInt(req.query.limit) || 10;
     const searchTerm = req.query.searchTerm || '';
     const status = req.query.status;
     const dateRange = req.query.dateRange;
 
-    let query = { outlet: outletId };
+    let query = {};
 
     if (status && status !== 'all') {
       query.status = status;

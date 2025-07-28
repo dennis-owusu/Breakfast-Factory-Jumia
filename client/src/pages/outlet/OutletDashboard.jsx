@@ -598,16 +598,13 @@ const OutletDashboard = () => {
                         <div className="text-xs text-gray-500">{order.user?.email || order.userInfo?.email || ''}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="space-y-2">
+                        <div className="flex flex-wrap gap-1">
                           {order.products && order.products.map((item, index) => (
-                            <div key={index} className="flex items-center gap-3 bg-gray-50 p-2 rounded-lg">
+                            <div key={index} className="flex items-center text-sm">
                               <img src={item.product?.images?.[0] || 'https://via.placeholder.com/50'} 
                                    alt={item.product?.name || ''} 
-                                   className="h-12 w-12 rounded-lg object-cover" />
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">{item.product?.name || 'Product'}</p>
-                                <p className="text-xs text-gray-500">Qty: {item.quantity} @ {formatPrice(item.product?.price || 0)}</p>
-                              </div>
+                                   className="h-6 w-6 rounded object-cover" />
+                              <span className="ml-1 text-gray-600">×{item.quantity}</span>
                             </div>
                           ))}
                         </div>

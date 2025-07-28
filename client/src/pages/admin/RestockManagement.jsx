@@ -94,7 +94,7 @@ const RestockManagement = () => {
                   {requests.map((request) => (
                     <tr key={request._id} className="border-b hover:bg-gray-50">
                       <td className="py-3 px-4">{request.outlet.name}</td>
-                      <td className="py-3 px-4">{request.product.productName}</td>
+                      <td className="py-3 px-4">{request.product?.productName || 'Unknown Product'}</td>
                       <td className="py-3 px-4">{request.currentQuantity}</td>
                       <td className="py-3 px-4">{request.requestedQuantity}</td>
                       <td className="py-3 px-4">{request.reason}</td>

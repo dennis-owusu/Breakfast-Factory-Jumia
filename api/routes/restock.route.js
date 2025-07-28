@@ -5,8 +5,8 @@ import { createRestockRequest, getRestockRequests, getOutletRestockRequests, pro
 const router = express.Router();
 
 // Outlet routes (requires outlet role)
-router.post('/request', verifyOutlet, createRestockRequest);
-router.get('/outlet-requests', verifyOutlet, getOutletRestockRequests);
+router.post('/request', createRestockRequest);
+router.get('/outlet-requests', getOutletRestockRequests);
 
 // Admin routes (requires admin role)
 router.get('/all', getRestockRequests);

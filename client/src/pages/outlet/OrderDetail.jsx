@@ -6,6 +6,7 @@ import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { outletAPI } from '../../utils/api';
 import { toast } from 'react-hot-toast';
+import jsPDF from 'jspdf';
 
 // Function to fetch order details from API
 const fetchOrderDetails = async (orderId) => {
@@ -537,3 +538,52 @@ const OrderDetail = () => {
 };
 
 export default OrderDetail;
+
+const generateOrderPDF = () => {
+  const pdf = new jsPDF('p', 'pt', 'a4');
+  let yPos = 40;
+  pdf.setFontSize(22);
+  pdf.text('Order Details', 40, yPos);
+  yPos += 30;
+  pdf.setFontSize(12);
+  pdf.text(`Order ID: ${order._id}`, 40, yPos);
+  yPos += 20;
+  pdf.text(`Date: ${formatDate(order.createdAt)}`, 40, yPos);
+  yPos += 20;
+  pdf.text(`Status: ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}`, 40, yPos);
+  yPos += 20;
+  pdf.text(`Total: ${formatPrice(order.totalAmount)}`, 40, yPos);
+  yPos += 30;
+  pdf.setFontSize(14);
+  pdf.text('Customer Information', 40, yPos);
+  yPos += 20;
+  pdf.setFontSize(12);
+  pdf.text(`Name: ${order.customer.name}`, 40, yPos);
+  yPos += 20;
+  pdf.text(`Email: ${order.customer.email}`, 40, yPos);
+  yPos += 20;
+  pdf.text(`Phone: ${order.customer.phone}`, 40, yPos);
+  yPos += 30;
+  pdf.text('Shipping Address', 40, yPos);
+  yPos += 20;
+  pdf.text(order.shippingAddress.street, 40, yPos);
+  yPos += 20;
+  pdf.text(`${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zipCode}`, 40, yPos);
+  yPos += 20;
+  pdf.text(order.shippingAddress.country, 40, yPos);
+  yPos += 30;
+  pdf.text('Order Items', 40, yPos);
+  yPos += 20;
+  order.items.forEach((item, index) => {
+    pdf.text(`${index + 1}. ${item.productName} - Qty: ${item.quantity} - Price: ${formatPrice(item.price)}`, 40, yPos);
+    yPos += 20;
+  });
+  if (order.notes) {
+    yPos += 10;
+    pdf.text('Notes: ' + order.notes, 40, yPos);
+  }
+  pdf.save(`order-${order._id}.pdf`);
+};
+// Remove the misplaced button code at the end
+// In the return statement, after <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
+<button onClick={generateOrderPDF} className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">Download PDF</button>

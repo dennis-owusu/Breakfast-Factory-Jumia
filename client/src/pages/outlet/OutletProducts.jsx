@@ -262,7 +262,7 @@ const handleDeleteProduct = async (productId) => {
                       </div>
                     </td>
                     <td className="p-3 text-sm">{product.category?.categoryName || product.category || 'Uncategorized'}</td>
-                    <td className="p-3 text-sm">₦{product.productPrice.toFixed(2)}</td>
+                    <td className="p-3 text-sm">₵{product.productPrice.toFixed(2)}</td>
                     <td className="p-3 text-sm">{product.numberOfProductsAvailable}</td>
                     <td className="p-3 flex justify-end gap-2">
                       <Button
@@ -324,7 +324,7 @@ const handleDeleteProduct = async (productId) => {
                 </div>
                 <div className="flex justify-between items-center text-xs mb-2">
                   <span>Price:</span>
-                  <span className="font-medium">₦{product.productPrice.toFixed(2)}</span>
+                  <span className="font-medium">₵{product.productPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs mb-3">
                   <span>Stock:</span>

@@ -7,6 +7,7 @@ import { Badge } from '../../components/ui/badge';
 import { toast } from 'react-hot-toast';
 import Loader from '../../components/ui/Loader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import jsPDF from 'jspdf';
 
 const OutletOrderDetail = () => {
   const { id } = useParams();
@@ -69,6 +70,67 @@ const OutletOrderDetail = () => {
     }
   };
 
+  const generateOrderPDF = () => {
+    const pdf = new jsPDF('p', 'pt', 'a4');
+    let yPos = 60;
+    pdf.setFontSize(24);
+    pdf.setTextColor(0, 102, 204); // Blue for title
+    pdf.text('Invoice', 40, yPos);
+    pdf.setTextColor(0, 0, 0); // Reset to black
+    yPos += 50;
+    pdf.setFontSize(14);
+    pdf.text(`Date: ${formatDate(order.createdAt)}`, 40, yPos);
+    yPos += 30;
+    pdf.text(`Status: ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}`, 40, yPos);
+    yPos += 50;
+    pdf.setFontSize(16);
+    pdf.setTextColor(0, 102, 204); // Blue for section header
+    pdf.text('Customer', 40, yPos);
+    pdf.setTextColor(0, 0, 0);
+    yPos += 30;
+    pdf.setFontSize(12);
+    pdf.text(`Name: ${order.user?.name || order.userInfo?.name || 'N/A'}`, 40, yPos);
+    yPos += 25;
+    pdf.text(`Email: ${order.user?.email || order.userInfo?.email || 'N/A'}`, 40, yPos);
+    yPos += 50;
+    pdf.setFontSize(16);
+    pdf.setTextColor(0, 102, 204);
+    pdf.text('Order Items', 40, yPos);
+    pdf.setTextColor(0, 0, 0);
+    yPos += 30;
+    pdf.setFontSize(12);
+    pdf.setDrawColor(0, 102, 204); // Blue for lines
+    pdf.setLineWidth(0.5);
+    pdf.line(40, yPos, 550, yPos);
+    pdf.setDrawColor(0, 0, 0); // Reset to black
+    yPos += 20;
+    pdf.text('Product', 40, yPos);
+    pdf.text('Qty', 300, yPos);
+    pdf.text('Price', 370, yPos);
+    pdf.text('Subtotal', 460, yPos);
+    yPos += 10;
+    pdf.setDrawColor(0, 102, 204);
+    pdf.line(40, yPos, 550, yPos);
+    pdf.setDrawColor(0, 0, 0);
+    yPos += 20;
+    order.products.forEach((item) => {
+      pdf.text(item.product.name, 40, yPos);
+      pdf.text(item.quantity.toString(), 300, yPos);
+      pdf.text(formatPrice(item.product.price), 370, yPos);
+      pdf.text(formatPrice(item.product.price * item.quantity), 460, yPos);
+      yPos += 25;
+    });
+    pdf.setDrawColor(0, 102, 204);
+    pdf.line(40, yPos, 550, yPos);
+    pdf.setDrawColor(0, 0, 0);
+    yPos += 30;
+    pdf.setFontSize(14);
+    pdf.setTextColor(255, 0, 0); // Red for total
+    pdf.text(`Total: ${formatPrice(order.totalPrice)}`, 40, yPos);
+    pdf.setTextColor(0, 0, 0);
+    pdf.save(`order-${order.orderNumber || order._id}.pdf`);
+  };
+
   if (isLoading) return <Loader />;
   if (error) return <div className="text-red-500">{error}</div>;
   if (!order) return <div>Order not found</div>;
@@ -82,8 +144,8 @@ const OutletOrderDetail = () => {
             <Button variant="outline" className="w-full sm:w-auto border-gray-300 hover:bg-gray-100" onClick={() => navigate(-1)}>
               <ChevronLeft className="mr-2 h-4 w-4" /> Back
             </Button>
-            <Button variant="outline" className="w-full sm:w-auto border-gray-300 hover:bg-gray-100">
-              <Printer className="mr-2 h-4 w-4" /> Print
+            <Button variant="outline" className="w-full sm:w-auto border-gray-300 hover:bg-gray-100" onClick={generateOrderPDF}>
+              <Printer className="mr-2 h-4 w-4" /> Download PDF
             </Button>
           </div>
         </div>

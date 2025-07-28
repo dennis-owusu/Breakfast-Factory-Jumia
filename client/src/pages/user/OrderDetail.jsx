@@ -4,13 +4,15 @@ import { ArrowLeft, Truck, Package, Clock, CheckCircle, XCircle, AlertTriangle }
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { userAPI } from '../../utils/api';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const OrderDetail = () => {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   useEffect(() => {
     const fetchOrderDetails = async () => {
       setLoading(true);
@@ -25,10 +27,136 @@ const OrderDetail = () => {
         setLoading(false);
       }
     };
-    
+
     fetchOrderDetails();
   }, [id]);
-  
+
+  // Generate PDF for the order
+  const generateOrderPDF = () => {
+    if (!order) return; // Prevent generating PDF if order is null
+
+    const pdf = new jsPDF('p', 'pt', 'a4');
+    const margin = 40;
+    let yPos = margin;
+
+    // Set font for the document
+    pdf.setFont('helvetica', 'normal');
+
+    // Title
+    pdf.setFontSize(22);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Order Details', margin, yPos);
+    yPos += 40;
+
+    // Order Information
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Order ID: ${order.orderNumber || 'N/A'}`, margin, yPos);
+    yPos += 20;
+    pdf.text(`Date: ${order.createdAt ? formatDate(order.createdAt) : 'N/A'}`, margin, yPos);
+    yPos += 20;
+    pdf.text(`Status: ${order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'N/A'}`, margin, yPos);
+    yPos += 30;
+
+    // Shipping Information
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Shipping Information', margin, yPos);
+    yPos += 20;
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Recipient: ${order.shipping?.fullName || 'N/A'}`, margin, yPos);
+    yPos += 20;
+    pdf.text(`Address: ${order.shipping?.address || 'N/A'}`, margin, yPos);
+    yPos += 20;
+    pdf.text(`${order.shipping?.city || 'N/A'}, ${order.shipping?.state || 'N/A'}`, margin, yPos);
+    yPos += 20;
+    pdf.text(`Phone: ${order.shipping?.phone || 'N/A'}`, margin, yPos);
+    yPos += 30;
+
+    // Payment Information
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Payment Information', margin, yPos);
+    yPos += 20;
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Method: ${order.payment?.method ? getPaymentMethodText(order.payment.method) : 'N/A'}`, margin, yPos);
+    yPos += 20;
+    pdf.text(`Status: ${order.payment?.status ? order.payment.status.charAt(0).toUpperCase() + order.payment.status.slice(1) : 'N/A'}`, margin, yPos);
+    yPos += 20;
+    if (order.payment?.reference) {
+      pdf.text(`Payment Reference: ${order.payment.reference}`, margin, yPos);
+      yPos += 20;
+    }
+    yPos += 10;
+
+    // Order Items Table
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Order Items', margin, yPos);
+    yPos += 20;
+
+    const itemRows = (order.orderItems || []).map((item, index) => [
+      `${index + 1}`,
+      item.product?.name || 'N/A',
+      item.product?.outlet?.name || 'N/A',
+      item.quantity?.toString() || '0',
+      formatPrice(item.price) || 'N/A',
+      formatPrice(item.price * item.quantity) || 'N/A'
+    ]);
+
+    pdf.autoTable({
+      startY: yPos,
+      head: [['#', 'Product', 'Outlet', 'Quantity', 'Price', 'Total']],
+      body: itemRows,
+      theme: 'striped',
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [255, 147, 0], textColor: [255, 255, 255] },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 200 },
+        2: { cellWidth: 120 },
+        3: { cellWidth: 60 },
+        4: { cellWidth: 80 },
+        5: { cellWidth: 80 }
+      }
+    });
+    yPos = pdf.lastAutoTable.finalY + 30;
+
+    // Order Summary
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Order Summary', margin, yPos);
+    yPos += 20;
+
+    const summaryRows = [
+      ['Subtotal', formatPrice(order.itemsPrice) || 'N/A'],
+      ['Shipping', formatPrice(order.shippingPrice) || 'N/A']
+    ];
+    if (order.taxPrice > 0) {
+      summaryRows.push(['Tax', formatPrice(order.taxPrice)]);
+    }
+    summaryRows.push(['Total', formatPrice(order.totalPrice) || 'N/A']);
+
+    pdf.autoTable({
+      startY: yPos,
+      head: [['Item', 'Amount']],
+      body: summaryRows,
+      theme: 'striped',
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [255, 147, 0], textColor: [255, 255, 255] },
+      columnStyles: {
+        0: { cellWidth: 200 },
+        1: { cellWidth: 100 }
+      }
+    });
+
+    pdf.save(`order-${order.orderNumber || 'unknown'}.pdf`);
+  };
+
   // Get status icon based on order status
   const getStatusIcon = (status) => {
     switch (status) {
@@ -46,7 +174,7 @@ const OrderDetail = () => {
         return <Package className="h-8 w-8 text-gray-500" />;
     }
   };
-  
+
   // Get status badge color
   const getStatusBadgeColor = (status) => {
     switch (status) {
@@ -64,7 +192,7 @@ const OrderDetail = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-  
+
   // Get payment method display text
   const getPaymentMethodText = (method) => {
     switch (method) {
@@ -76,7 +204,7 @@ const OrderDetail = () => {
         return method;
     }
   };
-  
+
   // Get payment status badge color
   const getPaymentStatusBadgeColor = (status) => {
     switch (status) {
@@ -90,7 +218,7 @@ const OrderDetail = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-  
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 flex justify-center">
@@ -98,7 +226,7 @@ const OrderDetail = () => {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -115,7 +243,7 @@ const OrderDetail = () => {
       </div>
     );
   }
-  
+
   if (!order) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -132,10 +260,10 @@ const OrderDetail = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Back button and Order ID */}
+      {/* Back button, Order ID, Status, and Download PDF */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <Link to="/user/orders" className="inline-flex items-center text-orange-600 hover:text-orange-800">
@@ -144,13 +272,20 @@ const OrderDetail = () => {
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 mt-2">Order #{order.orderNumber}</h1>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="mt-4 sm:mt-0 flex items-center space-x-4">
           <span className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
           </span>
+          <button
+            onClick={generateOrderPDF}
+            className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+            disabled={!order}
+          >
+            Download PDF
+          </button>
         </div>
       </div>
-      
+
       {/* Order Summary and Status */}
       <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
         <div className="p-6">
@@ -160,12 +295,17 @@ const OrderDetail = () => {
               <div className="ml-4">
                 <h2 className="text-lg font-medium text-gray-900">Order Status</h2>
                 <p className="text-gray-500">
-                  {order.status === 'delivered' ? 'Your order has been delivered' :
-                   order.status === 'shipped' ? 'Your order is on the way' :
-                   order.status === 'processing' ? 'Your order is being processed' :
-                   order.status === 'pending' ? 'Your order is pending' :
-                   order.status === 'cancelled' ? 'Your order has been cancelled' :
-                   'Status unknown'}
+                  {order.status === 'delivered'
+                    ? 'Your order has been delivered'
+                    : order.status === 'shipped'
+                    ? 'Your order is on the way'
+                    : order.status === 'processing'
+                    ? 'Your order is being processed'
+                    : order.status === 'pending'
+                    ? 'Your order is pending'
+                    : order.status === 'cancelled'
+                    ? 'Your order has been cancelled'
+                    : 'Status unknown'}
                 </p>
               </div>
             </div>
@@ -176,7 +316,7 @@ const OrderDetail = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Order Details */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Shipping Information */}
@@ -200,7 +340,7 @@ const OrderDetail = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Payment Information */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
@@ -213,7 +353,11 @@ const OrderDetail = () => {
             </div>
             <div className="mb-4">
               <p className="text-sm text-gray-500 mb-1">Payment Status</p>
-              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentStatusBadgeColor(order.payment.status)}`}>
+              <span
+                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentStatusBadgeColor(
+                  order.payment.status
+                )}`}
+              >
                 {order.payment.status.charAt(0).toUpperCase() + order.payment.status.slice(1)}
               </span>
             </div>
@@ -226,7 +370,7 @@ const OrderDetail = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Order Items */}
       <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
         <div className="px-6 py-4 border-b border-gray-200">
@@ -248,10 +392,10 @@ const OrderDetail = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <img 
-                          className="h-10 w-10 rounded-md object-cover" 
-                          src={item.product.images[0]} 
-                          alt={item.product.name} 
+                        <img
+                          className="h-10 w-10 rounded-md object-cover"
+                          src={item.product.images[0]}
+                          alt={item.product.name}
                         />
                       </div>
                       <div className="ml-4">
@@ -275,7 +419,7 @@ const OrderDetail = () => {
           </table>
         </div>
       </div>
-      
+
       {/* Order Summary */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
