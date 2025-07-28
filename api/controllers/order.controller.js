@@ -13,13 +13,30 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ message: 'User or userInfo is required' });
     }
 
-    // Fetch product details and embed them
-    const populatedProducts = await Promise.all( 
+    // Fetch product details, check stock, and update
+    const populatedProducts = await Promise.all(
       products.map(async (item) => {
         const product = await Product.findById(item.product);
         if (!product) {
           throw new Error(`Product not found: ${item.product}`);
         }
+        if (product.numberOfProductsAvailable < item.quantity) {
+          throw new Error(`Insufficient stock for ${product.productName}`);
+        }
+        product.numberOfProductsAvailable -= item.quantity;
+        await product.save();
+
+        // Check for low stock
+        if (product.numberOfProductsAvailable <= product.reorderPoint) {
+          const io = req.app.get('io');
+          io.to(product.outlet.toString()).emit('lowStockAlert', {
+            productId: product._id,
+            productName: product.productName,
+            remainingStock: product.numberOfProductsAvailable,
+            message: `Low stock alert for ${product.productName}. Remaining: ${product.numberOfProductsAvailable}`
+          });
+        }
+
         return {
           product: {
             id: product._id,
@@ -31,7 +48,7 @@ export const createOrder = async (req, res) => {
           },
           quantity: item.quantity,
         };
-      })  
+      })
     );
 
     let orderUserInfo = userInfo;

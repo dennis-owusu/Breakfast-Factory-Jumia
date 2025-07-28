@@ -11,27 +11,23 @@ const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
   const [isAdded, setIsAdded] = useState(false);
 
-  const handleAddToCart = () => {
-    const productToAdd = {
-      _id: product._id,
-      productName: product.productName,
-      productPrice: Number(product.productPrice),
-      discountPrice: product.discountPrice ? Number(product.discountPrice) : null,
-      images: Array.isArray(product.images) && product.images.length > 0 
-        ? product.images 
-        : ['https://via.placeholder.com/150?text=No+Image'],
-      rating: product.rating || 0,
-      numReviews: product.numReviews || 0,
-      outlet: product.outlet || { name: 'Store Name' },
-    };
-    console.log('Adding to cart:', productToAdd); // Debug log
-    dispatch(addToCart(productToAdd));
-    setIsAdded(true);
-    toast.success(`${product.productName} added to cart!`);
-
-    setTimeout(() => {
-      setIsAdded(false);
-    }, 1500);
+  const handleAddToCart = async () => {
+    try {
+      const response = await fetch(`/api/route/product/${_id}`);
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message);
+      const freshProduct = data.product;
+      if (freshProduct.countInStock <= 0) {
+        toast.error('Sorry, this product is out of stock.');
+        return;
+      }
+      dispatch(addToCart({ ...freshProduct, quantity: 1 }));
+      setIsAdded(true);
+      toast.success(`${freshProduct.productName} added to cart!`);
+      setTimeout(() => setIsAdded(false), 1500);
+    } catch (err) {
+      toast.error('Failed to add to cart: ' + err.message);
+    }
   };
 
   const {

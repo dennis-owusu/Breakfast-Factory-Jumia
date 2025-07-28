@@ -7,6 +7,8 @@ import { formatPrice, formatDate } from '../../utils/helpers';
 import { toast } from 'react-hot-toast';
 import AIQuery from '../../components/ui/AIQuery';
 import { saveAs } from 'file-saver';
+import io from 'socket.io-client';
+
 
 // Fetch outlet dashboard statistics from the API
 
@@ -128,6 +130,31 @@ const OutletDashboard = () => {
       setIsLoading(false);
     }
   }, [outlet._id, currentUser?.token]);
+
+  // Socket.IO for real-time low stock alerts
+  useEffect(() => {
+    if (currentUser && currentUser.token) {
+      const socket = io('http://localhost:3000', {
+        auth: { token: currentUser.token }
+      });
+
+      socket.on('connect', () => {
+        console.log('Socket connected for outlet dashboard');
+      });
+
+      socket.on('lowStockAlert', (data) => {
+        toast.warning(data.message);
+      });
+
+      socket.on('disconnect', () => {
+        console.log('Socket disconnected from outlet dashboard');
+      });
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [currentUser]);
   
   // Helper function to get status badge color
   const getStatusBadgeColor = (status) => {

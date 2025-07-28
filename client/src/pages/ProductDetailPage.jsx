@@ -40,16 +40,24 @@ const ProductDetailPage = () => {
     fetchProduct();
   }, [id]);
 
-  const handleAddToCart = () => {
-    if (product) {
-      dispatch(addToCart({ ...product, quantity }));
+  const handleAddToCart = async () => {
+    try {
+      const response = await fetch(`/api/route/product/${id}`);
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+      const freshProduct = data.product;
+      if (freshProduct.countInStock < quantity) {
+        toast.error('Sorry, this product is out of stock or insufficient quantity available.');
+        return;
+      }
+      dispatch(addToCart({ ...freshProduct, quantity }));
       setIsAdded(true);
-      toast.success('Added to cart');
-      
-      // Reset the animation after 1.5 seconds
-      setTimeout(() => {
-        setIsAdded(false);
-      }, 1500);
+      toast.success(`${freshProduct.name} added to cart!`);
+      setTimeout(() => setIsAdded(false), 1500);
+    } catch (err) {
+      toast.error('Failed to add to cart: ' + err.message);
     }
   };
 
@@ -98,7 +106,7 @@ const ProductDetailPage = () => {
               >
                 <Button 
                   onClick={handleAddToCart} 
-                  disabled={product.countInStock === 0 || isAdded}
+                  disabled={isAdded || product.countInStock < quantity}
                   className={`${isAdded ? 'bg-green-500 hover:bg-green-600' : ''} transition-colors duration-300`}
                 >
                   {isAdded ? (
