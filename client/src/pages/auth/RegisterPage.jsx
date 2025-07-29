@@ -88,34 +88,44 @@ const RegisterPage = () => {
     return true;
   };
 
+  // Remove import { authAPI } from '../../utils/api';
+  // In handleSubmit:
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!validateForm()) return;
-
+  
     const userData = {
       name,
       email,
       password,
-      usersRole: role, // Changed from 'role' to 'usersRole' to match backend expectation
+      usersRole: role,
     };
-
-    // Add outlet data if role is 'outlet'
+  
     if (role === 'outlet') {
       userData.storeName = outletName;
       userData.description = outletDescription;
     }
-
+  
     try {
       dispatch(registerStart());
-      // Use the actual API call from our API utility
-      const response = await authAPI.register(userData);
-      dispatch(registerSuccess(response.data));
-      
-      // Navigate to login page after successful registration
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to register');
+      }
+  
+      const data = await response.json();
+      dispatch(registerSuccess(data));
       navigate('/login');
     } catch (err) {
-      dispatch(registerFailure(err.response?.data?.message || 'Failed to register'));
+      dispatch(registerFailure(err.message || 'Failed to register'));
     }
   };
 
