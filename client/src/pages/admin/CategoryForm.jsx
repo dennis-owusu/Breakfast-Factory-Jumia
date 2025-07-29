@@ -25,7 +25,7 @@ async function fetchCategory(id) {
     };
   }
   const token = localStorage.getItem('token');
-  const response = await fetch(`/api/route/categories/${id}`, {
+  const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/categories/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -36,7 +36,7 @@ async function fetchCategory(id) {
 
 async function fetchParentCategories() {
   const token = localStorage.getItem('token');
-  const response = await fetch('/api/route/allcategories', {
+  const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allcategories', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -51,7 +51,7 @@ async function fetchParentCategories() {
 async function saveCategory(categoryData, isNew, id) {
   const token = localStorage.getItem('token');
   const updatedCategoryData = { ...categoryData };
-  const url = isNew ? '/api/route/categories' : `/api/route/update-categories/${id}`;
+  const url = isNew ? 'https://breakfast-factory-jumia.onrender.com/api/route/categories' : `https://breakfast-factory-jumia.onrender.com/api/route/update-categories/${id}`;
   const method = isNew ? 'POST' : 'PUT';
   const response = await fetch(url, {
     method,

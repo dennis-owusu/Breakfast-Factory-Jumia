@@ -37,7 +37,7 @@ const fetchUsers = async (params) => {
     if (params.limit) queryParams.append('limit', params.limit);
     
     const queryString = queryParams.toString();
-    const url = `/api/auth/get-all-users${queryString ? `?${queryString}` : ''}`;
+    const url = `https://breakfast-factory-jumia.onrender.com/api/auth/get-all-users${queryString ? `?${queryString}` : ''}`;
     
     const response = await fetch(url, { headers });
     if (!response.ok) {
@@ -69,7 +69,7 @@ const updateUserStatus = async (userId, status) => {
       ...(token && { Authorization: `Bearer ${token}` }),
     };
     
-    const response = await fetch(`/api/auth/user/update/${userId}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/auth/user/update/${userId}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({ status })
@@ -95,7 +95,7 @@ const updateUserRole = async (userId, usersRole) => {
       ...(token && { Authorization: `Bearer ${token}` }),
     };
     
-    const response = await fetch(`/api/auth/user/update/${userId}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/auth/user/update/${userId}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({ usersRole })
@@ -121,7 +121,7 @@ const deleteUser = async (userId) => {
       ...(token && { Authorization: `Bearer ${token}` }),
     };
     
-    const response = await fetch(`/api/auth/user/${userId}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/auth/user/${userId}`, {
       method: 'DELETE',
       headers
     });

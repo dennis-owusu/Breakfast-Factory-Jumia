@@ -27,7 +27,7 @@ const fetchProducts = async (params) => {
       featured: params.featured !== 'all' ? params.featured === 'featured' : ''
     });
 
-    const response = await fetch(`/api/route/allproducts?${queryParams}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/allproducts?${queryParams}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -69,7 +69,7 @@ const fetchProducts = async (params) => {
 const updateProductStatus = async (productId, status) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/update/${productId}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/update/${productId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ const updateProductStatus = async (productId, status) => {
 const updateProductFeatured = async (productId, featured) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/update/${productId}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/update/${productId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ const updateProductFeatured = async (productId, featured) => {
 const deleteProduct = async (productId) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/delete/${productId}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/delete/${productId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`

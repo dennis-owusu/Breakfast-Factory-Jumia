@@ -34,7 +34,7 @@ const AdminCredit = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/route/credit?page=${currentPage}&status=${statusFilter}&outlet=${outletFilter}&search=${searchInput}`,
+          `https://breakfast-factory-jumia.onrender.com/api/route/credit?page=${currentPage}&status=${statusFilter}&outlet=${outletFilter}&search=${searchInput}`,
           {
             method: 'GET',
             headers: {
@@ -68,7 +68,7 @@ const AdminCredit = () => {
   useEffect(() => {
     const fetchOutlets = async () => {
       try {
-        const response = await fetch('/api/auth/outlets', {
+        const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/auth/outlets', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ const AdminCredit = () => {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const response = await fetch('/api/route/credit/summary', {
+        const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/credit/summary', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ const AdminCredit = () => {
     if (!selectedCredit) return;
     
     try {
-      const response = await fetch(`/api/route/credit/${selectedCredit._id}/payment`, {
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/credit/${selectedCredit._id}/payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ const AdminCredit = () => {
     if (!selectedCredit) return;
     
     try {
-      const response = await fetch(`/api/route/credit/${selectedCredit._id}`, {
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/credit/${selectedCredit._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -206,7 +206,7 @@ const AdminCredit = () => {
     if (!selectedUser) return;
     
     try {
-      const response = await fetch(`/api/route/credit/user/${selectedUser._id}/credit-limit`, {
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/credit/user/${selectedUser._id}/credit-limit`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -232,7 +232,7 @@ const AdminCredit = () => {
       const fetchCredits = async () => {
         try {
           const response = await fetch(
-            `/api/route/credit?page=${currentPage}&status=${statusFilter}&outlet=${outletFilter}&search=${searchInput}`,
+            `https://breakfast-factory-jumia.onrender.com/api/route/credit?page=${currentPage}&status=${statusFilter}&outlet=${outletFilter}&search=${searchInput}`,
             {
               method: 'GET',
               headers: {

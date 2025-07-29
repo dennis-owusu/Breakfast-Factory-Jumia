@@ -12,7 +12,7 @@ const CreditPaymentModal = ({ creditId, remainingAmount, onClose, onPaymentSucce
     reference: (new Date()).getTime().toString(),
     email: currentUser?.email || 'user@example.com',
     amount: paymentAmount * 100,
-    publicKey: process.env.REACT_APP_PAYSTACK_PUBLIC_KEY,
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
   };
 
   const initializePayment = usePaystackPayment(config);
@@ -29,7 +29,7 @@ const CreditPaymentModal = ({ creditId, remainingAmount, onClose, onPaymentSucce
   const onSuccess = async (reference) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/route/credit/${creditId}/payment`, {
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/credit/${creditId}/payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: paymentAmount, paymentMethod: 'paystack', reference: reference.reference }),

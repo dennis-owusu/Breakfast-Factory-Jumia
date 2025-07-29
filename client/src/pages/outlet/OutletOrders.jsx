@@ -136,7 +136,7 @@ const OutletOrders = () => {
           'Content-Type': 'application/json',
         };
 
-        const response = await fetch(`/api/route/getOutletOrders/${currentUser._id}?${queryParams.toString()}`, { headers });
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/getOutletOrders/${currentUser._id}?${queryParams.toString()}`, { headers });
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -210,7 +210,7 @@ const OutletOrders = () => {
           'Content-Type': 'application/json',
         };
 
-        const response = await fetch(`/api/route/getOutletOrders/${currentUser._id}?${queryParams.toString()}`, { headers });
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/getOutletOrders/${currentUser._id}?${queryParams.toString()}`, { headers });
         if (!response.ok) return;
 
         const data = await response.json();
@@ -272,7 +272,7 @@ const OutletOrders = () => {
         ...(currentUser && { Authorization: `Bearer ${currentUser}` }),
       };
 
-      const response = await fetch(`/api/route/deleteOrder/${orderToDelete._id}`, {
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/deleteOrder/${orderToDelete._id}`, {
         method: 'DELETE',
         headers,
       });
@@ -565,7 +565,7 @@ const OutletOrders = () => {
                                   }),
                                 };
                                 const response = await fetch(
-                                  `http://localhost:3000/api/route/updateOrder/${order._id}`,
+                                  `https://breakfast-factory-jumia.onrender.com/api/route/updateOrder/${order._id}`,
                                   {
                                     method: 'PUT',
                                     headers,

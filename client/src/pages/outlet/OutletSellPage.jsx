@@ -61,7 +61,7 @@ const OutletSellPage = () => {
 
   const handlePaystackSuccess = async (reference) => {
     try {
-      const response = await fetch('http://localhost:3000/api/route/payment', {
+      const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -94,7 +94,7 @@ const OutletSellPage = () => {
 
   const handlePaystackClose = async () => {
     try {
-      await fetch('http://localhost:3000/api/route/payment', {
+      await fetch('https://breakfast-factory-jumia.onrender.com/api/route/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -126,7 +126,7 @@ const OutletSellPage = () => {
           ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
         };
 
-        const response = await fetch(`/api/route/allproducts`, { headers });
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/allproducts`, { headers });
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -164,7 +164,7 @@ const OutletSellPage = () => {
   const addToCart = async (product) => {
     try {
       // Fetch latest product data
-      const response = await fetch(`/api/route/product/${product._id}`);
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/product/${product._id}`);
       const data = await response.json();
       if (!data.success) {
         throw new Error(data.message || 'Failed to fetch product');
@@ -202,7 +202,7 @@ const OutletSellPage = () => {
     if (newQuantity < 1) return;
     try {
       // Fetch latest product data
-      const response = await fetch(`/api/route/product/${productId}`);
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/product/${productId}`);
       const data = await response.json();
       if (!data.success) {
         throw new Error(data.message || 'Failed to fetch product');
@@ -307,7 +307,7 @@ const OutletSellPage = () => {
       if (paymentMethod === 'mtnMomo') {
         try {
           // Initiate MTN Mobile Money payment
-          const momoResponse = await fetch('/api/route/payments/mtn-momo/initiate', {
+          const momoResponse = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/payments/mtn-momo/initiate', {
             method: 'POST',
             headers,
             body: JSON.stringify({
@@ -350,7 +350,7 @@ const OutletSellPage = () => {
       }
 
       // Create the order
-      const response = await fetch('/api/route/createOrder', {
+      const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/createOrder', {
         method: 'POST',
         headers,
         body: JSON.stringify(orderData),

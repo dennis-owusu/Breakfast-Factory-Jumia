@@ -54,7 +54,7 @@ const OutletSales = () => {
         };
         
         // Make API call to fetch sales data
-        const response = await fetch(`/api/route/sales?${queryParams.toString()}`, { headers });
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/sales?${queryParams.toString()}`, { headers });
         
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
@@ -142,7 +142,7 @@ const OutletSales = () => {
       
       try {
         // Make API call to fetch sales data
-        const response = await fetch(`/api/route/sales?${queryParams.toString()}`, { 
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/sales?${queryParams.toString()}`, { 
           headers,
           method: 'GET'
         });

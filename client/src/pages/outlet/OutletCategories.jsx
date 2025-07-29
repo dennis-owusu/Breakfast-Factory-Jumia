@@ -22,7 +22,7 @@ const OutletCategories = () => {
     const fetchCategories = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/route/allcategories', {
+        const res = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allcategories', {
           headers: { Authorization: `Bearer ${currentUser?.token}` }
         });
         const data = await res.json();
@@ -41,7 +41,7 @@ const OutletCategories = () => {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`/api/route/category/delete/${id}`, {
+      const res = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/category/delete/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${currentUser?.token}` }
       });

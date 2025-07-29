@@ -29,7 +29,7 @@ const fetchCategories = async (params) => {
     if (params.limit) queryParams.append('limit', params.limit);
     
     const queryString = queryParams.toString();
-    const url = `/api/route/allcategories${queryString ? `?${queryString}` : ''}`;
+    const url = `https://breakfast-factory-jumia.onrender.com/api/route/allcategories${queryString ? `?${queryString}` : ''}`;
     
     const response = await fetch(url, { headers });
     if (!response.ok) {
@@ -69,7 +69,7 @@ const deleteCategory = async (id) => {
       ...(token && { Authorization: `Bearer ${token}` }),
     };
     
-    const response = await fetch(`/api/route/category/delete/${id}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/category/delete/${id}`, {
       method: 'DELETE',
       headers
     });
@@ -94,7 +94,7 @@ const updateCategoryStatus = async (id, status) => {
       ...(token && { Authorization: `Bearer ${token}` }),
     };
     
-    const response = await fetch(`/api/route/update-categories/${id}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/update-categories/${id}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({ status })
@@ -120,7 +120,7 @@ const updateCategoryFeatured = async (id, featured) => {
       ...(token && { Authorization: `Bearer ${token}` }),
     };
     
-    const response = await fetch(`/api/route/update-categories/${id}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/update-categories/${id}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({ featured })

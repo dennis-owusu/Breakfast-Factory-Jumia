@@ -64,7 +64,7 @@ const DashboardLayout = ({ children }) => {
     const fetchSubscription = async () => {
       if (role === 'outlet' || role === 'admin') {
         try {
-          const res = await axios.get(`/api/route/subscription/user/${currentUser._id}`, {
+          const res = await axios.get(`https://breakfast-factory-jumia.onrender.com/api/route/subscription/user/${currentUser._id}`, {
             headers: { Authorization: `Bearer ${currentUser.token}` }
           });
           setSubscription(res.data.subscription);

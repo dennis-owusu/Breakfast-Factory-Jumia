@@ -26,8 +26,8 @@ const OutletTransactions = () => {
         // Get outlet ID from current user if they are an outlet
         const outletId = currentUser?.usersRole === 'outlet' ? currentUser._id : null;
         const url = outletId 
-          ? `/api/route/payments` 
-          : '/api/route/payments';
+          ? `https://breakfast-factory-jumia.onrender.com/api/route/payments` 
+          : 'https://breakfast-factory-jumia.onrender.com/api/route/payments';
           
         const response = await fetch(url, { headers });
         

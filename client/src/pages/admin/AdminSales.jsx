@@ -61,7 +61,7 @@ const AdminSales = () => {
         };
         
         // Make API call to fetch sales data
-        const response = await fetch(`/api/route/sales?${queryParams.toString()}`, { headers });
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/sales?${queryParams.toString()}`, { headers });
         
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
@@ -136,7 +136,7 @@ const AdminSales = () => {
       };
       
       // Make API call to download report
-      const response = await fetch(`/api/route/analytics/admin/sales-report?${queryParams.toString()}`, { 
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/analytics/admin/sales-report?${queryParams.toString()}`, { 
         headers,
         method: 'GET'
       });

@@ -18,7 +18,7 @@ const AIQuery = () => {
     setAnswer('');
 
     try {
-      const response = await fetch('/api/ai/ask', {
+      const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/ai/ask', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

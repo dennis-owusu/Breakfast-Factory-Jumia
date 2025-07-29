@@ -13,7 +13,7 @@ const ProductCard = ({ product }) => {
 
   const handleAddToCart = async () => {
     try {
-      const response = await fetch(`/api/route/product/${_id}`);
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/product/${_id}`);
       const data = await response.json();
       if (!data.success) throw new Error(data.message);
       const freshProduct = data.product;

@@ -34,7 +34,7 @@ const OutletCategoryForm = () => {
     if (id) {
       const fetchCategory = async () => {
         try {
-          const res = await fetch(`/api/route/categories/${id}`);
+          const res = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/categories/${id}`);
           const data = await res.json();
           if (!res.ok) throw new Error(data.message || 'Failed to fetch category');
           setFormData({
@@ -73,7 +73,7 @@ const OutletCategoryForm = () => {
     setLoading(true);
     setError('');
     try {
-      const url = id ? `/api/route/categories/${id}` : '/api/route/categories';
+      const url = id ? `https://breakfast-factory-jumia.onrender.com/api/route/categories/${id}` : 'https://breakfast-factory-jumia.onrender.com/api/route/categories';
       const method = id ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,

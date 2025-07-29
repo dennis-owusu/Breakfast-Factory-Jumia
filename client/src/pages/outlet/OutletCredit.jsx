@@ -25,7 +25,7 @@ const OutletCredit = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/route/credit/outlet/${currentUser._id}?page=${currentPage}&status=${statusFilter}&search=${searchInput}`,
+          `https://breakfast-factory-jumia.onrender.com/api/route/credit/outlet/${currentUser._id}?page=${currentPage}&status=${statusFilter}&search=${searchInput}`,
           {
             method: 'GET',
             headers: {
@@ -59,7 +59,7 @@ const OutletCredit = () => {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const response = await fetch(`/api/route/credit/summary?outletId=${currentUser._id}`, {
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/credit/summary?outletId=${currentUser._id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ const OutletCredit = () => {
     if (!selectedCredit) return;
     
     try {
-      const response = await fetch(`/api/route/credit/${selectedCredit._id}/payment`, {
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/credit/${selectedCredit._id}/payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

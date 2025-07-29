@@ -27,7 +27,7 @@ const OutletOrderDetail = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${currentUser.token}`,
         };
-        const response = await fetch(`${BASE_URL}/api/route/getOrder/${id}`, { headers });
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/getOrder/${id}`, { headers });
         if (!response.ok) throw new Error('Failed to fetch order');
         const data = await response.json();
         setOrder(data);
@@ -56,7 +56,7 @@ const OutletOrderDetail = () => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${currentUser.token}`,
       };
-      const response = await fetch(`${BASE_URL}/api/route/updateOrder/${id}`, {
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/updateOrder/${id}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify({ status: selectedStatus }),

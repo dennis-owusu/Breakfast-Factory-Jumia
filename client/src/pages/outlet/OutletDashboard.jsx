@@ -25,7 +25,7 @@ const OutletDashboard = () => {
   const handleDownloadReport = async () => {
     setIsDownloading(true);
     try {
-      const res = await fetch(`/api/route/dashboard/outlet/${outlet._id}/daily-report`);
+      const res = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/dashboard/outlet/${outlet._id}/daily-report`);
       if (!res.ok) {
         throw new Error('Failed to fetch daily report');
       }
@@ -88,7 +88,7 @@ const OutletDashboard = () => {
         };
         
         // Fetch all orders for the outlet 
-        const ordersResponse = await fetch(`/api/route/getOutletOrders/${outlet._id}`, { headers });
+        const ordersResponse = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/getOutletOrders/${outlet._id}`, { headers });
         if (!ordersResponse.ok) {
           throw new Error(`HTTP error ${ordersResponse.status}: ${ordersResponse.statusText}`);
         }
@@ -97,7 +97,7 @@ const OutletDashboard = () => {
         console.log('Orders data structure:', JSON.stringify(ordersData));
         
         // Fetch analytics summary for the outlet
-        const analyticsResponse = await fetch(`/api/route/analytics?period=monthly&outletId=${outlet._id}`, { headers });
+        const analyticsResponse = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/analytics?period=monthly&outletId=${outlet._id}`, { headers });
         if (!analyticsResponse.ok) {
           throw new Error(`HTTP error ${analyticsResponse.status}: ${analyticsResponse.statusText}`);
         }

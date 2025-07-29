@@ -21,7 +21,7 @@ const UserEdit = () => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/auth/get-all-users?id=${id}`, {
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/auth/get-all-users?id=${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -64,7 +64,7 @@ const UserEdit = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/auth/user/update/${id}`, {
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/auth/user/update/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

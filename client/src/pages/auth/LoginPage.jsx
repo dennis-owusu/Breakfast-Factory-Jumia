@@ -62,7 +62,7 @@ const handleSubmit = async (e) => {
   try {
     dispatch(signInStart());
     // Simulate an API call (replace with actual API call)
-    const response = await fetch('/api/auth/login', {
+    const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -26,7 +26,7 @@ const fetchOrders = async (params) => {
       dateTo: params.endDate || ''
     });
 
-    const response = await fetch(`/api/route/getOrders?${queryParams}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/getOrders?${queryParams}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

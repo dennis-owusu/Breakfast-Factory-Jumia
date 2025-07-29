@@ -30,7 +30,7 @@ const fetchOutlets = async (params) => {
     if (params.limit) queryParams.append('limit', params.limit);
     
     const queryString = queryParams.toString();
-    const url = `/api/auth/get-all-users${queryString ? `?${queryString}` : ''}`;
+    const url = `https://breakfast-factory-jumia.onrender.com/api/auth/get-all-users${queryString ? `?${queryString}` : ''}`;
     
     const response = await fetch(url, { headers });
     if (!response.ok) {
@@ -76,7 +76,7 @@ const updateOutletStatus = async (outletId, status) => {
       ...(token && { Authorization: `Bearer ${token}` }),
     };
     
-    const response = await fetch(`/api/auth/user/update/${outletId}`, {
+    const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/auth/user/update/${outletId}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({ status })

@@ -42,7 +42,7 @@ const ProductForm = () => {
       }
       try {
         setIsLoadingCategories(true);
-        const res = await fetch('/api/route/allcategories', {
+        const res = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allcategories', {
   headers: { Authorization: `Bearer ${currentUser?.token}` },
 });
         if (!res.ok) {
@@ -153,7 +153,7 @@ const ProductForm = () => {
     const formDataToSend = new FormData();
     imageFiles.forEach((file) => formDataToSend.append('images', file));
     try {
-      const response = await fetch('/api/route/upload', {
+      const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/upload', {
         method: 'POST',
         headers: { Authorization: `Bearer ${currentUser?.token}` },
         body: formDataToSend,
@@ -218,7 +218,7 @@ const ProductForm = () => {
         productImage: imageUrl,
         outlet: currentUser._id || undefined,
       };
-      const response = await fetch('/api/route/products', {
+      const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

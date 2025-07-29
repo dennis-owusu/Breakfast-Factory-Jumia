@@ -19,7 +19,7 @@ const ProductView = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/route/product/${id}`);
+        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/product/${id}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
@@ -63,7 +63,7 @@ const ProductView = () => {
 
   const confirmDelete = async () => {
     try {
-      const response = await fetch(`/api/route/products/${id}`, {
+      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/products/${id}`, {
         method: 'DELETE'
       });
       
