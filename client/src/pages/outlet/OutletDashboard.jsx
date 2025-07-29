@@ -545,11 +545,11 @@ const OutletDashboard = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatPrice(product.sales || 0)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                       {/*  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <Link to={`/outlet/products/${product.id || product._id}/edit`} className="text-orange-500 hover:text-orange-600">
                             Edit
                           </Link>
-                        </td>
+                        </td> */}
                       </tr>
                     ))
                   ) : (
