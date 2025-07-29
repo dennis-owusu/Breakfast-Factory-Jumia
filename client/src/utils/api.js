@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: '/api', // This will use the proxy set up in vite.config.js
-  withCredentials: true, // Important for cookies/authentication
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
