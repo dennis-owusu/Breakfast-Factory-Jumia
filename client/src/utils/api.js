@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -50,10 +50,10 @@ api.interceptors.response.use(
 
 // Auth API endpoints
 export const authAPI = {
-  register: (userData) => api.post('/auth/create', userData),
-  login: (credentials) => api.post('/auth/login', credentials),
-  logout: () => api.post('/auth/logout'),
-  google: (userData) => api.post('/auth/create/google', userData),
+  register: (userData) => api.post('/api/auth/create', userData),
+  login: (credentials) => api.post('/api/auth/login', credentials),
+  logout: () => api.post('/api/auth/logout'),
+  google: (userData) => api.post('/api/auth/create/google', userData),
 };
 
 // User API endpoints
