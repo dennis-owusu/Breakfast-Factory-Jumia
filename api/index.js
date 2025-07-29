@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
         return callback({ error: 'Message and rating are required' });
       }
 
-      const feedback = new Feedback({
+      const feedback = new feedback({
         message,
         rating,
         userId: socket.user.id, // Associate feedback with authenticated user
