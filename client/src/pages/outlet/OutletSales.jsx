@@ -185,237 +185,289 @@ const OutletSales = () => {
   };
 
   // Function to generate PDF report
-  const generatePDFReport = async (data) => {
-    try {
-      // Create a temporary div to render the report content
-      const reportContainer = document.createElement('div');
-      reportContainer.style.width = '800px';
-      reportContainer.style.padding = '20px';
-      reportContainer.style.fontFamily = 'Arial, sans-serif';
-      reportContainer.style.backgroundColor = '#ffffff'; // Use standard colors instead of oklch
-      reportContainer.style.color = '#000000';
-      
-      // Get outlet name
-      const outletName = 'Onyame Adepa';
-      
-      // Format date range for the report title
-      let dateRangeText = '';
-      if (reportPeriod === 'custom') {
-        dateRangeText = `${reportDates.startDate} to ${reportDates.endDate}`;
-      } else if (reportPeriod === 'daily') {
-        dateRangeText = 'Today';
-      } else if (reportPeriod === 'weekly') {
-        dateRangeText = 'Last 7 days';
-      } else if (reportPeriod === 'monthly') {
-        dateRangeText = 'Last 30 days';
-      } else if (reportPeriod === 'yearly') {
-        dateRangeText = 'Last 12 months';
-      } else {
-        dateRangeText = 'All Time';
-      }
-      
-      // Create report HTML content with standard CSS colors (no oklch)
-      reportContainer.innerHTML = `
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #FF6B3D; margin-bottom: 5px;">${outletName}</h1>
-          <h2 style="margin-top: 0; color: #000000;">Sales Report</h2>
-          <p style="color: #666666;">${dateRangeText}</p>
-        </div>
+// Enhanced PDF generation function with better styling and extended table
+// Enhanced PDF generation function with better styling and extended table
+const generatePDFReport = async (data) => {
+  try {
+    console.log('Attempting enhanced PDF generation');
+    
+    // Create a new PDF document
+    const pdf = new jsPDF('p', 'pt', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    
+    // Define simplified color palette
+    const colors = {
+      primary: [255, 107, 61],      // #FF6B3D - Orange
+      dark: [31, 41, 55],           // #1F2937 - Dark Gray
+      medium: [107, 114, 128],      // #6B7280 - Medium Gray
+      light: [243, 244, 246],       // #F3F4F6 - Light Gray
+      white: [255, 255, 255],       // #FFFFFF - White
+      green: [34, 197, 94],         // #22C55E - Green (for delivered status)
+      yellow: [251, 191, 36],       // #FBBF24 - Yellow (for pending status)
+      red: [239, 68, 68],           // #EF4444 - Red (for cancelled status)
+    };
+    
+    // Get outlet name and format date range
+    const outletName = 'Onyame Adepa';
+    let dateRangeText = '';
+    if (reportPeriod === 'custom') {
+      dateRangeText = `${reportDates.startDate} to ${reportDates.endDate}`;
+    } else if (reportPeriod === 'daily') {
+      dateRangeText = 'Today';
+    } else if (reportPeriod === 'weekly') {
+      dateRangeText = 'Last 7 days';
+    } else if (reportPeriod === 'monthly') {
+      dateRangeText = 'Last 30 days';
+    } else if (reportPeriod === 'yearly') {
+      dateRangeText = 'Last 12 months';
+    } else {
+      dateRangeText = 'All Time';
+    }
+    
+    // Add header with simple styling
+    pdf.setFillColor(...colors.primary);
+    pdf.rect(0, 0, pdfWidth, 80, 'F');
+    
+    // Company name in white on colored background
+    pdf.setFontSize(28);
+    pdf.setTextColor(...colors.white);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(outletName, 40, 35);
+    
+    // Report title
+    pdf.setFontSize(18);
+    pdf.setTextColor(...colors.white);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Sales Report', 40, 60);
+    
+    // Reset text color and add report details
+    pdf.setTextColor(...colors.dark);
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Period: ${dateRangeText}`, 40, 110);
+    pdf.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 40, 130);
+    
+    // Summary section with simple cards
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...colors.dark);
+    pdf.text('Summary Overview', 40, 170);
+    
+    const cardWidth = 200;
+    const cardHeight = 80;
+    const cardSpacing = 40;
+    const startX = 80;
+    const startY = 190;
+    
+    // Total Sales Card
+    pdf.setFillColor(...colors.light);
+    pdf.setDrawColor(...colors.medium);
+    pdf.setLineWidth(1);
+    pdf.roundedRect(startX, startY, cardWidth, cardHeight, 8, 8, 'FD');
+    pdf.setTextColor(...colors.dark);
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('TOTAL SALES', startX + 15, startY + 25);
+    pdf.setFontSize(24);
+    pdf.text(pdfFormatPrice(data.summary.totalSales), startX + 15, startY + 55);
+    
+    // Sale Count Card
+    pdf.setFillColor(...colors.light);
+    pdf.roundedRect(startX + cardWidth + cardSpacing, startY, cardWidth, cardHeight, 8, 8, 'FD');
+    pdf.setTextColor(...colors.dark);
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('SALE COUNT', startX + cardWidth + cardSpacing + 15, startY + 25);
+    pdf.setFontSize(24);
+    pdf.text(data.summary.saleCount.toString(), startX + cardWidth + cardSpacing + 15, startY + 55);
+    
+    // Sales Details Table
+    const tableStartY = 300;
+    pdf.setTextColor(...colors.dark);
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Sales Details', 40, tableStartY - 10);
+    
+    // Table dimensions
+    const tableWidth = pdfWidth - 80;
+    const colWidths = [150, 150, 100, 120]; // Date, Amount, Items, Status
+    const rowHeight = 35;
+    const headerHeight = 40;
+    
+    // Table header background
+    pdf.setFillColor(...colors.dark);
+    pdf.rect(40, tableStartY, tableWidth, headerHeight, 'F');
+    
+    // Table headers
+    pdf.setTextColor(...colors.white);
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    
+    let currentX = 50;
+    const headers = ['Date', 'Amount', 'Items', 'Status'];
+    headers.forEach((header, index) => {
+      pdf.text(header, currentX, tableStartY + 25);
+      currentX += colWidths[index];
+    });
+    
+    // Table rows with alternating colors
+    let currentY = tableStartY + headerHeight;
+    const maxRowsPerPage = Math.floor((pdfHeight - currentY - 80) / rowHeight);
+    
+    // Show more sales (up to 50 instead of 20)
+    const salesToShow = Math.min(data.sales.length, 50);
+    
+    data.sales.slice(0, salesToShow).forEach((sale, index) => {
+      // Check if we need a new page
+      if (index > 0 && index % maxRowsPerPage === 0) {
+        pdf.addPage();
+        currentY = 40;
         
-        <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-          <div style="border: 1px solid #dddddd; padding: 15px; border-radius: 5px; width: 30%; background-color: #ffffff;">
-            <h3 style="margin-top: 0; color: #666666;">Total Sales</h3>
-            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #000000;">${formatPrice(data.summary.totalSales)}</p>
-          </div>
-          
-          <div style="border: 1px solid #dddddd; padding: 15px; border-radius: 5px; width: 30%; background-color: #ffffff;">
-            <h3 style="margin-top: 0; color: #666666;">Average Sale</h3>
-            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #000000;">${formatPrice(data.summary.averageSale)}</p>
-          </div>
-          
-          <div style="border: 1px solid #dddddd; padding: 15px; border-radius: 5px; width: 30%; background-color: #ffffff;">
-            <h3 style="margin-top: 0; color: #666666;">Sale Count</h3>
-            <p style="font-size: 24px; font-weight: bold; margin: 0; color: #000000;">${data.summary.saleCount}</p>
-          </div>
-        </div>
+        // Add page header
+        pdf.setFillColor(...colors.light);
+        pdf.rect(0, 0, pdfWidth, 40, 'F');
+        pdf.setTextColor(...colors.dark);
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`${outletName} - Sales Report (Continued)`, 40, 25);
         
-        <h3 style="border-bottom: 2px solid #FF6B3D; padding-bottom: 5px; color: #000000;">Sales Details</h3>
+        // Recreate table header
+        pdf.setFillColor(...colors.dark);
+        pdf.rect(40, currentY, tableWidth, headerHeight, 'F');
         
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-          <thead style="background-color: #f3f4f6;">
-            <tr>
-              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dddddd; color: #000000;">Date</th>
-              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dddddd; color: #000000;">Amount</th>
-              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dddddd; color: #000000;">Items</th>
-              <th style="padding: 10px; text-align: left; border-bottom: 1px solid #dddddd; color: #000000;">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.sales.slice(0, 20).map(sale => `
-              <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #dddddd; color: #000000;">${formatDate(sale.date)}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #dddddd; color: #000000;">${formatPrice(sale.amount)}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #dddddd; color: #000000;">${sale.items}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #dddddd; color: #000000;">${sale.status}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        ${data.sales.length > 20 ? `<p style="text-align: center; color: #666666; margin-top: 10px;">Showing 20 of ${data.sales.length} sales</p>` : ''}
-      `;
-      
-      // Position the container off-screen
-      reportContainer.style.position = 'absolute';
-      reportContainer.style.left = '-9999px';
-      document.body.appendChild(reportContainer);
-      
-      // Generate PDF
-      const pdf = new jsPDF('p', 'pt', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      // Try direct PDF generation first without html2canvas to avoid iframe issues
-      try {
-        console.log('Attempting direct PDF generation without html2canvas');
-        // Create a new PDF document
-        const pdf = new jsPDF('p', 'pt', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        // Get outlet name
-        const outletName = 'Onyame Adepa';
-        
-        // Add basic text content
-        pdf.setFontSize(22);
-        pdf.setTextColor(255, 107, 61); // #FF6B3D
-        pdf.text(outletName, 40, 40);
-        
-        pdf.setFontSize(18);
-        pdf.setTextColor(0, 0, 0);
-        pdf.text('Sales Report', 40, 70);
-        
-        pdf.setFontSize(12);
-        pdf.setTextColor(102, 102, 102); // #666666
-        pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 40, 90);
-        pdf.text(`Period: ${dateRangeText}`, 40, 110);
-        
-        // Add summary data
+        pdf.setTextColor(...colors.white);
         pdf.setFontSize(14);
-        pdf.setTextColor(0, 0, 0);
-        pdf.text('Summary', 40, 140);
+        pdf.setFont('helvetica', 'bold');
         
-        pdf.setFontSize(12);
-        pdf.text(`Total Sales: ${pdfFormatPrice(data.summary.totalSales)}`, 40, 160);
-pdf.text(`Average Sale: ${pdfFormatPrice(data.summary.averageSale)}`, 40, 180);
-        pdf.text(`Sale Count: ${data.summary.saleCount}`, 40, 200);
-        
-        // Add sales table headers
-        pdf.setFontSize(14);
-        pdf.text('Sales Details', 40, 230);
-        
-        pdf.setFontSize(10);
-        pdf.text('Date', 40, 250);
-        pdf.text('Amount', 150, 250);
-        pdf.text('Items', 250, 250);
-        pdf.text('Status', 400, 250);
-        
-        // Add sales data (first 20 items)
-        let yPos = 270;
-        data.sales.slice(0, 20).forEach((sale, index) => {
-          pdf.text(formatDate(sale.date), 40, yPos);
-          pdf.text(pdfFormatPrice(sale.amount), 150, yPos);
-          pdf.text(sale.items.toString().substring(0, 20), 250, yPos);
-          pdf.text(sale.status, 400, yPos);
-          yPos += 20;
+        let headerX = 50;
+        headers.forEach((header, headerIndex) => {
+          pdf.text(header, headerX, currentY + 25);
+          headerX += colWidths[headerIndex];
         });
         
-        // Add note if there are more than 20 sales
-        if (data.sales.length > 20) {
-          pdf.setFontSize(10);
-          pdf.setTextColor(102, 102, 102); // #666666
-          pdf.text(`Showing 20 of ${data.sales.length} sales`, pdfWidth / 2 - 70, yPos + 20);
-        }
-        
-        // Save the PDF
-        pdf.save(`${outletName.replace(/\s+/g, '-').toLowerCase()}-sales-report.pdf`);
-        
-        // Clean up
-        document.body.removeChild(reportContainer);
-        return true;
-      } catch (directPdfError) {
-        console.log('Direct PDF generation failed, trying html2canvas as fallback:', directPdfError);
-        
-        // No fallback needed; direct PDF is reliable
+        currentY += headerHeight;
       }
       
-      // This section is now handled in the try-catch blocks above
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      // Provide more detailed error information
-      if (error.message.includes('Unable to find element in cloned iframe')) {
-        console.log('HTML2Canvas iframe error - trying alternative approach');
-        try {
-          // Alternative approach: create a simpler PDF without html2canvas
-          const pdf = new jsPDF('p', 'pt', 'a4');
-          
-          // Get outlet name
-          const outletName = 'Onyame Adepa';
-          
-          // Add basic text content
-          pdf.setFontSize(22);
-          pdf.setTextColor(255, 107, 61); // #FF6B3D
-          pdf.text(outletName, 40, 40);
-          
-          pdf.setFontSize(18);
-          pdf.setTextColor(0, 0, 0);
-          pdf.text('Sales Report', 40, 70);
-          
-          pdf.setFontSize(12);
-          pdf.setTextColor(102, 102, 102); // #666666
-          pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 40, 90);
-          
-          // Add summary data
-          pdf.setFontSize(14);
-          pdf.setTextColor(0, 0, 0);
-          pdf.text('Summary', 40, 120);
-          
-          pdf.setFontSize(12);
-          pdf.text(`Total Sales: ${pdfFormatPrice(data.summary.totalSales)}`, 40, 140);
-pdf.text(`Average Sale: ${pdfFormatPrice(data.summary.averageSale)}`, 40, 160);
-          pdf.text(`Sale Count: ${data.summary.saleCount}`, 40, 180);
-          
-          // Add sales table headers
-          pdf.setFontSize(14);
-          pdf.text('Sales Details', 40, 220);
-          
-          pdf.setFontSize(10);
-          pdf.text('Date', 40, 240);
-          pdf.text('Amount', 150, 240);
-          pdf.text('Items', 250, 240);
-          pdf.text('Status', 400, 240);
-          
-          // Add sales data (first 20 items)
-          let yPos = 260;
-          data.sales.slice(0, 20).forEach((sale, index) => {
-            pdf.text(formatDate(sale.date), 40, yPos);
-            pdf.text(pdfFormatPrice(sale.amount), 150, yPos);
-            pdf.text(sale.items.toString().substring(0, 20), 250, yPos);
-            pdf.text(sale.status, 400, yPos);
-            yPos += 20;
-          });
-          
-          // Save the PDF
-          pdf.save(`${outletName.replace(/\s+/g, '-').toLowerCase()}-sales-report.pdf`);
-          return true;
-        } catch (fallbackError) {
-          console.error('Fallback PDF generation failed:', fallbackError);
-          throw new Error(`PDF generation failed: ${error.message}. Fallback also failed: ${fallbackError.message}`);
-        }
+      // Alternating row colors
+      if (index % 2 === 0) {
+        pdf.setFillColor(...colors.light);
+        pdf.rect(40, currentY, tableWidth, rowHeight, 'F');
       } else {
-        throw error;
+        pdf.setFillColor(...colors.white);
+        pdf.rect(40, currentY, tableWidth, rowHeight, 'F');
       }
+      
+      // Add subtle border
+      pdf.setDrawColor(...colors.medium);
+      pdf.setLineWidth(0.5);
+      pdf.rect(40, currentY, tableWidth, rowHeight, 'S');
+      
+      // Row data
+      pdf.setTextColor(...colors.dark);
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      
+      let rowX = 50;
+      const rowData = [
+        formatDate(sale.date),
+        pdfFormatPrice(sale.amount),
+        sale.items.toString(),
+        sale.status
+      ];
+      
+      rowData.forEach((data, dataIndex) => {
+        // Special styling for status column
+        if (dataIndex === 3) {
+          let statusColor;
+          switch (sale.status.toLowerCase()) {
+            case 'delivered':
+            case 'completed':
+              statusColor = colors.green;
+              break;
+            case 'pending':
+              statusColor = colors.yellow;
+              break;
+            case 'cancelled':
+              statusColor = colors.red;
+              break;
+            default:
+              statusColor = colors.medium;
+          }
+          
+          // Status badge background
+          const badgeWidth = 80;
+          const badgeHeight = 20;
+          const badgeX = rowX;
+          const badgeY = currentY + 8;
+          
+          pdf.setFillColor(...statusColor);
+          pdf.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 3, 3, 'F');
+          
+          // Status text
+          pdf.setTextColor(...colors.white);
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(data.toUpperCase(), badgeX + 8, badgeY + 14);
+          
+          // Reset text color
+          pdf.setTextColor(...colors.dark);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(12);
+        } else {
+          // Truncate long text to fit column
+          const maxLength = dataIndex === 0 ? 15 : 12;
+          const displayText = data.length > maxLength ? data.substring(0, maxLength) + '...' : data;
+          pdf.text(displayText, rowX, currentY + 22);
+        }
+        
+        rowX += colWidths[dataIndex];
+      });
+      
+      currentY += rowHeight;
+    });
+    
+    // Add footer with summary
+    const footerY = currentY + 30;
+    
+    if (footerY < pdfHeight - 100) {
+      // Summary footer
+      pdf.setFillColor(...colors.light);
+      pdf.setDrawColor(...colors.medium);
+      pdf.setLineWidth(1);
+      pdf.rect(40, footerY, tableWidth, 60, 'FD');
+      
+      pdf.setTextColor(...colors.dark);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Report Summary', 50, footerY + 20);
+      
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Showing ${salesToShow} of ${data.sales.length} total sales`, 50, footerY + 40);
+      
+      if (data.sales.length > salesToShow) {
+        pdf.text(`${data.sales.length - salesToShow} additional sales not shown`, 50, footerY + 55);
+      }
+      
+      // Add generation timestamp
+      pdf.setTextColor(...colors.medium);
+      pdf.setFontSize(10);
+      pdf.text(`Generated on ${new Date().toLocaleString()}`, 50, pdfHeight - 30);
     }
-  };
+    
+    // Save the PDF
+    const fileName = `${outletName.replace(/\s+/g, '-').toLowerCase()}-sales-report-${new Date().toISOString().split('T')[0]}.pdf`;
+    pdf.save(fileName);
+    
+    console.log('Enhanced PDF generated successfully');
+    return true;
+    
+  } catch (error) {
+    console.error('Error generating enhanced PDF:', error);
+    throw error;
+  }
+};
 
   // Function to handle CSV generation
   const generateCSV = (data) => {
