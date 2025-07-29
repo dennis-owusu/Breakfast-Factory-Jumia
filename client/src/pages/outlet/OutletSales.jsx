@@ -112,6 +112,7 @@ const OutletSales = () => {
     try {
       // Build query parameters
       const queryParams = new URLSearchParams();
+      queryParams.append('limit', '0'); // Fetch all sales without pagination
       
       if (reportPeriod !== 'all') {
         queryParams.append('period', reportPeriod);
