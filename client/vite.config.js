@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: VITE_API_BASE_URL,
         changeOrigin: true,
         secure: false,
       }
