@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://breakfast-factory-jumia.onrender.com',
+        target: 'http://localhost:3000',
         secure: false,
       }
     }
