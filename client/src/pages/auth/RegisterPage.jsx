@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { registerStart, registerSuccess, registerFailure } from '../../redux/slices/authSlice';
-import { Eye, EyeOff, AlertCircle, User, Store } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Store } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 
 import { authAPI } from '../../utils/api';
@@ -17,7 +17,6 @@ const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('user'); // Default role is 'user'
   const [outletName, setOutletName] = useState('');
   const [outletDescription, setOutletDescription] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -71,25 +70,20 @@ const RegisterPage = () => {
       return false;
     }
 
-    // Validate outlet fields if role is 'outlet'
-    if (role === 'outlet') {
-      if (!outletName.trim()) {
-        setFormError('Outlet name is required');
-        return false;
-      }
+    if (!outletName.trim()) {
+      setFormError('Outlet name is required');
+      return false;
+    }
 
-      if (!outletDescription.trim()) {
-        setFormError('Outlet description is required');
-        return false;
-      }
+    if (!outletDescription.trim()) {
+      setFormError('Outlet description is required');
+      return false;
     }
 
     setFormError('');
     return true;
   };
 
-  // Remove import { authAPI } from '../../utils/api';
-  // In handleSubmit:
   const handleSubmit = async (e) => {
     e.preventDefault();
   
@@ -99,13 +93,10 @@ const RegisterPage = () => {
       name,
       email,
       password,
-      usersRole: role,
+      usersRole: 'outlet',
+      storeName: outletName,
+      description: outletDescription,
     };
-  
-    if (role === 'outlet') {
-      userData.storeName = outletName;
-      userData.description = outletDescription;
-    }
   
     try {
       dispatch(registerStart());
@@ -133,7 +124,7 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your outlet account</h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Or{' '}
           <Link to="/login" className="font-medium text-orange-500 hover:text-orange-600">
@@ -156,33 +147,6 @@ const RegisterPage = () => {
               </div>
             </div>
           )}
-
-          {/* Role selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">I want to register as:</label>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setRole('user')}
-                className={`flex items-center justify-center p-4 border rounded-md ${
-                  role === 'user' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <User className="h-5 w-5 mr-2" />
-                <span>Customer</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('outlet')}
-                className={`flex items-center justify-center p-4 border rounded-md ${
-                  role === 'outlet' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Store className="h-5 w-5 mr-2" />
-                <span>Outlet/Seller</span>
-              </button>
-            </div>
-          </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
@@ -280,45 +244,40 @@ const RegisterPage = () => {
               </div>
             </div>
 
-            {/* Outlet specific fields */}
-            {role === 'outlet' && (
-              <>
-                <div>
-                  <label htmlFor="outletName" className="block text-sm font-medium text-gray-700">
-                    Outlet/Store Name
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="outletName"
-                      name="outletName"
-                      type="text"
-                      required
-                      value={outletName}
-                      onChange={(e) => setOutletName(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
+            <div>
+              <label htmlFor="outletName" className="block text-sm font-medium text-gray-700">
+                Outlet/Store Name
+              </label>
+              <div className="mt-1">
+                <input
+                  id="outletName"
+                  name="outletName"
+                  type="text"
+                  required
+                  value={outletName}
+                  onChange={(e) => setOutletName(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                />
+              </div>
+            </div>
 
-                <div>
-                  <label htmlFor="outletDescription" className="block text-sm font-medium text-gray-700">
-                    Outlet Description
-                  </label>
-                  <div className="mt-1">
-                    <textarea
-                      id="outletDescription"
-                      name="outletDescription"
-                      rows="3"
-                      required
-                      value={outletDescription}
-                      onChange={(e) => setOutletDescription(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                      placeholder="Describe your outlet, products, and services"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
+            <div>
+              <label htmlFor="outletDescription" className="block text-sm font-medium text-gray-700">
+                Outlet Description
+              </label>
+              <div className="mt-1">
+                <textarea
+                  id="outletDescription"
+                  name="outletDescription"
+                  rows="3"
+                  required
+                  value={outletDescription}
+                  onChange={(e) => setOutletDescription(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                  placeholder="Describe your outlet, products, and services"
+                />
+              </div>
+            </div>
 
             <div className="flex items-center">
               <input

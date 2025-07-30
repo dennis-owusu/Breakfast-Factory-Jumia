@@ -52,7 +52,7 @@ const HomePage = () => {
     const fetchCategories = async () => {
       try {
         setLoading((prev) => ({ ...prev, categories: true }));
-        const response = await fetch('http://localhost:3000/api/route/allcategories');
+        const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allcategories');
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -84,7 +84,7 @@ const HomePage = () => {
     const fetchFeaturedProducts = async () => {
       try {
         setLoading((prev) => ({ ...prev, featured: true }));
-        const response = await fetch('http://localhost:3000/api/route/allproducts?featured=true');
+        const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allproducts?featured=true');
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
@@ -115,7 +115,7 @@ const HomePage = () => {
     const fetchBestSellers = async () => {
       try {
         setLoading((prev) => ({ ...prev, bestSellers: true }));
-        const response = await fetch('http://localhost:3000/api/route/allproducts?sort=numberOfProductsAvailable&order=desc');
+        const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allproducts?sort=numberOfProductsAvailable&order=desc');
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
