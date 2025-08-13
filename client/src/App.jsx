@@ -76,6 +76,29 @@ const AdminRouteWithLayout = ({ element }) => (
 );
 
 function App() {
+  useEffect(() => {
+    // Handle redirects from vercel-404.html
+    const params = new URLSearchParams(window.location.search);
+    const redirectPath = params.get('redirect');
+    
+    if (redirectPath) {
+      // Remove the redirect parameter from the URL
+      window.history.replaceState(null, '', redirectPath);
+    }
+    
+    // Handle redirects from 404.html (SPA GitHub Pages style)
+    const path = window.location.pathname;
+    const query = window.location.search;
+    
+    // If we're on the root with a special query parameter format
+    if (path === '/' && query.indexOf('?/') === 0) {
+      // Extract the path from the query
+      const redirectTo = query.substring(2).split('&')[0].replace(/~and~/g, '&');
+      // Replace the current URL with the extracted path
+      window.history.replaceState(null, '', '/' + redirectTo + (query.indexOf('&') !== -1 ? '?' + query.substring(query.indexOf('&') + 1).replace(/~and~/g, '&') : ''));
+    }
+  }, []);
+
   return (
     <Router>
       <div className="flex flex-col min-h-screen">

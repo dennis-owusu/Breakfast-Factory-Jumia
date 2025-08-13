@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting...</title>
+  <script>
+    // This script handles redirects for SPA routing in Vercel
+    // It takes the current URL path and redirects to the root with the path as a query parameter
+    // Then the main app can read this parameter and navigate to the correct route
+    
+    // Get the current path excluding the domain
+    const path = window.location.pathname;
+    
+    // Redirect to the index with the path as a query parameter
+    window.location.href = `/?redirect=${encodeURIComponent(path)}`;
+  </script>
+</head>
+<body>
+  <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
+    <p>Redirecting...</p>
+  </div>
+</body>
+</html>

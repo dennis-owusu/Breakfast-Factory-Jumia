@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breakfast Factory</title>
+  <script>
+    // This script handles the case where a user directly accesses a URL that should be handled by the SPA router
+    // It ensures that the SPA router gets a chance to handle the route
+    (function() {
+      // Save the current path for potential use
+      window.__SPA_ROUTE__ = window.location.pathname;
+    })();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <!-- This file serves as a fallback for direct route access -->
+</body>
+</html>

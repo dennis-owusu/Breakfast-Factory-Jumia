@@ -4,14 +4,21 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "routes": [
-    { "src": "/[^.]+", "dest": "/", "status": 200 }
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html", "status": 200 }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "s-maxage=1, stale-while-revalidate" }
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
     }
-  ]
+  ],
+  "trailingSlash": false,
+  "cleanUrls": true,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "errorPage": "vercel-404.html"
 }
