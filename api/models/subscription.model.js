@@ -46,13 +46,17 @@ const subscriptionSchema = new mongoose.Schema({
   currency: {
     type: String,
     default: 'GHS'
-  }
+  },
+  history: [{
+    action: { type: String, required: true },
+    date: { type: Date, default: Date.now }
+  }]
 }, {
   timestamps: true
 });
 
-// Create a TTL index on endDate to automatically expire documents
-subscriptionSchema.index({ endDate: 1 }, { expireAfterSeconds: 0 });
+// Remove TTL index to prevent automatic deletion
+// subscriptionSchema.index({ endDate: 1 }, { expireAfterSeconds: 0 });
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
 

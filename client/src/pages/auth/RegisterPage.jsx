@@ -11,7 +11,8 @@ const RegisterPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { currentUser, loading, error } = useSelector((state) => state.user);
+  const { currentUser, error } = useSelector((state) => state.user);
+  const [loading, setLoading] = useState(false)
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

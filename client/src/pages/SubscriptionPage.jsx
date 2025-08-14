@@ -13,12 +13,24 @@ const SubscriptionPage = () => {
   const [subscription, setSubscription] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [transactionRef, setTransactionRef] = useState(uuidv4());
-  const [timeRemaining, setTimeRemaining] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-    expired: false
+  const [timeRemaining, setTimeRemaining] = useState(() => {
+    const storedEndDate = localStorage.getItem('subscriptionEndDate');
+    const storedStatus = localStorage.getItem('subscriptionStatus');
+    if (storedEndDate && storedStatus === 'active') {
+      const end = new Date(storedEndDate).getTime();
+      const now = Date.now();
+      const diff = end - now;
+      if (diff > 0) {
+        return {
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((diff % (1000 * 60)) / 1000),
+          expired: false
+        };
+      }
+    }
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
   });
   
   const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
@@ -54,7 +66,19 @@ const SubscriptionPage = () => {
       try {
         setLoading(true);
         const response = await getUserSubscription(currentUser._id);
-        setSubscription(response.hasActiveSubscription ? response.subscription : null);
+        const sub = response.hasActiveSubscription ? response.subscription : null;
+        setSubscription(sub);
+        if (sub && sub.status === 'active') {
+          localStorage.setItem('subscriptionEndDate', sub.endDate);
+          localStorage.setItem('subscriptionStatus', sub.status);
+          const daysLeft = getDaysRemaining(sub.endDate);
+          if (daysLeft <= 7 && daysLeft > 0) {
+            toast.warning(`Your subscription is expiring in ${daysLeft} days! Consider renewing.`);
+          }
+        } else {
+          localStorage.removeItem('subscriptionEndDate');
+          localStorage.removeItem('subscriptionStatus');
+        }
       } catch (error) {
         toast.error(error.message || 'Failed to fetch subscription');
       } finally {
@@ -109,9 +133,10 @@ const SubscriptionPage = () => {
         userId: currentUser._id,
         plan: 'free',
       };
-      
       const response = await createSubscription(subscriptionData);
       setSubscription(response.subscription);
+      localStorage.setItem('subscriptionEndDate', response.subscription.endDate);
+      localStorage.setItem('subscriptionStatus', response.subscription.status);
       toast.success('Successfully subscribed to free plan');
     } catch (error) {
       toast.error(error.message || 'Failed to subscribe to free plan');
@@ -158,6 +183,8 @@ const SubscriptionPage = () => {
       
       const subscriptionResponse = await createSubscription(subscriptionData);
       setSubscription(subscriptionResponse.subscription);
+      localStorage.setItem('subscriptionEndDate', subscriptionResponse.subscription.endDate);
+      localStorage.setItem('subscriptionStatus', subscriptionResponse.subscription.status);
       toast.success('Successfully subscribed to pro plan');
       
       // Generate new transaction reference for future transactions
@@ -182,8 +209,8 @@ const SubscriptionPage = () => {
 
   // Calculate days remaining in subscription
   const getDaysRemaining = (endDate) => {
-    const end = new Date(endDate);
-    const now = new Date();
+    const end = new Date(endDate).getTime();
+    const now = Date.now();
     const diffTime = end - now;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
@@ -194,44 +221,27 @@ const SubscriptionPage = () => {
     if (!subscription) return;
 
     const calculateTimeRemaining = () => {
-      const now = new Date();
-      const endDate = new Date(subscription.endDate);
+      const now = Date.now();
+      const endDate = new Date(subscription.endDate).getTime();
       const diff = endDate - now;
 
       if (diff <= 0) {
-        // Subscription has expired
-        setTimeRemaining({
-          days: 0,
-          hours: 0,
-          minutes: 0,
-          seconds: 0,
-          expired: true
-        });
+        setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: true });
+        localStorage.removeItem('subscriptionEndDate');
+        localStorage.setItem('subscriptionStatus', 'expired');
         return;
       }
 
-      // Calculate time units
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-      setTimeRemaining({
-        days,
-        hours,
-        minutes,
-        seconds,
-        expired: false
-      });
+      setTimeRemaining({ days, hours, minutes, seconds, expired: false });
     };
 
-    // Initial calculation
     calculateTimeRemaining();
-
-    // Update every second
     const timer = setInterval(calculateTimeRemaining, 1000);
-
-    // Cleanup interval on unmount
     return () => clearInterval(timer);
   }, [subscription]);
   
@@ -449,26 +459,18 @@ const SubscriptionPage = () => {
         <div className="mt-10 text-center">
           <button
             onClick={handleSubscribe}
-            disabled={loading || (subscription && subscription.status === 'active' && subscription.plan === selectedPlan)}
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || (subscription?.status === 'active' && selectedPlan === subscription.plan)}
+            className="bg-orange-500 text-white px-8 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Processing...
-              </>
-            ) : subscription && subscription.status === 'active' ? (
-              subscription.plan === selectedPlan ? 
-                'Already Subscribed' : 
-                `Upgrade to ${selectedPlan === 'free' ? 'Free' : 'Pro'} Plan`
-            ) : (
-              `Subscribe to ${selectedPlan === 'free' ? 'Free' : 'Pro'} Plan`
-            )}
+            {loading ? 'Processing...' : (subscription?.status === 'active' && selectedPlan === subscription.plan) ? 'Already Subscribed' : selectedPlan === subscription?.plan ? 'Renew Subscription' : subscription?.plan === 'pro' && selectedPlan === 'free' ? 'Downgrade to Free Plan' : 'Upgrade to Pro Plan'}
           </button>
-          
+          {subscription?.plan === 'pro' && selectedPlan === 'free' && (
+            <p className="mt-4 text-sm text-gray-500">Downgrade will take effect after current subscription expires.</p>
+          )}
+          {subscription?.plan === 'free' && selectedPlan === 'pro' && (
+            <p className="mt-4 text-sm text-gray-500">Upgrade will take effect immediately.</p>
+          )}
+
           {subscription && subscription.status === 'active' && subscription.plan !== selectedPlan && (
             <p className="mt-2 text-sm text-gray-500">
               {selectedPlan === 'free' ? 

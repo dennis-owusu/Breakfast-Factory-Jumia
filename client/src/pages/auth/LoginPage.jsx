@@ -10,9 +10,9 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { currentUser, loading, error } = useSelector((state) => state.user);
-
-  const [email, setEmail] = useState('');
+  const { currentUser, error } = useSelector((state) => state.user);
+  const [loading, setLoading] = useState(false)
+   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState('');

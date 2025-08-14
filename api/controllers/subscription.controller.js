@@ -7,16 +7,14 @@ export const createSubscription = async (req, res, next) => {
   try {
     const { userId, plan, paymentId } = req.body;
     
-    // Calculate end date based on plan
-    const startDate = new Date();
+    const startDate = new Date(); // Use UTC
+    startDate.setUTCHours(0, 0, 0, 0);
     let endDate = new Date(startDate);
     
     if (plan === 'free') {
-      // Free tier valid for 2 weeks
-      endDate.setDate(endDate.getDate() + 14);
+      endDate.setUTCDate(endDate.getUTCDate() + 14);
     } else if (plan === 'pro') {
-      // Pro tier valid for 1 month
-      endDate.setMonth(endDate.getMonth() + 1);
+      endDate.setUTCDate(endDate.getUTCDate() + 30);
     }
     
     // Set features based on plan
@@ -52,7 +50,8 @@ export const createSubscription = async (req, res, next) => {
       paymentId,
       features,
       price,
-      currency: 'GHS'
+      currency: 'GHS',
+      history: [{ action: 'created' }]
     });
     
     await newSubscription.save();
@@ -72,11 +71,18 @@ export const getSubscriptionByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
     
-    const subscription = await Subscription.findOne({ 
-      userId, 
-      status: 'active',
-      endDate: { $gt: new Date() }
-    });
+    let subscription = await Subscription.findOne({ userId });
+    
+    if (subscription) {
+      const now = new Date();
+      now.setUTCHours(0, 0, 0, 0);
+      if (subscription.status === 'active' && subscription.endDate <= now) {
+        subscription.status = 'expired';
+        subscription.history.push({ action: 'expired' });
+        await subscription.save();
+      }
+    }
+    
     
     if (!subscription) {
       return res.status(200).json({
