@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 
@@ -82,6 +82,20 @@ const AdminRouteWithLayout = ({ element }) => (
 const AppContent = () => {
   const location = useLocation();
   const { currentUser } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentUser && location.pathname === '/') {
+      const role = currentUser.usersRole;
+      if (role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (role === 'outlet') {
+        navigate('/outlet/dashboard');
+      } else if (role === 'user') {
+        navigate('/user/dashboard');
+      }
+    }
+  }, [currentUser, location.pathname, navigate]);
   
   // Determine if subscription modal should be shown
   // This will ensure the modal is displayed for outlet and admin users

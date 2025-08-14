@@ -30,7 +30,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           {/* Logo and brand */}
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
+            <Link to="/outlet/dashboard" className="flex-shrink-0 flex items-center">
               <span className="text-2xl font-bold text-orange-500">Breakfast Factory</span>
             </Link>
           </div>

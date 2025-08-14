@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard, Star, RefreshCw, Menu, Clock, AlertTriangle } from 'lucide-react';
 import Sidebar from '../Sidebar';
+import DashboardSearch from '../DashboardSearch';
 import axios from 'axios';
 
 const DashboardLayout = ({ children }) => {
@@ -129,14 +130,17 @@ const DashboardLayout = ({ children }) => {
       />
       <div className="flex-1 overflow-auto md:pl-64 transition-all duration-300">
         {/* Mobile Header */}
-        <div className="sticky top-0 z-10 bg-white md:hidden p-4 shadow-sm flex items-center">
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          >
-            <Menu size={24} />
-          </button>
-          <h1 className="ml-4 text-lg font-semibold text-gray-800">{getTitle()}</h1>
+        <div className="sticky top-0 z-10 bg-white md:hidden p-4 shadow-sm flex items-center justify-between">
+          <div className="flex items-center">
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <Menu size={24} />
+            </button>
+            <h1 className="ml-4 text-lg font-semibold text-gray-800">{getTitle()}</h1>
+          </div>
+          <DashboardSearch />
         </div>
 
         {/* Subscription Countdown Banner - Mobile - Always visible for better awareness */}
@@ -197,7 +201,10 @@ const DashboardLayout = ({ children }) => {
         {/* Desktop Header with Subscription Countdown */}
         <div className="hidden md:block sticky top-0 z-10 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-800">{getTitle()}</h1>
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-800 mr-4">{getTitle()}</h1>
+              <DashboardSearch />
+            </div>
             
             {/* Subscription Status for Desktop - Enhanced visibility */}
             {(role === 'outlet' || role === 'admin') && subscription && (

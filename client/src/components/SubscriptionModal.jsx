@@ -96,12 +96,13 @@ const SubscriptionModal = () => {
     }
   };
   
-  // Fetch fresh data when user changes
+  // Fetch fresh data when user changes, but only if cache is old or missing
   useEffect(() => {
-    if (currentUser?._id) {
+    const currentTime = Date.now();
+    if (currentUser?._id && (!subscription || currentTime - lastFetchTime > 60 * 60 * 1000)) {
       fetchSubscription();
     }
-  }, [currentUser]);
+  }, [currentUser, subscription, lastFetchTime]);
 
   // Update countdown timer
   useEffect(() => {
