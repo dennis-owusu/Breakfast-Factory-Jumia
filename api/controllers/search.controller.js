@@ -126,7 +126,7 @@ export const searchDashboard = async (req, res, next) => {
           return {
             id: user._id,
             name: user.name,
-            email: user.email,
+            email: user.email, 
             role: user.usersRole,
             storeName: user.storeName,
             phoneNumber: user.phoneNumber,
