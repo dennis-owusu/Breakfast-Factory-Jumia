@@ -12,7 +12,11 @@ const api = axios.create({
 // Request interceptor for adding auth token
 api.interceptors.request.use(
   (config) => {
-    // You can add auth token here if needed
+    // Add auth token from localStorage if available
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -157,6 +161,14 @@ export const categoriesAPI = {
   createCategory: (categoryData) => api.post('/categories', categoryData),
   updateCategory: (id, categoryData) => api.put(`/categories/${id}`, categoryData),
   deleteCategory: (id) => api.delete(`/categories/${id}`),
+};
+
+// Search API endpoints
+export const searchAPI = {
+  dashboardSearch: ({ query, category = 'all', limit = 10 } = {}, headers = {}) =>
+    api.get('/api/route/search', { params: { query, category, limit }, headers }),
+  getSuggestions: ({ query, category = 'all' } = {}, headers = {}) =>
+    api.get('/api/route/search/suggestions', { params: { query, category }, headers }),
 };
 
 // Export the base API instance for custom calls

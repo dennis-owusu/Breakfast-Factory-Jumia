@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
 import Loader from '../components/ui/Loader';
@@ -46,6 +46,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState({ categories: true, featured: true, bestSellers: true });
   const [error, setError] = useState(null);
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch categories
   useEffect(() => {
@@ -149,6 +150,21 @@ const HomePage = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Handle search submission
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  // Handle search input keypress
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
+  };
+
   // Add to cart
   const handleAddToCart = (product) => {
     try {
@@ -179,6 +195,30 @@ const HomePage = () => {
             <p className="text-lg md:text-xl mb-6">
               {heroBanners[currentBanner].subtitle}
             </p>
+            
+            {/* Search Bar */}
+            <div className="relative mb-6">
+              <form onSubmit={handleSearch} className="flex">
+                <div className="relative flex-grow">
+                  <input
+                    type="text"
+                    placeholder="Search for products..."
+                    className="w-full px-4 py-3 pl-10 rounded-l-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleSearchKeyPress}
+                  />
+                  <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                </div>
+                <button 
+                  type="submit" 
+                  className="bg-orange-700 hover:bg-orange-800 text-white px-4 py-3 rounded-r-md transition-colors"
+                >
+                  Search
+                </button>
+              </form>
+            </div>
+            
             <div className="flex flex-wrap gap-4">
               <Link
                 to={heroBanners[currentBanner].cta}

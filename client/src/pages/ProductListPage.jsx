@@ -28,15 +28,36 @@ const ProductListPage = () => {
   });
   const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0 });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const BASE_URL = 'http://localhost:3500'; // Backend base URL
 
+  // Initialize filters from URL parameters
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const urlFilters = {};
+    
+    if (params.has('search')) urlFilters.search = params.get('search');
+    if (params.has('category')) urlFilters.category = params.get('category');
+    if (params.has('minPrice')) urlFilters.minPrice = Number(params.get('minPrice'));
+    if (params.has('maxPrice')) urlFilters.maxPrice = Number(params.get('maxPrice'));
+    if (params.has('minRating')) urlFilters.minRating = Number(params.get('minRating'));
+    if (params.has('sort')) urlFilters.sort = params.get('sort');
+    if (params.has('page')) setPagination(prev => ({ ...prev, page: Number(params.get('page')) }));
+    
+    if (Object.keys(urlFilters).length > 0) {
+      setFilters(prev => ({ ...prev, ...urlFilters }));
+    }
+    
     fetchCategories();
+  }, [location.search]);
+  
+  // Fetch products when filters change
+  useEffect(() => {
     fetchProducts();
   }, [filters, pagination.page]);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/route/allcategories');
+      const response = await fetch(`${BASE_URL}/api/route/allcategories`);
       if (!response.ok) throw new Error(`HTTP error ${response.status}`);
       const data = await response.json();
       if (data.success) {
@@ -59,7 +80,7 @@ const ProductListPage = () => {
         page: pagination.page,
         limit: pagination.limit,
       }).toString();
-      const response = await fetch(`/api/route/allproducts?${query}`);
+      const response = await fetch(`${BASE_URL}/api/route/allproducts?${query}`);
       if (!response.ok) throw new Error(`HTTP error ${response.status}`);
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
@@ -88,6 +109,16 @@ const ProductListPage = () => {
       setFilters((prev) => ({ ...prev, [name]: value }));
     }
     setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+  
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    handleFilterChange('search', value);
+  };
+  
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    applyFilters();
   };
 
   const applyFilters = () => {
@@ -153,80 +184,96 @@ const ProductListPage = () => {
       <h1 className="text-2xl font-bold mb-4">Products</h1>
       <div className="flex flex-col md:flex-row gap-4">
         <div className="w-full md:w-1/4 bg-white p-4 rounded-lg shadow-sm">
-          <h2 className="text-lg font-bold mb-4">Filters</h2>
-          <div className="mb-4">
-            <Label htmlFor="search" className="text-sm font-medium">Search</Label>
-            <div className="relative">
-              <Input
-                id="search"
-                placeholder="Search products..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="pl-8"
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold">Filters</h2>
+            <Button
+              variant="ghost"
+              className="md:hidden"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className={`${isFilterOpen ? 'block' : 'hidden'} md:block`}>
+            <div className="mb-4">
+              <Label htmlFor="search" className="text-sm font-medium">Search</Label>
+              <form onSubmit={handleSearchSubmit} className="flex">
+                <div className="relative flex-grow">
+                  <Input
+                    id="search"
+                    placeholder="Search products..."
+                    value={filters.search}
+                    onChange={handleSearchChange}
+                    className="pl-8"
+                  />
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                </div>
+                <Button type="submit" className="ml-2 bg-orange-500 hover:bg-orange-600">
+                  Search
+                </Button>
+              </form>
+            </div>
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Category</Label>
+              <Select value={filters.category} onValueChange={(v) => handleFilterChange('category', v)}>
+                <SelectTrigger className="border-gray-300">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Price Range (₦)</Label>
+              <Slider
+                value={[filters.minPrice, filters.maxPrice]}
+                min={0}
+                max={10000}
+                step={100}
+                onValueChange={(v) => handleFilterChange('priceRange', { minPrice: v[0], maxPrice: v[1] })}
+                className="mt-2"
               />
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <div className="flex justify-between mt-2 text-sm text-gray-600">
+                <span>₦{filters.minPrice.toLocaleString()}</span>
+                <span>₦{filters.maxPrice.toLocaleString()}</span>
+              </div>
             </div>
-          </div>
-          <div className="mb-4">
-            <Label className="text-sm font-medium">Category</Label>
-            <Select value={filters.category} onValueChange={(v) => handleFilterChange('category', v)}>
-              <SelectTrigger className="border-gray-300">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Minimum Rating</Label>
+              <div className="flex items-center space-x-2 mt-2">
+                {[1, 2, 3, 4, 5].map((r) => (
+                  <Checkbox
+                    key={r}
+                    checked={filters.minRating >= r}
+                    onCheckedChange={() => handleFilterChange('minRating', r)}
+                  >
+                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                  </Checkbox>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="mb-4">
-            <Label className="text-sm font-medium">Price Range (₦)</Label>
-            <Slider
-              value={[filters.minPrice, filters.maxPrice]}
-              min={0}
-              max={10000}
-              step={100}
-              onValueChange={(v) => handleFilterChange('priceRange', { minPrice: v[0], maxPrice: v[1] })}
-              className="mt-2"
-            />
-            <div className="flex justify-between mt-2 text-sm text-gray-600">
-              <span>₦{filters.minPrice.toLocaleString()}</span>
-              <span>₦{filters.maxPrice.toLocaleString()}</span>
+              </div>
             </div>
-          </div>
-          <div className="mb-4">
-            <Label className="text-sm font-medium">Minimum Rating</Label>
-            <div className="flex items-center space-x-2 mt-2">
-              {[1, 2, 3, 4, 5].map((r) => (
-                <Checkbox
-                  key={r}
-                  checked={filters.minRating >= r}
-                  onCheckedChange={() => handleFilterChange('minRating', r)}
-                >
-                  <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                </Checkbox>
-              ))}
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Sort By</Label>
+              <Select value={filters.sort} onValueChange={(v) => handleFilterChange('sort', v)}>
+                <SelectTrigger className="border-gray-300">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="price">Price: Low to High</SelectItem>
+                  <SelectItem value="-price">Price: High to Low</SelectItem>
+                  <SelectItem value="rating">Rating</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            <Button onClick={applyFilters} className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+              Apply Filters
+            </Button>
           </div>
-          <div className="mb-4">
-            <Label className="text-sm font-medium">Sort By</Label>
-            <Select value={filters.sort} onValueChange={(v) => handleFilterChange('sort', v)}>
-              <SelectTrigger className="border-gray-300">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="price">Price: Low to High</SelectItem>
-                <SelectItem value="-price">Price: High to Low</SelectItem>
-                <SelectItem value="rating">Rating</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={applyFilters} className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-            Apply Filters
-          </Button>
         </div>
 
         <div className="md:w-3/4">
@@ -235,13 +282,16 @@ const ProductListPage = () => {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {products.map((product) => (
-                <ProductCard   product={{
+                <ProductCard
+                  key={product._id}
+                  product={{
                     _id: product._id,
                     productName: product.productName,
                     productPrice: product.productPrice,
-                    images: [product.productImage], // Convert single image string to array
+                    images: [`${BASE_URL}${product.productImage}`], // Prepend BASE_URL
                     discountPrice: product.discountPrice,
-                  }} />
+                  }}
+                />
               ))}
             </div>
           )}

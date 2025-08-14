@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, X, ArrowRight, Package, ShoppingBag, Users, BarChart2, Clock } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import api, { searchAPI } from '../utils/api';
 
 const DashboardSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,14 +25,41 @@ const DashboardSearch = () => {
     { id: 'analytics', label: 'Analytics', icon: <BarChart2 size={16} /> },
   ];
 
-  const suggestions = [
+  const [suggestions, setSuggestions] = useState([
     'Low stock products',
     'Recent orders',
     'Monthly sales',
     'Top customers',
     'Pending deliveries',
     'Revenue this week',
-  ];
+  ]);
+  
+  const getSuggestions = async (query) => {
+    try {
+      // Add authorization header with token
+      const headers = {};
+      if (currentUser?.token) {
+        headers.Authorization = `Bearer ${currentUser.token}`;
+      }
+
+      const { data } = await searchAPI.getSuggestions({ 
+        query, 
+        category: selectedCategory 
+      }, headers);
+      
+      setSuggestions(data.suggestions || []);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      setSuggestions([
+        'Low stock products',
+        'Recent orders',
+        'Monthly sales',
+        'Top customers',
+        'Pending deliveries',
+        'Revenue this week',
+      ]);
+    }
+  };
 
   // Close search when clicking outside
   useEffect(() => {
@@ -80,79 +108,51 @@ const DashboardSearch = () => {
     
     if (value.length > 2) {
       setIsLoading(true);
-      // Simulate API call delay
+      // Add debounce for API calls
       const timeoutId = setTimeout(() => {
         fetchSearchResults(value);
+        getSuggestions(value);
       }, 300);
       
       return () => clearTimeout(timeoutId);
-    } else if (value.length === 0) {
+    } else if (value.length > 0) {
+      // Get suggestions even for shorter queries
+      getSuggestions(value);
       setSearchResults({});
+    } else {
+      setSearchResults({});
+      // Reset to default suggestions when search is empty
+      setSuggestions([
+        'Low stock products',
+        'Recent orders',
+        'Monthly sales',
+        'Top customers',
+        'Pending deliveries',
+        'Revenue this week',
+      ]);
     }
   };
 
   const fetchSearchResults = async (query) => {
     try {
-      // In a real implementation, this would be an API call to the backend
-      // For now, we'll simulate results based on the role
-      
-      // Simulate different results based on the selected category
-      let results = {};
-      
-      // Products search simulation
-      if (selectedCategory === 'all' || selectedCategory === 'products') {
-        results.products = [
-          { id: 1, name: 'Smartphone X', price: 599.99, stock: 45, category: 'Electronics', image: 'https://via.placeholder.com/50' },
-          { id: 2, name: 'Wireless Headphones', price: 129.99, stock: 32, category: 'Electronics', image: 'https://via.placeholder.com/50' },
-          { id: 3, name: 'Smart Watch', price: 199.99, stock: 18, category: 'Electronics', image: 'https://via.placeholder.com/50' },
-        ].filter(product => 
-          product.name.toLowerCase().includes(query.toLowerCase()) ||
-          product.category.toLowerCase().includes(query.toLowerCase())
-        );
+      // Add authorization header with token
+      const headers = {};
+      if (currentUser?.token) {
+        headers.Authorization = `Bearer ${currentUser.token}`;
       }
+
+      const { data } = await searchAPI.dashboardSearch({ 
+        query, 
+        category: selectedCategory, 
+        limit: 10 
+      }, headers);
       
-      // Orders search simulation
-      if (selectedCategory === 'all' || selectedCategory === 'orders') {
-        results.orders = [
-          { id: 'ORD-1234', customer: 'John Doe', date: '2023-05-15', total: 729.98, status: 'Delivered' },
-          { id: 'ORD-1235', customer: 'Jane Smith', date: '2023-05-16', total: 199.99, status: 'Processing' },
-          { id: 'ORD-1236', customer: 'Robert Johnson', date: '2023-05-17', total: 349.97, status: 'Shipped' },
-        ].filter(order => 
-          order.id.toLowerCase().includes(query.toLowerCase()) ||
-          order.customer.toLowerCase().includes(query.toLowerCase()) ||
-          order.status.toLowerCase().includes(query.toLowerCase())
-        );
-      }
-      
-      // Customers search simulation
-      if (selectedCategory === 'all' || selectedCategory === 'customers') {
-        results.customers = [
-          { id: 1, name: 'John Doe', email: 'john@example.com', orders: 5, totalSpent: 1245.87 },
-          { id: 2, name: 'Jane Smith', email: 'jane@example.com', orders: 3, totalSpent: 567.50 },
-          { id: 3, name: 'Robert Johnson', email: 'robert@example.com', orders: 7, totalSpent: 2134.99 },
-        ].filter(customer => 
-          customer.name.toLowerCase().includes(query.toLowerCase()) ||
-          customer.email.toLowerCase().includes(query.toLowerCase())
-        );
-      }
-      
-      // Analytics search simulation
-      if (selectedCategory === 'all' || selectedCategory === 'analytics') {
-        results.analytics = [
-          { id: 1, title: 'Monthly Sales Report', period: 'May 2023', growth: '+15%', type: 'report' },
-          { id: 2, title: 'Product Performance', period: 'Q2 2023', growth: '+8%', type: 'dashboard' },
-          { id: 3, title: 'Customer Retention', period: 'Last 6 months', growth: '+5%', type: 'analysis' },
-        ].filter(item => 
-          item.title.toLowerCase().includes(query.toLowerCase()) ||
-          item.period.toLowerCase().includes(query.toLowerCase()) ||
-          item.type.toLowerCase().includes(query.toLowerCase())
-        );
-      }
-      
-      setSearchResults(results);
+      const res = data.results || {};
+      setSearchResults(res);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching search results:', error);
+      setSearchResults({});
       setIsLoading(false);
     }
   };
@@ -211,18 +211,18 @@ const DashboardSearch = () => {
   const handleResultClick = (result, type) => {
     setIsSearchOpen(false);
     
-    // Navigate to the appropriate detail page based on result type
+    // Navigate to the appropriate detail page based on result type and user role
     if (role === 'outlet') {
       switch (type) {
         case 'product':
-          navigate(`/outlet/products/${result.id}`);
+          navigate(`/outlet/product/${result.id}`);
           break;
         case 'order':
           navigate(`/outlet/orders/${result.id}`);
           break;
         case 'customer':
-          // Assuming there's a customer detail page
-          navigate(`/outlet/customers/${result.id}`);
+          // Since no outlet customers route exists, navigate to general users listing instead
+          navigate(`/outlet/dashboard?search=${result.name}`);
           break;
         case 'analytics':
           navigate(`/outlet/analytics?report=${result.title}`);
@@ -243,6 +243,20 @@ const DashboardSearch = () => {
           navigate(`/admin/analytics?report=${result.title}`);
           break;
       }
+    } else {
+      // Regular user navigation
+      switch (type) {
+        case 'product':
+          navigate(`/product/${result.id}`);
+          break;
+        case 'order':
+          navigate(`/orders/${result.id}`);
+          break;
+        default:
+          // For other result types, navigate to search results page
+          navigate(`/products?search=${searchTerm}`);
+          break;
+      }
     }
   };
   
@@ -255,8 +269,20 @@ const DashboardSearch = () => {
             className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
             onClick={() => handleResultClick(result, 'product')}
           >
-            <div className="h-10 w-10 rounded-md overflow-hidden mr-3 bg-gray-100 flex-shrink-0">
-              <img src={result.image} alt={result.name} className="h-full w-full object-cover" />
+            <div className="h-10 w-10 rounded-md overflow-hidden mr-3 bg-gray-100 flex-shrink-0 flex items-center justify-center">
+              {result.image ? (
+                <img 
+                  src={result.image} 
+                  alt={result.name} 
+                  className="h-full w-full object-cover" 
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/40';
+                    e.target.onerror = null; // Prevent infinite error loop
+                  }}
+                />
+              ) : (
+                <Package size={20} className="text-gray-500" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{result.name}</p>
@@ -269,6 +295,11 @@ const DashboardSearch = () => {
                   {result.stock} in stock
                 </span>
               </div>
+              {result.discountPrice && result.discountPrice < result.price && (
+                <p className="text-xs text-orange-500 font-medium mt-1">
+                  Sale: ${result.discountPrice.toFixed(2)}
+                </p>
+              )}
             </div>
             <ArrowRight size={16} className="text-gray-400" />
           </div>
