@@ -12,29 +12,101 @@ const SubscriptionCountdown = () => {
     seconds: 0
   });
   const [loading, setLoading] = useState(true);
+  const [lastFetchTime, setLastFetchTime] = useState(0);
 
-  // Fetch subscription data
+  // Load saved data from localStorage on component mount
   useEffect(() => {
-    const fetchSubscription = async () => {
+    const loadSavedData = () => {
       try {
-        setLoading(true);
-        if (currentUser?._id) {
-          const response = await getUserSubscription(currentUser._id);
-          setSubscription(response.hasActiveSubscription ? response.subscription : null);
+        const savedSubscription = localStorage.getItem('subscription');
+        const savedLastFetchTime = localStorage.getItem('subscriptionLastFetch');
+        
+        if (savedSubscription && savedLastFetchTime) {
+          const parsedSubscription = JSON.parse(savedSubscription);
+          const parsedLastFetchTime = parseInt(savedLastFetchTime, 10);
+          const currentTime = Date.now();
+          
+          // Only use cached data if it's less than 1 hour old
+          if (currentTime - parsedLastFetchTime < 60 * 60 * 1000) {
+            setSubscription(parsedSubscription);
+            setLastFetchTime(parsedLastFetchTime);
+            setLoading(false);
+            return true; // Data was loaded from cache
+          }
         }
+        return false; // No valid cached data
       } catch (error) {
-        console.error('Error fetching subscription:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error loading saved subscription data:', error);
+        return false;
       }
     };
-
-    fetchSubscription();
+    
+    // If we couldn't load from cache, fetch fresh data
+    if (!loadSavedData()) {
+      fetchSubscription();
+    }
+  }, []);
+  
+  // Fetch subscription data
+  const fetchSubscription = async () => {
+    try {
+      setLoading(true);
+      if (currentUser?._id) {
+        const response = await getUserSubscription(currentUser._id);
+        const subscriptionData = response.hasActiveSubscription ? response.subscription : null;
+        
+        // Save to state
+        setSubscription(subscriptionData);
+        
+        // Save to localStorage for persistence
+        if (subscriptionData) {
+          localStorage.setItem('subscription', JSON.stringify(subscriptionData));
+          const fetchTime = Date.now();
+          localStorage.setItem('subscriptionLastFetch', fetchTime.toString());
+          setLastFetchTime(fetchTime);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Fetch fresh data when user changes
+  useEffect(() => {
+    if (currentUser?._id) {
+      fetchSubscription();
+    }
   }, [currentUser]);
 
   // Update countdown timer
   useEffect(() => {
     if (!subscription) return;
+
+    // Try to load last calculated time from localStorage
+    const loadSavedTimeRemaining = () => {
+      try {
+        const savedTimeRemaining = localStorage.getItem('timeRemaining');
+        const savedTimestamp = localStorage.getItem('timeRemainingTimestamp');
+        
+        if (savedTimeRemaining && savedTimestamp) {
+          const parsedTimeRemaining = JSON.parse(savedTimeRemaining);
+          const parsedTimestamp = parseInt(savedTimestamp, 10);
+          const currentTime = Date.now();
+          
+          // Only use if saved within the last minute (to avoid stale data)
+          if (currentTime - parsedTimestamp < 60 * 1000) {
+            setTimeRemaining(parsedTimeRemaining);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved time remaining:', error);
+      }
+    };
+    
+    // Load saved time on initial render
+    loadSavedTimeRemaining();
 
     const calculateTimeRemaining = () => {
       const now = new Date();
@@ -43,7 +115,12 @@ const SubscriptionCountdown = () => {
 
       if (diff <= 0) {
         // Subscription has expired
-        setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        const expiredState = { days: 0, hours: 0, minutes: 0, seconds: 0 };
+        setTimeRemaining(expiredState);
+        
+        // Save expired state to localStorage
+        localStorage.setItem('timeRemaining', JSON.stringify(expiredState));
+        localStorage.setItem('timeRemainingTimestamp', Date.now().toString());
         return;
       }
 
@@ -53,7 +130,14 @@ const SubscriptionCountdown = () => {
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-      setTimeRemaining({ days, hours, minutes, seconds });
+      const newTimeRemaining = { days, hours, minutes, seconds };
+      setTimeRemaining(newTimeRemaining);
+      
+      // Save to localStorage every 10 seconds to reduce writes
+      if (seconds % 10 === 0) {
+        localStorage.setItem('timeRemaining', JSON.stringify(newTimeRemaining));
+        localStorage.setItem('timeRemainingTimestamp', Date.now().toString());
+      }
     };
 
     // Initial calculation

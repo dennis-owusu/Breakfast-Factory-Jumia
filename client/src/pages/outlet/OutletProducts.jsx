@@ -303,68 +303,78 @@ const handleDeleteProduct = async (productId) => {
             </table>
           </div>
           
-          {/* Mobile Card View - Two Column Grid */}
-          <div className="sm:hidden grid grid-cols-2 gap-4">
-            {products.map((product) => (
-              <div key={product._id} className="bg-white p-4 rounded-lg shadow">
-                <div className="flex flex-col items-center mb-3">
-                  <img
-                    src={product.productImage || 'https://via.placeholder.com/40'}
-                    alt=""
-                    className="h-16 w-16 rounded object-cover mb-2"
-                  />
-                  <h3 className="text-sm font-semibold text-center">{product.productName}</h3>
-                </div>
-                <div className="text-xs text-gray-500 mb-2 text-center truncate">
-                  {product.description || 'No description'}
-                </div>
-                <div className="flex justify-between items-center text-xs mb-2">
-                  <span>Category:</span>
-                  <span className="font-medium">{product.category?.categoryName || product.category || 'Uncategorized'}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs mb-2">
-                  <span>Price:</span>
-                  <span className="font-medium">₵{product.productPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs mb-3">
-                  <span>Stock:</span>
-                  <span className="font-medium">{product.numberOfProductsAvailable}</span>
-                </div>
-                <div className="flex justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/outlet/product/${product._id}`)}
-                  >
-                    <Eye className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/outlet/product/${product._id}/edit`)}
-                  >
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/outlet/restock?productId=${product._id}&quantity=${product.numberOfProductsAvailable}`)}
-                  >
-                    <RefreshCw className="h-3 w-3 text-green-500" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setIsDeleteModalOpen(true);
-                      setProductToDelete(product);
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3 text-red-500"/>
-                  </Button>
-                </div>
-              </div>
-            ))}
+          {/* Mobile Table View */}
+          <div className="sm:hidden bg-white p-4 rounded-lg shadow overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead>
+                <tr className="bg-gray-50 text-left text-xs font-medium text-gray-600 uppercase">
+                  <th className="p-2">Product</th>
+                  <th className="p-2">Category</th>
+                  <th className="p-2">Price</th>
+                  <th className="p-2">Stock</th>
+                  <th className="p-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product) => (
+                  <tr key={product._id} className="border-t hover:bg-gray-50">
+                    <td className="p-2">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={product.productImage || 'https://via.placeholder.com/40'}
+                          alt=""
+                          className="h-8 w-8 rounded object-cover"
+                        />
+                        <div>
+                          <p className="text-xs font-semibold">{product.productName}</p>
+                          <p className="text-xs text-gray-500 truncate max-w-[100px]">
+                            {product.description || 'No description'}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-2 text-xs">{product.category?.categoryName || product.category || 'Uncategorized'}</td>
+                    <td className="p-2 text-xs">₵{product.productPrice.toFixed(2)}</td>
+                    <td className="p-2 text-xs">{product.numberOfProductsAvailable}</td>
+                    <td className="p-2">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/outlet/product/${product._id}`)}
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/outlet/product/${product._id}/edit`)}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/outlet/restock?productId=${product._id}&quantity=${product.numberOfProductsAvailable}`)}
+                        >
+                          <RefreshCw className="h-3 w-3 text-green-500" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsDeleteModalOpen(true);
+                            setProductToDelete(product);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3 text-red-500"/>
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       ) : (

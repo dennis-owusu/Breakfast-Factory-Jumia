@@ -21,6 +21,7 @@ const SubscriptionModal = () => {
     seconds: 0,
     expired: false
   });
+  const [lastFetchTime, setLastFetchTime] = useState(0);
   
   const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
   
@@ -36,28 +37,107 @@ const SubscriptionModal = () => {
   // Create the payment initializer
   const initializePayment = usePaystackPayment(config);
 
-  // Check if user has an active subscription
+  // Load saved data from localStorage on component mount
   useEffect(() => {
-    const fetchSubscription = async () => {
+    const loadSavedData = () => {
       try {
-        setLoading(true);
-        if (currentUser?._id) {
-          const response = await getUserSubscription(currentUser._id);
-          setSubscription(response.hasActiveSubscription ? response.subscription : null);
+        const savedSubscription = localStorage.getItem('subscription');
+        const savedLastFetchTime = localStorage.getItem('subscriptionLastFetch');
+        
+        if (savedSubscription && savedLastFetchTime) {
+          const parsedSubscription = JSON.parse(savedSubscription);
+          const parsedLastFetchTime = parseInt(savedLastFetchTime, 10);
+          const currentTime = Date.now();
+          
+          // Only use cached data if it's less than 1 hour old
+          if (currentTime - parsedLastFetchTime < 60 * 60 * 1000) {
+            setSubscription(parsedSubscription);
+            setLastFetchTime(parsedLastFetchTime);
+            setLoading(false);
+            return true; // Data was loaded from cache
+          }
         }
+        return false; // No valid cached data
       } catch (error) {
-        toast.error(error.message || 'Failed to fetch subscription');
-      } finally {
-        setLoading(false);
+        console.error('Error loading saved subscription data:', error);
+        return false;
       }
     };
     
-    fetchSubscription();
+    // If we couldn't load from cache, fetch fresh data
+    if (!loadSavedData()) {
+      fetchSubscription();
+    }
+  }, []);
+  
+  // Fetch subscription data
+  const fetchSubscription = async () => {
+    try {
+      setLoading(true);
+      if (currentUser?._id) {
+        const response = await getUserSubscription(currentUser._id);
+        const subscriptionData = response.hasActiveSubscription ? response.subscription : null;
+        
+        // Save to state
+        setSubscription(subscriptionData);
+        
+        // Save to localStorage for persistence
+        if (subscriptionData) {
+          localStorage.setItem('subscription', JSON.stringify(subscriptionData));
+          const fetchTime = Date.now();
+          localStorage.setItem('subscriptionLastFetch', fetchTime.toString());
+          setLastFetchTime(fetchTime);
+        }
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to fetch subscription');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Fetch fresh data when user changes
+  useEffect(() => {
+    if (currentUser?._id) {
+      fetchSubscription();
+    }
   }, [currentUser]);
 
   // Update countdown timer
   useEffect(() => {
     if (!subscription) return;
+
+    // Try to load last calculated time from localStorage
+    const loadSavedTimeRemaining = () => {
+      try {
+        const savedTimeRemaining = localStorage.getItem('timeRemaining');
+        const savedTimestamp = localStorage.getItem('timeRemainingTimestamp');
+        
+        if (savedTimeRemaining && savedTimestamp) {
+          const parsedTimeRemaining = JSON.parse(savedTimeRemaining);
+          const parsedTimestamp = parseInt(savedTimestamp, 10);
+          const currentTime = Date.now();
+          
+          // Only use if saved within the last minute (to avoid stale data)
+          if (currentTime - parsedTimestamp < 60 * 1000) {
+            // Add the expired property for SubscriptionModal
+            const modalTimeRemaining = {
+              ...parsedTimeRemaining,
+              expired: parsedTimeRemaining.days <= 0 && 
+                      parsedTimeRemaining.hours <= 0 && 
+                      parsedTimeRemaining.minutes <= 0 && 
+                      parsedTimeRemaining.seconds <= 0
+            };
+            setTimeRemaining(modalTimeRemaining);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved time remaining:', error);
+      }
+    };
+    
+    // Load saved time on initial render
+    loadSavedTimeRemaining();
 
     const calculateTimeRemaining = () => {
       const now = new Date();
@@ -66,13 +146,25 @@ const SubscriptionModal = () => {
 
       if (diff <= 0) {
         // Subscription has expired
-        setTimeRemaining({
+        const expiredState = {
           days: 0,
           hours: 0,
           minutes: 0,
           seconds: 0,
           expired: true
-        });
+        };
+        setTimeRemaining(expiredState);
+        
+        // Save expired state to localStorage
+        // We save without the 'expired' property to make it compatible with SubscriptionCountdown
+        const storageState = {
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0
+        };
+        localStorage.setItem('timeRemaining', JSON.stringify(storageState));
+        localStorage.setItem('timeRemainingTimestamp', Date.now().toString());
         return;
       }
 
@@ -82,13 +174,27 @@ const SubscriptionModal = () => {
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-      setTimeRemaining({
+      const newTimeRemaining = {
         days,
         hours,
         minutes,
         seconds,
         expired: false
-      });
+      };
+      setTimeRemaining(newTimeRemaining);
+      
+      // Save to localStorage every 10 seconds to reduce writes
+      // We save without the 'expired' property to make it compatible with SubscriptionCountdown
+      if (seconds % 10 === 0) {
+        const storageState = {
+          days,
+          hours,
+          minutes,
+          seconds
+        };
+        localStorage.setItem('timeRemaining', JSON.stringify(storageState));
+        localStorage.setItem('timeRemainingTimestamp', Date.now().toString());
+      }
     };
 
     // Initial calculation
@@ -158,7 +264,7 @@ const SubscriptionModal = () => {
   const hasActiveSubscription = () => {
     // Developer bypass - if email contains 'dev' or 'admin', always return true
     // This allows developers to bypass subscription requirements
-    if (currentUser?.email && ('kwesimodestygh111@gmail.com')) {
+    if (currentUser?.email && (currentUser.email.includes('dev') || currentUser.email.includes('admin') || currentUser.email === 'kwesimodestygh111@gmail.com')) {
       return true;
     }
     
