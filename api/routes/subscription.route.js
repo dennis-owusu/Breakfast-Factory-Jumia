@@ -1,5 +1,4 @@
 import express from 'express';
-import { verifyToken } from '../utils/verifyUser.js';
 import {
   createSubscription,
   getSubscriptionByUserId,
@@ -8,6 +7,7 @@ import {
   upgradeSubscription,
   getAllSubscriptions
 } from '../controllers/subscription.controller.js';
+import { verifyToken, verifyAdmin } from '../utils/verifyUser.js';
 
 const router = express.Router();
 
@@ -27,6 +27,6 @@ router.put('/subscription/renew', verifyToken, renewSubscription);
 router.put('/subscription/upgrade', verifyToken, upgradeSubscription);
 
 // Get all subscriptions (admin only)
-router.get('/subscriptions', verifyToken, getAllSubscriptions);
+router.get('/subscriptions', verifyToken, verifyAdmin, getAllSubscriptions);
 
 export default router;

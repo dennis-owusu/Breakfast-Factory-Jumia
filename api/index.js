@@ -88,6 +88,7 @@ const __dirname = path.dirname(__filename);
 
 // Middlewares
 app.use(cors({
+  origin: ['http://localhost:5173', 'https://breakfast-factory-jumia-1.onrender.com'],
   methods: ['GET', 'DELETE', 'PUT', 'POST'],
   credentials: true
 }));

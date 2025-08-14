@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, Phone } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, CreditCard, Phone, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -21,6 +21,7 @@ const OutletSellPage = () => {
   const [cart, setCart] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phoneNumber: '',
@@ -413,7 +414,7 @@ const OutletSellPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 relative">
       <h1 className="text-3xl font-bold mb-8">Process In-Store Sale</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -430,6 +431,166 @@ const OutletSellPage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+      
+      {/* Mobile Cart Button */}
+      <div className="lg:hidden fixed bottom-4 right-4 z-50">
+        <Button 
+          onClick={() => setIsCartModalOpen(true)}
+          className="bg-orange-600 hover:bg-orange-700 rounded-full h-16 w-16 shadow-lg flex items-center justify-center"
+        >
+          <ShoppingCart className="h-6 w-6" />
+          {cart.length > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs">
+              {cart.length}
+            </span>
+          )}
+        </Button>
+      </div>
+      
+      {/* Mobile Cart Modal */}
+      {isCartModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center lg:hidden">
+          <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto m-4">
+            <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold flex items-center">
+                <ShoppingCart className="mr-2" />
+                Cart ({cart.length})
+              </h2>
+              <Button variant="ghost" size="icon" onClick={() => setIsCartModalOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="p-4">
+              {cart.length === 0 ? (
+                <p className="text-center text-gray-500 py-4">Cart is empty</p>
+              ) : (
+                <div className="space-y-4">
+                  {cart.map((item) => (
+                    <div key={item._id} className="flex justify-between items-center border-b pb-3">
+                      <div>
+                        <h3 className="font-medium">{item.productName}</h3>
+                        <p className="text-sm text-gray-600">{formatPrice(item.productPrice)} × {item.quantity}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="w-8 text-center">{item.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500"
+                          onClick={() => removeFromCart(item._id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Customer Information */}
+              <div className="mt-6 space-y-4">
+                <h3 className="font-semibold">Customer Information (Optional)</h3>
+                <Input
+                  placeholder="Customer Name"
+                  name="name"
+                  value={customerInfo.name}
+                  onChange={handleCustomerInfoChange}
+                />
+                <Input
+                  placeholder="Phone Number"
+                  name="phoneNumber"
+                  value={customerInfo.phoneNumber}
+                  onChange={handleCustomerInfoChange}
+                  className={paymentMethod === 'mtnMomo' ? 'border-orange-500' : ''}
+                />
+                {paymentMethod === 'mtnMomo' && (
+                  <p className="text-xs text-orange-600">* Required for MTN Mobile Money payment</p>
+                )}
+                <Input
+                  placeholder="Email"
+                  name="email"
+                  type="email"
+                  defaultValue={customerInfo.email ? customerInfo.email : currentUser.email}
+                  onChange={handleCustomerInfoChange}
+                />
+              </div>
+              
+              {/* Payment Method */}
+              <div className="mt-6 space-y-4">
+                <h3 className="font-semibold">Payment Method</h3>
+                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="paystack" id="paystack-mobile" />
+                    <Label htmlFor="paystack-mobile" className="flex items-center">
+                      <CreditCard className="mr-2 h-4 w-4" /> Mobile Money
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="cashOnDelivery" id="cashOnDelivery-mobile" />
+                    <Label htmlFor="cashOnDelivery-mobile" className="flex items-center">
+                      <CreditCard className="mr-2 h-4 w-4 text-gray-500" />
+                      Cash Payment
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
+              {/* Order Summary */}
+              <div className="mt-6 pt-4 border-t">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal:</span>
+                    <span>{formatPrice(calculateSubtotal())}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Processing Fee (2%):</span>
+                    <span>{formatPrice(calculateFee())}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-lg pt-2 border-t">
+                    <span>Total:</span>
+                    <span>{formatPrice(calculateTotal())}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <Button
+                className="w-full mt-6 bg-orange-600 hover:bg-orange-700 flex items-center justify-center"
+                disabled={cart.length === 0 || isSubmitting}
+                onClick={() => {
+                  setIsCartModalOpen(false);
+                  processOrder();
+                }}
+              >
+                {isSubmitting ? (
+                  <Loader className="h-5 w-5" />
+                ) : (
+                  <>
+                    <CreditCard className="mr-2 h-5 w-5" />
+                    Process Payment
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
           </div>
           
           {filteredProducts.length === 0 ? (
@@ -437,7 +598,7 @@ const OutletSellPage = () => {
               <p className="text-gray-500">No products found</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredProducts.map((product) => (
                 <Card key={product._id} className="overflow-hidden">
                   <div className="aspect-square overflow-hidden">
@@ -465,8 +626,8 @@ const OutletSellPage = () => {
           )}
         </div>
         
-        {/* Cart Section */}
-        <div>
+        {/* Cart Section - Desktop */}
+        <div className="hidden lg:block">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -523,7 +684,7 @@ const OutletSellPage = () => {
                 <Input
                   placeholder="Customer Name"
                   name="name"
-
+                  value={customerInfo.name}
                   onChange={handleCustomerInfoChange}
                 />
                 <Input

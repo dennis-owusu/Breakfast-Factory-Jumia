@@ -13,6 +13,13 @@ const SubscriptionPage = () => {
   const [subscription, setSubscription] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [transactionRef, setTransactionRef] = useState(uuidv4());
+  const [timeRemaining, setTimeRemaining] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    expired: false
+  });
   
   const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
   
@@ -119,7 +126,7 @@ const SubscriptionPage = () => {
       setLoading(true);
       
       // First record the payment
-      const paymentResponse = await fetch('http://localhost:3000/api/route/payment', {
+      const paymentResponse = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -182,6 +189,52 @@ const SubscriptionPage = () => {
     return diffDays > 0 ? diffDays : 0;
   };
 
+  // Update countdown timer
+  useEffect(() => {
+    if (!subscription) return;
+
+    const calculateTimeRemaining = () => {
+      const now = new Date();
+      const endDate = new Date(subscription.endDate);
+      const diff = endDate - now;
+
+      if (diff <= 0) {
+        // Subscription has expired
+        setTimeRemaining({
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          expired: true
+        });
+        return;
+      }
+
+      // Calculate time units
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeRemaining({
+        days,
+        hours,
+        minutes,
+        seconds,
+        expired: false
+      });
+    };
+
+    // Initial calculation
+    calculateTimeRemaining();
+
+    // Update every second
+    const timer = setInterval(calculateTimeRemaining, 1000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(timer);
+  }, [subscription]);
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -193,6 +246,42 @@ const SubscriptionPage = () => {
   return (
     <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+        {/* Free Trial Countdown Banner */}
+        {subscription && (
+          <div className="mb-8 p-4 bg-orange-50 rounded-lg border border-orange-200 shadow-sm">
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Your Free Trial Status</h2>
+            {!timeRemaining.expired ? (
+              <div>
+                <p className="text-gray-700 mb-3">Your free trial will expire in:</p>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="bg-white p-3 rounded-lg shadow-sm text-center">
+                    <div className="text-3xl font-bold text-orange-600">{timeRemaining.days}</div>
+                    <div className="text-sm text-gray-500">Days</div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg shadow-sm text-center">
+                    <div className="text-3xl font-bold text-orange-600">{timeRemaining.hours}</div>
+                    <div className="text-sm text-gray-500">Hours</div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg shadow-sm text-center">
+                    <div className="text-3xl font-bold text-orange-600">{timeRemaining.minutes}</div>
+                    <div className="text-sm text-gray-500">Minutes</div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg shadow-sm text-center">
+                    <div className="text-3xl font-bold text-orange-600">{timeRemaining.seconds}</div>
+                    <div className="text-sm text-gray-500">Seconds</div>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-gray-600">Subscribe to our Pro Plan to continue using all features after your trial ends.</p>
+              </div>
+            ) : (
+              <div className="bg-red-100 p-4 rounded-lg">
+                <p className="text-lg font-bold text-red-700">Your free trial has expired!</p>
+                <p className="text-gray-700">Subscribe now to restore full access to the platform.</p>
+              </div>
+            )}
+          </div>
+        )}
+        
         <div className="text-center mb-12">
           <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
             Subscription Plans

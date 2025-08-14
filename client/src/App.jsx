@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
+
+// Components
+import SubscriptionModal from './components/SubscriptionModal';
 
 // Layout Components
 import Navbar from './components/Navbar';
@@ -75,33 +78,20 @@ const AdminRouteWithLayout = ({ element }) => (
   </DashboardLayout>
 );
 
-function App() {
-  useEffect(() => {
-    // Handle redirects from vercel-404.html
-    const params = new URLSearchParams(window.location.search);
-    const redirectPath = params.get('redirect');
-    
-    if (redirectPath) {
-      // Remove the redirect parameter from the URL
-      window.history.replaceState(null, '', redirectPath);
-    }
-    
-    // Handle redirects from 404.html (SPA GitHub Pages style)
-    const path = window.location.pathname;
-    const query = window.location.search;
-    
-    // If we're on the root with a special query parameter format
-    if (path === '/' && query.indexOf('?/') === 0) {
-      // Extract the path from the query
-      const redirectTo = query.substring(2).split('&')[0].replace(/~and~/g, '&');
-      // Replace the current URL with the extracted path
-      window.history.replaceState(null, '', '/' + redirectTo + (query.indexOf('&') !== -1 ? '?' + query.substring(query.indexOf('&') + 1).replace(/~and~/g, '&') : ''));
-    }
-  }, []);
+// AppContent component to use hooks that require Router context
+const AppContent = () => {
+  const location = useLocation();
+  const { currentUser } = useSelector((state) => state.user);
+  
+  // Determine if subscription modal should be shown
+  // This will ensure the modal is displayed for outlet and admin users
+  // The modal itself will check if the subscription is active or expired
+  const shouldShowSubscriptionModal = currentUser && 
+    (currentUser.usersRole === 'outlet' || currentUser.usersRole === 'admin');
 
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen">
+
         <Toaster
           position="top-right"
           toastOptions={{
@@ -131,6 +121,7 @@ function App() {
           }}
         />
         <Navbar />
+        {shouldShowSubscriptionModal && <SubscriptionModal />}
         <main className="flex-grow">
           <React.Suspense fallback={<LoadingFallback />}>
             <Routes>
@@ -588,8 +579,45 @@ function App() {
             </Routes>
           </React.Suspense>
         </main>
-        <Footer />
+        {/* Only show footer on non-dashboard pages */}
+        {!location.pathname.includes('/admin/') && 
+         !location.pathname.includes('/outlet/') && 
+         !location.pathname.includes('/user/dashboard') && 
+         !location.pathname.includes('/user/orders') && 
+         !location.pathname.includes('/user/profile') && (
+          <Footer />
+        )}
       </div>
+    );
+};
+
+function App() {
+  useEffect(() => {
+    // Handle redirects from vercel-404.html
+    const params = new URLSearchParams(window.location.search);
+    const redirectPath = params.get('redirect');
+    
+    if (redirectPath) {
+      // Remove the redirect parameter from the URL
+      window.history.replaceState(null, '', redirectPath);
+    }
+    
+    // Handle redirects from 404.html (SPA GitHub Pages style)
+    const path = window.location.pathname;
+    const query = window.location.search;
+    
+    // If we're on the root with a special query parameter format
+    if (path === '/' && query.indexOf('?/') === 0) {
+      // Extract the path from the query
+      const redirectTo = query.substring(2).split('&')[0].replace(/~and~/g, '&');
+      // Replace the current URL with the extracted path
+      window.history.replaceState(null, '', '/' + redirectTo + (query.indexOf('&') !== -1 ? '?' + query.substring(query.indexOf('&') + 1).replace(/~and~/g, '&') : ''));
+    }
+  }, []);
+
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }

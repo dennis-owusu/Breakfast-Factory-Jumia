@@ -811,39 +811,50 @@ const generatePDFReport = async (data) => {
         </div>
         
         {/* Mobile Card View - Two Column Grid */}
-        <div className="sm:hidden p-4">
-          <div className="grid grid-cols-2 gap-4">
-            {sales.map((sale) => (
-              <div key={sale._id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-gray-500">Date</span>
-                    <span className="text-xs font-semibold">{formatDate(sale.date)}</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-gray-500">Amount</span>
-                    <span className="text-xs font-semibold">{formatPrice(sale.amount)}</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-gray-500">Items</span>
-                    <span className="text-xs font-semibold">{sale.items}</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-gray-500">Status</span>
+        <div className="sm:hidden p-4 overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Items
+                </th>
+                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {sales.map((sale) => (
+                <tr key={sale._id}>
+                  <td className="px-3 py-2 whitespace-nowrap text-xs">
+                    {formatDate(sale.date)}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap text-xs">
+                    {formatPrice(sale.amount)}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap text-xs">
+                    {sale.items}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
                     <Badge className={`text-xs ${
                       sale.status === 'delivered' ? 'bg-green-100 text-green-800' :
                       sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                       sale.status === 'cancelled' ? 'bg-red-100 text-red-800' :
                       'bg-gray-100 text-gray-800'
-                    }`}>{sale.status}</Badge>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                    }`}>
+                      {sale.status}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
       <div className="flex justify-between mt-4">
