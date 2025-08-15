@@ -151,7 +151,7 @@ const SubscriptionPage = () => {
       setLoading(true);
       
       // First record the payment
-      const paymentResponse = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/subscription', {
+      const paymentResponse = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

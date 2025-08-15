@@ -212,10 +212,35 @@ const SubscriptionModal = () => {
   const handlePaymentSuccess = async (reference) => {
     try {
       setLoading(true);
+      
+      // First record the payment
+      const paymentResponse = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          referenceId: reference.reference,
+          userId: currentUser._id,
+          amount: 300, // 300 GHS
+          phoneNumber: currentUser?.phoneNumber,
+          currency: 'GHS',
+          payerEmail: currentUser?.email,
+          paymentMethod: 'paystack',
+          status: 'paid',
+        }),
+      });
+      
+      if (!paymentResponse.ok) {
+        throw new Error('Failed to record payment');
+      }
+      
+      const paymentData = await paymentResponse.json();
+      
+      // Then create the subscription
       const subscriptionData = {
         userId: currentUser._id,
         plan: selectedPlan,
-        paymentId: reference.reference,
+        paymentId: paymentData.payment._id,
       };
       
       const response = await createSubscription(subscriptionData);
