@@ -12,21 +12,21 @@ import { verifyToken, verifyAdmin } from '../utils/verifyUser.js';
 const router = express.Router();
 
 // Create a new subscription
-router.post('/subscription', verifyToken, createSubscription);
+router.post('/subscription', createSubscription);
 
 // Get subscription by user ID
-router.get('/subscription/user/:userId', verifyToken, getSubscriptionByUserId);
+router.get('/subscription/user/:userId', getSubscriptionByUserId);
 
 // Cancel subscription
-router.put('/subscription/cancel/:subscriptionId', verifyToken, cancelSubscription);
+router.put('/subscription/cancel/:subscriptionId', cancelSubscription);
 
 // Renew subscription
-router.put('/subscription/renew', verifyToken, renewSubscription);
+router.put('/subscription/renew', renewSubscription);
 
 // Upgrade subscription from free to pro
-router.put('/subscription/upgrade', verifyToken, upgradeSubscription);
+router.put('/subscription/upgrade', upgradeSubscription);
 
 // Get all subscriptions (admin only)
-router.get('/subscriptions', verifyToken, verifyAdmin, getAllSubscriptions);
+router.get('/subscriptions', verifyAdmin, getAllSubscriptions);
 
 export default router;

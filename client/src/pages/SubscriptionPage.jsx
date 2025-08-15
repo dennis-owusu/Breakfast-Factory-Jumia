@@ -151,14 +151,13 @@ const SubscriptionPage = () => {
       setLoading(true);
       
       // First record the payment
-      const paymentResponse = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/payment', {
+      const paymentResponse = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           referenceId: reference.reference,
           userId: currentUser._id,
-          orderId: reference.reference, // Using reference as orderId since this isn't tied to a specific order
           amount: 300, // 300 GHS
           phoneNumber: currentUser?.phoneNumber,
           currency: 'GHS',

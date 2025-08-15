@@ -43,7 +43,7 @@ const OutletSellPage = () => {
     amount: calculateTotal() * 100,
     publicKey,
     currency: 'GHS',
-    split_code: import.meta.env.VITE_SPLIT_CODE
+    /* split_code: import.meta.env.VITE_SPLIT_CODE */
   });
 
   const triggerPaystackPayment = () => {

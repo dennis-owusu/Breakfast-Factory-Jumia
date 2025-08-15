@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const paymentSchema = new mongoose.Schema({
   referenceId: { type: String, required: true, unique: true },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true }, // Assuming outlets are users with role 'outlet'
-  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: false },
   amount: { type: Number, required: true },
   phoneNumber: {type: Number, required: false},
   currency: { type: String, default: 'GHS' },
