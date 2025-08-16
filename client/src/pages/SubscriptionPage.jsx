@@ -95,7 +95,7 @@ const SubscriptionPage = () => {
   };
 
   // Handle subscription payment
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (selectedPlan === 'free') {
       // Free plan doesn't require payment
       handleFreeSubscription();
@@ -146,6 +146,20 @@ const SubscriptionPage = () => {
   };
 
   // Handle successful payment
+  async function upgradeSubscription(subscriptionId, paymentId) {
+    try {
+      const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/subscription/upgrade', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ subscriptionId, paymentId }),
+      });
+      if (!response.ok) throw new Error('Failed to upgrade subscription');
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  }
   const handlePaymentSuccess = async (reference) => {
     try {
       setLoading(true);

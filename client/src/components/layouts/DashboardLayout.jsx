@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard, Star, RefreshCw, Menu, Clock, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard, Star, RefreshCw, Menu, Clock, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import DashboardSearch from '../DashboardSearch';
 import axios from 'axios';
@@ -14,6 +14,8 @@ const DashboardLayout = ({ children }) => {
   const [subscription, setSubscription] = useState(null);
   const [remainingTime, setRemainingTime] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobileCountdownExpanded, setIsMobileCountdownExpanded] = useState(true);
+  const [isDesktopCountdownExpanded, setIsDesktopCountdownExpanded] = useState(true);
 
   const getSidebarLinks = () => {
     if (role === 'outlet') {
@@ -146,7 +148,8 @@ const DashboardLayout = ({ children }) => {
         {/* Subscription Countdown Banner - Mobile - Always visible for better awareness */}
         {(role === 'outlet' || role === 'admin') && subscription && (
           <div className="md:hidden sticky top-16 z-10 p-3 border-t border-b border-gray-200 bg-orange-50">
-            <div className={`rounded-lg p-3 ${remainingTime?.expired ? 'bg-red-50' : remainingTime?.days < 3 ? 'bg-yellow-50' : 'bg-green-50'}`}>
+            <div className={`rounded-lg p-3 ${remainingTime?.expired ? 'bg-red-50' : remainingTime?.days < 3 ? 'bg-yellow-50' : 'bg-green-50'}`}
+        >
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
                   <Clock size={16} className={`mr-2 ${remainingTime?.expired ? 'text-red-500' : remainingTime?.days < 3 ? 'text-yellow-500' : 'text-orange-500'}`} />
@@ -154,45 +157,51 @@ const DashboardLayout = ({ children }) => {
                     {remainingTime?.expired ? 'Free Trial Expired' : 'Free Trial Remaining:'}
                   </span>
                 </div>
+                <button onClick={() => setIsMobileCountdownExpanded(!isMobileCountdownExpanded)}>
+                  {isMobileCountdownExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
                 {!remainingTime?.expired && (
                   <span className={`text-xs font-bold px-2 py-1 rounded ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                     {subscription.plan.toUpperCase()} PLAN
                   </span>
                 )}
               </div>
-              
-              {!remainingTime?.expired ? (
-                <div className="grid grid-cols-4 gap-2 text-center">
-                  <div className="bg-white p-2 rounded shadow-sm">
-                    <div className="text-xl font-bold">{remainingTime?.days}</div>
-                    <div className="text-xs text-gray-500">Days</div>
-                  </div>
-                  <div className="bg-white p-2 rounded shadow-sm">
-                    <div className="text-xl font-bold">{remainingTime?.hours}</div>
-                    <div className="text-xs text-gray-500">Hours</div>
-                  </div>
-                  <div className="bg-white p-2 rounded shadow-sm">
-                    <div className="text-xl font-bold">{remainingTime?.minutes}</div>
-                    <div className="text-xs text-gray-500">Mins</div>
-                  </div>
-                  <div className="bg-white p-2 rounded shadow-sm">
-                    <div className="text-xl font-bold">{remainingTime?.seconds}</div>
-                    <div className="text-xs text-gray-500">Secs</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-red-600">
-                    <AlertTriangle size={16} className="mr-2" />
-                    <span className="font-bold">Free Trial Expired - Payment Required</span>
-                  </div>
-                  <a 
-                    href="/subscription" 
-                    className="text-xs font-bold bg-orange-500 hover:bg-orange-600 text-white py-1 px-3 rounded-md shadow-sm transition-colors"
-                  >
-                    Subscribe Now
-                  </a>
-                </div>
+              {isMobileCountdownExpanded && (
+                <>
+                  {!remainingTime?.expired ? (
+                    <div className="grid grid-cols-4 gap-2 text-center">
+                      <div className="bg-white p-2 rounded shadow-sm">
+                        <div className="text-xl font-bold">{remainingTime?.days}</div>
+                        <div className="text-xs text-gray-500">Days</div>
+                      </div>
+                      <div className="bg-white p-2 rounded shadow-sm">
+                        <div className="text-xl font-bold">{remainingTime?.hours}</div>
+                        <div className="text-xs text-gray-500">Hours</div>
+                      </div>
+                      <div className="bg-white p-2 rounded shadow-sm">
+                        <div className="text-xl font-bold">{remainingTime?.minutes}</div>
+                        <div className="text-xs text-gray-500">Mins</div>
+                      </div>
+                      <div className="bg-white p-2 rounded shadow-sm">
+                        <div className="text-xl font-bold">{remainingTime?.seconds}</div>
+                        <div className="text-xs text-gray-500">Secs</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-red-600">
+                        <AlertTriangle size={16} className="mr-2" />
+                        <span className="font-bold">Free Trial Expired - Payment Required</span>
+                      </div>
+                      <a 
+                        href="/subscription" 
+                        className="text-xs font-bold bg-orange-500 hover:bg-orange-600 text-white py-1 px-3 rounded-md shadow-sm transition-colors"
+                      >
+                        Subscribe Now
+                      </a>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -209,40 +218,47 @@ const DashboardLayout = ({ children }) => {
             {/* Subscription Status for Desktop - Enhanced visibility */}
             {(role === 'outlet' || role === 'admin') && subscription && (
               <div className="flex items-center space-x-2 p-2 bg-orange-50 rounded-lg border border-orange-200 shadow-sm">
-                {!remainingTime?.expired ? (
-                  <div className="flex items-center space-x-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
-                    <div className="flex items-center px-2">
-                      <Clock size={16} className="mr-2 text-orange-500" />
-                      <span className="text-sm font-bold text-gray-700">FREE TRIAL REMAINING:</span>
-                    </div>
-                    <div className="flex space-x-1">
-                      <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {remainingTime?.days}d
+                <button onClick={() => setIsDesktopCountdownExpanded(!isDesktopCountdownExpanded)}>
+                  {isDesktopCountdownExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+                {isDesktopCountdownExpanded && (
+                  <>
+                    {!remainingTime?.expired ? (
+                      <div className="flex items-center space-x-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                        <div className="flex items-center px-2">
+                          <Clock size={16} className="mr-2 text-orange-500" />
+                          <span className="text-sm font-bold text-gray-700">FREE TRIAL REMAINING:</span>
+                        </div>
+                        <div className="flex space-x-1">
+                          <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                            {remainingTime?.days}d
+                          </div>
+                          <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                            {remainingTime?.hours}h
+                          </div>
+                          <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                            {remainingTime?.minutes}m
+                          </div>
+                          <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                            {remainingTime?.seconds}s
+                          </div>
+                        </div>
                       </div>
-                      <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {remainingTime?.hours}h
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center px-3 py-1 rounded-md bg-red-100 text-red-800">
+                          <AlertTriangle size={16} className="mr-2" />
+                          <span className="font-bold">Free Trial Expired - Payment Required</span>
+                        </div>
+                        <a 
+                          href="/subscription" 
+                          className="text-sm font-bold bg-orange-500 hover:bg-orange-600 text-white py-1 px-3 rounded-md shadow-sm transition-colors"
+                        >
+                          Subscribe Now
+                        </a>
                       </div>
-                      <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {remainingTime?.minutes}m
-                      </div>
-                      <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {remainingTime?.seconds}s
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center px-3 py-1 rounded-md bg-red-100 text-red-800">
-                      <AlertTriangle size={16} className="mr-2" />
-                      <span className="font-bold">Free Trial Expired - Payment Required</span>
-                    </div>
-                    <a 
-                      href="/subscription" 
-                      className="text-sm font-bold bg-orange-500 hover:bg-orange-600 text-white py-1 px-3 rounded-md shadow-sm transition-colors"
-                    >
-                      Subscribe Now
-                    </a>
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
