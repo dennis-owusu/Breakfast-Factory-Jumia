@@ -104,17 +104,17 @@ const OutletOrders = () => {
   const getStatusBadgeColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200';
       case 'processing':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200';
       case 'shipped':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-200';
       case 'delivered':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
 
@@ -304,14 +304,14 @@ const OutletOrders = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="md:flex md:items-center md:justify-between mb-6">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            <h1 className="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:text-3xl sm:truncate">
               Orders
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Manage your outlet's orders
             </p>
           </div>
@@ -319,10 +319,10 @@ const OutletOrders = () => {
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-500/50 p-4 mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-5 w-5 text-red-500 dark:text-red-400" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -331,28 +331,28 @@ const OutletOrders = () => {
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
+                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Search and Filters */}
-        <div className="bg-white shadow rounded-lg mb-6">
-          <div className="p-4 border-b border-gray-200">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               {/* Search */}
               <div className="w-full md:w-1/2">
                 <form onSubmit={handleSearch} className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
+                    <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <Input
                     type="text"
                     placeholder="Search by order number or customer..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
                   />
                   <button type="submit" className="hidden">Search</button>
                 </form>
@@ -363,7 +363,7 @@ const OutletOrders = () => {
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                 >
                   <Filter className="-ml-0.5 mr-2 h-4 w-4" />
                   Filters
@@ -378,7 +378,7 @@ const OutletOrders = () => {
                       setSearchInput('');
                       setPagination({ ...pagination, page: 1 });
                     }}
-                    className="ml-3 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    className="ml-3 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     Clear Filters
                   </Button>
@@ -390,17 +390,17 @@ const OutletOrders = () => {
             {showFilters && (
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Order Status
                   </label>
                   <Select
                     value={filters.status}
                     onValueChange={(value) => handleFilterChange({ target: { name: 'status', value } })}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                       <SelectValue placeholder="Select a status" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                       <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="processing">Processing</SelectItem>
@@ -412,17 +412,17 @@ const OutletOrders = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="dateRange" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="dateRange" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Date Range
                   </label>
                   <Select
                     value={filters.dateRange}
                     onValueChange={(value) => handleFilterChange({ target: { name: 'dateRange', value } })}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                       <SelectValue placeholder="Select a date range" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                       <SelectItem value="all">All Time</SelectItem>
                       <SelectItem value="today">Today</SelectItem>
                       <SelectItem value="yesterday">Yesterday</SelectItem>
@@ -437,7 +437,7 @@ const OutletOrders = () => {
         </div>
 
         {/* Orders Table */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
           {isLoading ? (
             <div className="p-6 flex justify-center">
               <Loader size="md" />
@@ -445,7 +445,7 @@ const OutletOrders = () => {
           ) : orders.length === 0 ? (
             <div className="p-6 text-center">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -459,8 +459,8 @@ const OutletOrders = () => {
                   d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
                 />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No orders found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No orders found</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {searchInput || filters.status !== 'all' || filters.dateRange
                   ? 'Try adjusting your search or filter criteria.'
                   : 'You have no orders yet.'}
@@ -468,36 +468,36 @@ const OutletOrders = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                     >
                       Order
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                     >
                       Customer
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                     >
                       Date
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                     >
                       Status
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                     >
                       Total
                     </th>
@@ -506,11 +506,11 @@ const OutletOrders = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {[...orders]
                     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                     .map((order) => (
-                      <tr key={order._id}>
+                      <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
@@ -524,10 +524,10 @@ const OutletOrders = () => {
                               />
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                 {order.orderNumber || order._id || 'N/A'}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
                                 {order.products?.length || 0}{' '}
                                 {order.products?.length === 1 ? 'item' : 'items'}
                               </div>
@@ -535,13 +535,13 @@ const OutletOrders = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {order.user?.name || order.userInfo?.name || 'Unknown'}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {order.user?.email || order.userInfo?.email || 'No email'}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {order.user?.phoneNumber ||
                               order.userInfo?.phoneNumber ||
                               order.phoneNumber ||
@@ -549,7 +549,7 @@ const OutletOrders = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-gray-900 dark:text-gray-100">
                             {order.createdAt ? formatDate(order.createdAt) : 'N/A'}
                           </div>
                         </td>
@@ -576,12 +576,7 @@ const OutletOrders = () => {
                                   throw new Error(`HTTP error ${response.status}`);
                                 }
                                 const result = await response.json();
-                                if (result.success) {
-                                  setOrders((prevOrders) =>
-                                    prevOrders.map((o) =>
-                                      o._id === order._id ? { ...o, status: value } : o
-                                    )
-                                  );
+                                if (!result.success) {
                                   toast.success('Order status updated');
                                 }
                               } catch (err) {
@@ -591,13 +586,11 @@ const OutletOrders = () => {
                             }}
                           >
                             <SelectTrigger
-                              className={`text-xs font-semibold rounded-full border-none focus:ring-2 focus:ring-orange-500 ${getStatusBadgeColor(
-                                order.status
-                              )}`}
+                              className={`text-xs font-semibold rounded-full border-none focus:ring-2 focus:ring-orange-500 ${getStatusBadgeColor(order.status)}`}
                             >
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                               <SelectItem value="pending">Pending</SelectItem>
                               <SelectItem value="processing">Processing</SelectItem>
                               <SelectItem value="shipped">Shipped</SelectItem>
@@ -606,14 +599,14 @@ const OutletOrders = () => {
                             </SelectContent>
                           </Select>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           {order.totalPrice ? formatPrice(order.totalPrice) : 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end space-x-2">
                             <Link
                               to={`/outlet/orders/${order._id}`}
-                              className="text-orange-500 hover:text-orange-600"
+                              className="text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-500"
                             >
                               <Eye className="h-5 w-5" />
                             </Link>
@@ -635,10 +628,10 @@ const OutletOrders = () => {
           )}
           {/* Pagination */}
           {pagination.totalPages > 1 && (
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
                     Showing{' '}
                     <span className="font-medium">
                       {(pagination.page - 1) * pagination.limit + 1}
@@ -659,10 +652,10 @@ const OutletOrders = () => {
                       variant="outline"
                       onClick={() => handlePageChange(pagination.page - 1)}
                       disabled={pagination.page === 1}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium ${
                         pagination.page === 1
-                          ? 'text-gray-300 cursor-not-allowed'
-                          : 'text-gray-500 hover:bg-gray-50'
+                          ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
                       }`}
                     >
                       <span className="sr-only">Previous</span>
@@ -676,8 +669,8 @@ const OutletOrders = () => {
                           onClick={() => handlePageChange(page)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                             pagination.page === page
-                              ? 'z-10 bg-orange-50 border-orange-500 text-orange-600'
-                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              ? 'z-10 bg-orange-50 dark:bg-orange-900/20 border-orange-500 text-orange-600 dark:text-orange-300'
+                              : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
                           }`}
                         >
                           {page}
@@ -688,10 +681,10 @@ const OutletOrders = () => {
                       variant="outline"
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={pagination.page === pagination.totalPages}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium ${
                         pagination.page === pagination.totalPages
-                          ? 'text-gray-300 cursor-not-allowed'
-                          : 'text-gray-500 hover:bg-gray-50'
+                          ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
                       }`}
                     >
                       <span className="sr-only">Next</span>
@@ -707,15 +700,15 @@ const OutletOrders = () => {
                   variant="outline"
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1}
-                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md ${
                     pagination.page === 1
-                      ? 'text-gray-300 bg-gray-50 cursor-not-allowed'
-                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                      ? 'text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 cursor-not-allowed'
+                      : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600'
                   }`}
                 >
                   Previous
                 </Button>
-                <div className="text-sm text-gray-700">
+                <div className="text-sm text-gray-700 dark:text-gray-300">
                   Page <span className="font-medium">{pagination.page}</span> of{' '}
                   <span className="font-medium">{pagination.totalPages}</span>
                 </div>
@@ -723,10 +716,10 @@ const OutletOrders = () => {
                   variant="outline"
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
-                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md ${
                     pagination.page === pagination.totalPages
-                      ? 'text-gray-300 bg-gray-50 cursor-not-allowed'
-                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                      ? 'text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 cursor-not-allowed'
+                      : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600'
                   }`}
                 >
                   Next
@@ -738,10 +731,10 @@ const OutletOrders = () => {
 
         {/* Delete Confirmation Modal */}
         {isDeleteModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
-              <p className="text-sm text-gray-500 mb-6">
+          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Confirm Delete</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                 Are you sure you want to delete order{' '}
                 <span className="font-medium">{orderToDelete?._id || 'N/A'}</span>? This action
                 cannot be undone.
@@ -750,13 +743,13 @@ const OutletOrders = () => {
                 <Button
                   onClick={cancelDelete}
                   variant="outline"
-                  className="border-gray-300 text-gray-700"
+                  className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={confirmDelete}
-                  className="bg-red-600 hover:bg-red-700 text-white"
+                  className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white"
                 >
                   Delete
                 </Button>

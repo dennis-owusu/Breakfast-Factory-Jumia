@@ -161,19 +161,19 @@ const handleDeleteProduct = async (productId) => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Manage Products</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Manage Products</h1>
         <Button
           onClick={() => navigate('/outlet/product/new')}
-          className="bg-orange-500 text-white"
+          className="bg-orange-500 text-white hover:bg-orange-600"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add New Product
         </Button>
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="relative">
             <Input
@@ -181,16 +181,16 @@ const handleDeleteProduct = async (productId) => {
               placeholder="Search products..."
               value={searchTerm}
               onChange={handleSearch}
-              className="pl-10"
+              className="pl-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           </div>
 
           <Select value={categoryFilter} onValueChange={handleCategoryFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
               <SelectValue placeholder="Filter by category" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map((
                 category) => (
@@ -202,10 +202,10 @@ const handleDeleteProduct = async (productId) => {
           </Select>
 
           <Select value={sortBy} onValueChange={handleSortChange}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
               <SelectItem value="newest">Newest</SelectItem>
               <SelectItem value="oldest">Oldest</SelectItem>
               <SelectItem value="price-asc">Price: Low to High</SelectItem>
@@ -219,7 +219,7 @@ const handleDeleteProduct = async (productId) => {
             </SelectContent>
           </Select>
 
-          <Button onClick={handleClearFilters} variant="outline" className="w-full">
+          <Button onClick={handleClearFilters} variant="outline" className="w-full border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             Clear Filters
           </Button>
         </div>
@@ -232,10 +232,10 @@ const handleDeleteProduct = async (productId) => {
       ) : products.length > 0 ? (
         <div>
           {/* Responsive Table for Medium and Large Screens */}
-          <div className="hidden sm:block bg-white p-4 rounded-lg shadow overflow-x-auto">
+          <div className="hidden sm:block bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-md overflow-x-auto">
             <table className="w-full table-auto">
               <thead>
-                <tr className="bg-gray-50 text-left text-sm font-medium text-gray-600 uppercase">
+                <tr className="bg-gray-50 dark:bg-gray-700 text-left text-sm font-medium text-gray-600 dark:text-gray-300 uppercase">
                   <th className="p-3">Product</th>
                   <th className="p-3">Category</th>
                   <th className="p-3">Price</th>
@@ -245,7 +245,7 @@ const handleDeleteProduct = async (productId) => {
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product._id} className="border-t hover:bg-gray-50">
+                  <tr key={product._id} className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="p-3">
                       <div className="flex items-center gap-2 w-full">
                         <img
@@ -254,21 +254,22 @@ const handleDeleteProduct = async (productId) => {
                           className="h-10 w-10 rounded object-cover"
                         />
                         <div>
-                          <p className="text-sm font-semibold">{product.productName}</p>
-                          <p className="text-xs text-gray-500 truncate max-w-xs">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{product.productName}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
                             {product.description || 'No description'}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="p-3 text-sm">{product.category?.categoryName || product.category || 'Uncategorized'}</td>
-                    <td className="p-3 text-sm">₵{product.productPrice.toFixed(2)}</td>
-                    <td className="p-3 text-sm">{product.numberOfProductsAvailable}</td>
+                    <td className="p-3 text-sm text-gray-900 dark:text-gray-100">{product.category?.categoryName || product.category || 'Uncategorized'}</td>
+                    <td className="p-3 text-sm text-gray-900 dark:text-gray-100">₵{product.productPrice.toFixed(2)}</td>
+                    <td className="p-3 text-sm text-gray-900 dark:text-gray-100">{product.numberOfProductsAvailable}</td>
                     <td className="p-3 flex justify-end gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => navigate(`/outlet/product/${product._id}`)}
+                        className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -276,6 +277,7 @@ const handleDeleteProduct = async (productId) => {
                         variant="outline"
                         size="sm"
                         onClick={() => navigate(`/outlet/product/${product._id}/edit`)}
+                        className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -283,8 +285,9 @@ const handleDeleteProduct = async (productId) => {
                         variant="outline"
                         size="sm"
                         onClick={() => navigate(`/outlet/restock?productId=${product._id}&quantity=${product.numberOfProductsAvailable}`)}
+                        className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
-                        <RefreshCw className="h-4 w-4 text-green-500" />
+                        <RefreshCw className="h-4 w-4 text-green-500 dark:text-green-400" />
                       </Button>
                       <Button
                         variant="outline"
@@ -293,8 +296,9 @@ const handleDeleteProduct = async (productId) => {
                           setIsDeleteModalOpen(true);
                           setProductToDelete(product);
                         }}
+                        className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
-                        <Trash2 className="h-4 w-4 text-red-500"/>
+                        <Trash2 className="h-4 w-4 text-red-500 dark:text-red-400"/>
                       </Button>
                     </td>
                   </tr>
@@ -304,10 +308,10 @@ const handleDeleteProduct = async (productId) => {
           </div>
           
           {/* Mobile Table View */}
-          <div className="sm:hidden bg-white p-4 rounded-lg shadow overflow-x-auto">
+          <div className="sm:hidden bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-md overflow-x-auto">
             <table className="w-full table-auto">
               <thead>
-                <tr className="bg-gray-50 text-left text-xs font-medium text-gray-600 uppercase">
+                <tr className="bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase">
                   <th className="p-2">Product</th>
                   <th className="p-2">Category</th>
                   <th className="p-2">Price</th>
@@ -317,7 +321,7 @@ const handleDeleteProduct = async (productId) => {
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product._id} className="border-t hover:bg-gray-50">
+                  <tr key={product._id} className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="p-2">
                       <div className="flex items-center gap-2">
                         <img
@@ -326,22 +330,23 @@ const handleDeleteProduct = async (productId) => {
                           className="h-8 w-8 rounded object-cover"
                         />
                         <div>
-                          <p className="text-xs font-semibold">{product.productName}</p>
-                          <p className="text-xs text-gray-500 truncate max-w-[100px]">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">{product.productName}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[100px]">
                             {product.description || 'No description'}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="p-2 text-xs">{product.category?.categoryName || product.category || 'Uncategorized'}</td>
-                    <td className="p-2 text-xs">₵{product.productPrice.toFixed(2)}</td>
-                    <td className="p-2 text-xs">{product.numberOfProductsAvailable}</td>
+                    <td className="p-2 text-xs text-gray-900 dark:text-gray-100">{product.category?.categoryName || product.category || 'Uncategorized'}</td>
+                    <td className="p-2 text-xs text-gray-900 dark:text-gray-100">₵{product.productPrice.toFixed(2)}</td>
+                    <td className="p-2 text-xs text-gray-900 dark:text-gray-100">{product.numberOfProductsAvailable}</td>
                     <td className="p-2">
                       <div className="flex justify-end gap-1">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => navigate(`/outlet/product/${product._id}`)}
+                          className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <Eye className="h-3 w-3" />
                         </Button>
@@ -349,6 +354,7 @@ const handleDeleteProduct = async (productId) => {
                           variant="outline"
                           size="sm"
                           onClick={() => navigate(`/outlet/product/${product._id}/edit`)}
+                          className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
@@ -356,8 +362,9 @@ const handleDeleteProduct = async (productId) => {
                           variant="outline"
                           size="sm"
                           onClick={() => navigate(`/outlet/restock?productId=${product._id}&quantity=${product.numberOfProductsAvailable}`)}
+                          className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
-                          <RefreshCw className="h-3 w-3 text-green-500" />
+                          <RefreshCw className="h-3 w-3 text-green-500 dark:text-green-400" />
                         </Button>
                         <Button
                           variant="outline"
@@ -366,8 +373,9 @@ const handleDeleteProduct = async (productId) => {
                             setIsDeleteModalOpen(true);
                             setProductToDelete(product);
                           }}
+                          className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
-                          <Trash2 className="h-3 w-3 text-red-500"/>
+                          <Trash2 className="h-3 w-3 text-red-500 dark:text-red-400"/>
                         </Button>
                       </div>
                     </td>
@@ -378,7 +386,7 @@ const handleDeleteProduct = async (productId) => {
           </div>
         </div>
       ) : (
-        <div className="text-center py-10 text-gray-500">
+        <div className="text-center py-10 text-gray-500 dark:text-gray-400">
           <ShoppingBag className="mx-auto h-12 w-12 mb-2" />
           <p>No products found. Add your first product to get started.</p>
         </div>
@@ -388,8 +396,8 @@ const handleDeleteProduct = async (productId) => {
       {totalPages > 1 && (
         <div className="mt-6">
           {/* Desktop Pagination */}
-          <div className="hidden md:flex justify-between items-center bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-500">
+          <div className="hidden md:flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-md">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalProducts)} of {totalProducts} products
             </div>
             <div className="flex space-x-2">
@@ -398,6 +406,7 @@ const handleDeleteProduct = async (productId) => {
                 size="sm" 
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Previous
               </Button>
@@ -420,7 +429,7 @@ const handleDeleteProduct = async (productId) => {
                     variant={currentPage === pageNum ? "default" : "outline"}
                     size="sm"
                     onClick={() => setCurrentPage(pageNum)}
-                    className={currentPage === pageNum ? "bg-orange-500" : ""}
+                    className={currentPage === pageNum ? "bg-orange-500 text-white hover:bg-orange-600" : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}
                   >
                     {pageNum}
                   </Button>
@@ -431,6 +440,7 @@ const handleDeleteProduct = async (productId) => {
                 size="sm" 
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Next
               </Button>
@@ -438,8 +448,8 @@ const handleDeleteProduct = async (productId) => {
           </div>
 
           {/* Mobile Pagination */}
-          <div className="md:hidden bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-500 text-center mb-3">
+          <div className="md:hidden bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-md">
+            <div className="text-sm text-gray-500 dark:text-gray-400 text-center mb-3">
               Page {currentPage} of {totalPages}
             </div>
             <div className="flex justify-center space-x-3">
@@ -448,7 +458,7 @@ const handleDeleteProduct = async (productId) => {
                 size="sm" 
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="flex-1"
+                className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Previous
               </Button>
@@ -457,7 +467,7 @@ const handleDeleteProduct = async (productId) => {
                 size="sm" 
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="flex-1"
+                className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Next
               </Button>
@@ -468,10 +478,10 @@ const handleDeleteProduct = async (productId) => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && productToDelete && (
-        <div className="fixed inset-0 bg-black/80 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-            <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
-            <p className="mb-4">Are you sure you want to delete "{productToDelete.productName}"? This action cannot be undone.</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-md w-full max-w-sm">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Confirm Deletion</h2>
+            <p className="mb-4 text-gray-700 dark:text-gray-300">Are you sure you want to delete "{productToDelete.productName}"? This action cannot be undone.</p>
             <div className="flex justify-end gap-3">
               <Button
                 variant="outline"
@@ -479,12 +489,14 @@ const handleDeleteProduct = async (productId) => {
                   setIsDeleteModalOpen(false);
                   setProductToDelete(null);
                 }}
+                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => handleDeleteProduct(productToDelete._id)}
+                className="bg-red-500 hover:bg-red-600 text-white"
               >
                 Delete
               </Button>

@@ -422,7 +422,7 @@ const OutletSellPage = () => {
         <div className="lg:col-span-2">
           <div className="mb-6">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
               <Input
                 type="text"
                 placeholder="Search products..."
@@ -449,43 +449,43 @@ const OutletSellPage = () => {
       
       {/* Mobile Cart Modal */}
       {isCartModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center lg:hidden">
-          <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto m-4">
-            <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center lg:hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto m-4 text-gray-900 dark:text-gray-100">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 p-4 border-b dark:border-gray-700 flex justify-between items-center">
               <h2 className="text-xl font-bold flex items-center text-gray-900 dark:text-gray-100">
                 <ShoppingCart className="mr-2" />
                 Cart ({cart.length})
               </h2>
               <Button variant="ghost" size="icon" onClick={() => setIsCartModalOpen(false)}>
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </Button>
             </div>
             
             <div className="p-4">
               {cart.length === 0 ? (
-                <p className="text-center text-gray-500 py-4">Cart is empty</p>
+                <p className="text-center text-gray-500 dark:text-gray-400 py-4">Cart is empty</p>
               ) : (
                 <div className="space-y-4">
                   {cart.map((item) => (
-                    <div key={item._id} className="flex justify-between items-center border-b pb-3">
+                    <div key={item._id} className="flex justify-between items-center border-b dark:border-gray-700 pb-3">
                       <div>
-                        <h3 className="font-medium">{item.productName}</h3>
-                        <p className="text-sm text-gray-600">{formatPrice(item.productPrice)} × {item.quantity}</p>
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100">{item.productName}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{formatPrice(item.productPrice)} × {item.quantity}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-8 w-8 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
                           onClick={() => updateQuantity(item._id, item.quantity - 1)}
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
+                        <span className="w-8 text-center text-gray-900 dark:text-gray-100">{item.quantity}</span>
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-8 w-8 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
                           onClick={() => updateQuantity(item._id, item.quantity + 1)}
                         >
                           <Plus className="h-4 w-4" />
@@ -493,7 +493,7 @@ const OutletSellPage = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-red-500"
+                          className="h-8 w-8 text-red-500 dark:text-red-400"
                           onClick={() => removeFromCart(item._id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -506,22 +506,23 @@ const OutletSellPage = () => {
               
               {/* Customer Information */}
               <div className="mt-6 space-y-4">
-                <h3 className="font-semibold">Customer Information (Optional)</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Information (Optional)</h3>
                 <Input
                   placeholder="Customer Name"
                   name="name"
                   value={customerInfo.name}
                   onChange={handleCustomerInfoChange}
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                 />
                 <Input
                   placeholder="Phone Number"
                   name="phoneNumber"
                   value={customerInfo.phoneNumber}
                   onChange={handleCustomerInfoChange}
-                  className={paymentMethod === 'mtnMomo' ? 'border-orange-500' : ''}
+                  className={`bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 ${paymentMethod === 'mtnMomo' ? 'border-orange-500 dark:border-orange-400' : ''}`}
                 />
                 {paymentMethod === 'mtnMomo' && (
-                  <p className="text-xs text-orange-600">* Required for MTN Mobile Money payment</p>
+                  <p className="text-xs text-orange-600 dark:text-orange-400">* Required for MTN Mobile Money payment</p>
                 )}
                 <Input
                   placeholder="Email"
@@ -529,23 +530,24 @@ const OutletSellPage = () => {
                   type="email"
                   defaultValue={customerInfo.email ? customerInfo.email : currentUser.email}
                   onChange={handleCustomerInfoChange}
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                 />
               </div>
               
               {/* Payment Method */}
               <div className="mt-6 space-y-4">
-                <h3 className="font-semibold">Payment Method</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Payment Method</h3>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="paystack" id="paystack-mobile" />
-                    <Label htmlFor="paystack-mobile" className="flex items-center">
+                    <Label htmlFor="paystack-mobile" className="flex items-center text-gray-900 dark:text-gray-100">
                       <CreditCard className="mr-2 h-4 w-4" /> Mobile Money
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="cashOnDelivery" id="cashOnDelivery-mobile" />
-                    <Label htmlFor="cashOnDelivery-mobile" className="flex items-center">
-                      <CreditCard className="mr-2 h-4 w-4 text-gray-500" />
+                    <Label htmlFor="cashOnDelivery-mobile" className="flex items-center text-gray-900 dark:text-gray-100">
+                      <CreditCard className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
                       Cash Payment
                     </Label>
                   </div>
@@ -553,17 +555,17 @@ const OutletSellPage = () => {
               </div>
               
               {/* Order Summary */}
-              <div className="mt-6 pt-4 border-t">
+              <div className="mt-6 pt-4 border-t dark:border-gray-700">
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
                     <span>Subtotal:</span>
                     <span>{formatPrice(calculateSubtotal())}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
                     <span>Processing Fee (2%):</span>
                     <span>{formatPrice(calculateFee())}</span>
                   </div>
-                  <div className="flex justify-between font-semibold text-lg pt-2 border-t">
+                  <div className="flex justify-between font-semibold text-lg pt-2 border-t dark:border-gray-700 text-gray-900 dark:text-gray-100">
                     <span>Total:</span>
                     <span>{formatPrice(calculateTotal())}</span>
                   </div>
@@ -595,7 +597,7 @@ const OutletSellPage = () => {
           
           {filteredProducts.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">No products found</p>
+              <p className="text-gray-500 dark:text-gray-400">No products found</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -610,7 +612,7 @@ const OutletSellPage = () => {
                   </div>
                   <CardHeader className="p-4">
                     <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{product.productName}</CardTitle>
-                    <p className="font-semibold text-orange-600">{formatPrice(product.productPrice)}</p>
+                    <p className="font-semibold text-orange-600 dark:text-orange-500">{formatPrice(product.productPrice)}</p>
                   </CardHeader>
                   <CardFooter className="p-4 pt-0">
                     <Button 
@@ -628,38 +630,38 @@ const OutletSellPage = () => {
         
         {/* Cart Section - Desktop */}
         <div className="hidden lg:block">
-          <Card>
+          <Card className="bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700">
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
                 <ShoppingCart className="mr-2" />
                 Cart ({cart.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               {cart.length === 0 ? (
-                <p className="text-center text-gray-500 py-4">Cart is empty</p>
+                <p className="text-center text-gray-500 dark:text-gray-400 py-4">Cart is empty</p>
               ) : (
                 <div className="space-y-4">
                   {cart.map((item) => (
-                    <div key={item._id} className="flex justify-between items-center border-b pb-3">
+                    <div key={item._id} className="flex justify-between items-center border-b dark:border-gray-700 pb-3">
                       <div>
-                        <h3 className="font-medium">{item.productName}</h3>
-                        <p className="text-sm text-gray-600">{formatPrice(item.productPrice)} × {item.quantity}</p>
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100">{item.productName}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{formatPrice(item.productPrice)} × {item.quantity}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-8 w-8 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
                           onClick={() => updateQuantity(item._id, item.quantity - 1)}
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
+                        <span className="w-8 text-center text-gray-900 dark:text-gray-100">{item.quantity}</span>
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-8 w-8 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
                           onClick={() => updateQuantity(item._id, item.quantity + 1)}
                         >
                           <Plus className="h-4 w-4" />
@@ -667,7 +669,7 @@ const OutletSellPage = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-red-500"
+                          className="h-8 w-8 text-red-500 dark:text-red-400"
                           onClick={() => removeFromCart(item._id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -680,22 +682,23 @@ const OutletSellPage = () => {
               
               {/* Customer Information */}
               <div className="mt-6 space-y-4">
-                <h3 className="font-semibold">Customer Information (Optional)</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Information (Optional)</h3>
                 <Input
                   placeholder="Customer Name"
                   name="name"
                   value={customerInfo.name}
                   onChange={handleCustomerInfoChange}
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                 />
                 <Input
                   placeholder="Phone Number"
                   name="phoneNumber"
                   value={customerInfo.phoneNumber}
                   onChange={handleCustomerInfoChange}
-                  className={paymentMethod === 'mtnMomo' ? 'border-orange-500' : ''}
+                  className={`bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 ${paymentMethod === 'mtnMomo' ? 'border-orange-500 dark:border-orange-400' : ''}`}
                 />
                 {paymentMethod === 'mtnMomo' && (
-                  <p className="text-xs text-orange-600">* Required for MTN Mobile Money payment</p>
+                  <p className="text-xs text-orange-600 dark:text-orange-400">* Required for MTN Mobile Money payment</p>
                 )}
                 <Input
                   placeholder="Email"
@@ -703,23 +706,24 @@ const OutletSellPage = () => {
                   type="email"
                   defaultValue={customerInfo.email ? customerInfo.email : currentUser.email}
                   onChange={handleCustomerInfoChange}
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                 />
               </div>
               
               {/* Payment Method */}
               <div className="mt-6 space-y-4">
-                <h3 className="font-semibold">Payment Method</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Payment Method</h3>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="paystack" id="paystack" />
-                    <Label htmlFor="paystack" className="flex items-center">
+                    <Label htmlFor="paystack" className="flex items-center text-gray-900 dark:text-gray-100">
                       <CreditCard className="mr-2 h-4 w-4" /> Mobile Money
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="cashOnDelivery" id="cashOnDelivery" />
-                    <Label htmlFor="cashOnDelivery" className="flex items-center">
-                      <CreditCard className="mr-2 h-4 w-4 text-gray-500" />
+                    <Label htmlFor="cashOnDelivery" className="flex items-center text-gray-900 dark:text-gray-100">
+                      <CreditCard className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
                       Cash Payment
                     </Label>
                   </div>
@@ -734,17 +738,17 @@ const OutletSellPage = () => {
               </div>
               
               {/* Order Summary */}
-              <div className="mt-6 pt-4 border-t">
+              <div className="mt-6 pt-4 border-t dark:border-gray-700">
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
                     <span>Subtotal:</span>
                     <span>{formatPrice(calculateSubtotal())}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
                     <span>Processing Fee (2%):</span>
                     <span>{formatPrice(calculateFee())}</span>
                   </div>
-                  <div className="flex justify-between font-semibold text-lg pt-2 border-t">
+                  <div className="flex justify-between font-semibold text-lg pt-2 border-t dark:border-gray-700 text-gray-900 dark:text-gray-100">
                     <span>Total:</span>
                     <span>{formatPrice(calculateTotal())}</span>
                   </div>

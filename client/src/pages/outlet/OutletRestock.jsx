@@ -111,34 +111,34 @@ const OutletRestock = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200';
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200';
     }
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Restock Management</h1>
+    <div className="p-6 max-w-7xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-gray-100">Restock Management</h1>
 
       {/* Restock Request Form */}
-      <Card className="mb-8">
+      <Card className="mb-8 bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700">
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <h2 className="text-xl font-semibold mb-4">Create Restock Request</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Create Restock Request</h2>
           
           <div className="space-y-2">
-            <label className="block font-medium">Current Stock</label>
+            <label className="block font-medium text-gray-700 dark:text-gray-300">Current Stock</label>
             <Input
               value={formData.currentQuantity}
               disabled
-              className="bg-gray-50"
+              className="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="requestedQuantity" className="block font-medium">Add Quantity</label>
+            <label htmlFor="requestedQuantity" className="block font-medium text-gray-700 dark:text-gray-300">Add Quantity</label>
             <Input
               id="requestedQuantity"
               name="requestedQuantity"
@@ -148,34 +148,35 @@ const OutletRestock = () => {
               onChange={handleChange}
               required
               placeholder="Enter quantity to add"
+              className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
             />
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading} className="flex-1">
+            <Button type="submit" disabled={loading} className="flex-1 bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-800">
               {loading ? 'Submitting...' : 'Submit Request'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => navigate('/outlet/products')}>
+            <Button type="button" variant="outline" onClick={() => navigate('/outlet/products')} className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
               Cancel
             </Button>
           </div>
 
           {error && (
-            <p className="text-red-500 mt-2">{error}</p>
+            <p className="text-red-500 dark:text-red-400 mt-2">{error}</p>
           )}
 
           {success && (
-            <p className="text-green-500 mt-2">Restock request created successfully!</p>
+            <p className="text-green-500 dark:text-green-400 mt-2">Restock request created successfully!</p>
           )}
         </form>
       </Card>
 
       {/* Restock Requests List */}
-      <Card className="mt-8">
+      <Card className="mt-8 bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Your Restock Requests</h2>
-            <Button variant="ghost" onClick={() => setShowFilters(!showFilters)}>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Your Restock Requests</h2>
+            <Button variant="ghost" onClick={() => setShowFilters(!showFilters)} className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
               <Filter className="h-4 w-4" />
             </Button>
           </div>
@@ -183,20 +184,20 @@ const OutletRestock = () => {
           {showFilters && (
             <div className="mb-4 space-y-4">
               <div className="flex items-center space-x-2">
-                <Search className="h-4 w-4 text-gray-500" />
+                <Search className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                 <Input
                   placeholder="Search requests..."
                   value={searchTerm}
                   onChange={handleSearch}
-                  className="flex-1"
+                  className="flex-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
@@ -204,10 +205,10 @@ const OutletRestock = () => {
                   </SelectContent>
                 </Select>
                 <Select value={filters.dateRange} onValueChange={(value) => handleFilterChange('dateRange', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                     <SelectValue placeholder="Date Range" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
                     <SelectItem value="all">All Time</SelectItem>
                     <SelectItem value="today">Today</SelectItem>
                     <SelectItem value="thisWeek">This Week</SelectItem>
@@ -215,7 +216,7 @@ const OutletRestock = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button variant="outline" onClick={clearAllFilters} className="w-full">
+              <Button variant="outline" onClick={clearAllFilters} className="w-full border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <X className="h-4 w-4 mr-2" />
                 Clear Filters
               </Button>
@@ -223,39 +224,39 @@ const OutletRestock = () => {
           )}
 
           {loading ? (
-            <p>Loading requests...</p>
+            <p className="text-gray-700 dark:text-gray-300">Loading requests...</p>
           ) : requests.length === 0 ? (
-            <p>No restock requests found.</p>
+            <p className="text-gray-700 dark:text-gray-300">No restock requests found.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4">Product</th>
-                    <th className="text-left py-3 px-4">Outlet</th>
-                    <th className="text-left py-3 px-4">Requested Qty</th>
-                    <th className="text-left py-3 px-4">Current Qty</th>
-                    <th className="text-left py-3 px-4">Status</th>
-                    <th className="text-left py-3 px-4">Date</th>
-                    <th className="text-left py-3 px-4">Admin Note</th>
+                  <tr className="border-b dark:border-gray-700">
+                    <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400">Product</th>
+                    <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400">Outlet</th>
+                    <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400">Requested Qty</th>
+                    <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400">Current Qty</th>
+                    <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400">Status</th>
+                    <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400">Date</th>
+                    <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400">Admin Note</th>
                   </tr>
                 </thead>
                 <tbody>
                   {requests.map((request) => (
-                    <tr key={request._id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">{request.product?.productName || 'N/A'}</td>
-                      <td className="py-3 px-4">{request.outlet?.storeName || request.outlet?.name || request.outlet?.email || 'Unknown Outlet'}</td>
-                      <td className="py-3 px-4">{request.requestedQuantity}</td>
-                      <td className="py-3 px-4">{request.currentQuantity}</td>
+                    <tr key={request._id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{request.product?.productName || 'N/A'}</td>
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{request.outlet?.storeName || request.outlet?.name || request.outlet?.email || 'Unknown Outlet'}</td>
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{request.requestedQuantity}</td>
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{request.currentQuantity}</td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded text-sm ${getStatusColor(request.status)}`}>
                           {request.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">
                         {new Date(request.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-4">{request.adminNote || '-'}</td>
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{request.adminNote || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -264,9 +265,13 @@ const OutletRestock = () => {
           )}
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
-              <Button onClick={() => handlePageChange(-1)} disabled={pagination.page === 1}>Previous</Button>
-              <span>Page {pagination.page} of {pagination.totalPages}</span>
-              <Button onClick={() => handlePageChange(1)} disabled={pagination.page === pagination.totalPages}>Next</Button>
+              <Button onClick={() => handlePageChange(-1)} disabled={pagination.page === 1} className="bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-800">
+                Previous
+              </Button>
+              <span className="text-gray-700 dark:text-gray-300">Page {pagination.page} of {pagination.totalPages}</span>
+              <Button onClick={() => handlePageChange(1)} disabled={pagination.page === pagination.totalPages} className="bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-800">
+                Next
+              </Button>
             </div>
           )}
         </div>

@@ -123,7 +123,7 @@ const DashboardLayout = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Sidebar 
         links={getSidebarLinks()} 
         title={getTitle()} 
@@ -132,11 +132,11 @@ const DashboardLayout = ({ children }) => {
       />
       <div className="flex-1 overflow-auto md:pl-64 transition-all duration-300 dark:bg-gray-900">
         {/* Mobile Header */}
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 md:hidden p-4 shadow-sm flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 md:hidden p-4 shadow-sm dark:shadow-gray-900/20 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
-              className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 transition-colors duration-200"
             >
               <Menu size={24} />
             </button>
@@ -147,55 +147,77 @@ const DashboardLayout = ({ children }) => {
 
         {/* Subscription Countdown Banner - Mobile - Always visible for better awareness */}
         {(role === 'outlet' || role === 'admin') && subscription && (
-          <div className="md:hidden sticky top-16 z-10 p-3 border-t border-b border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900">
-            <div className={`rounded-lg p-3 ${remainingTime?.expired ? 'bg-red-50' : remainingTime?.days < 3 ? 'bg-yellow-50' : 'bg-green-50'}`}
-        >
+          <div className="md:hidden sticky top-16 z-10 p-3 border-t border-b border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900/30 transition-colors duration-200">
+            <div className={`rounded-lg p-3 transition-colors duration-200 ${
+              remainingTime?.expired 
+                ? 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800' 
+                : remainingTime?.days < 3 
+                  ? 'bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800' 
+                  : 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800'
+            }`}>
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
-                  <Clock size={16} className={`mr-2 ${remainingTime?.expired ? 'text-red-500' : remainingTime?.days < 3 ? 'text-yellow-500' : 'text-orange-500'}`} />
-                  <span className="font-bold text-gray-800">
+                  <Clock size={16} className={`mr-2 ${
+                    remainingTime?.expired 
+                      ? 'text-red-500 dark:text-red-400' 
+                      : remainingTime?.days < 3 
+                        ? 'text-yellow-500 dark:text-yellow-400' 
+                        : 'text-orange-500 dark:text-orange-400'
+                  }`} />
+                  <span className="font-bold text-gray-800 dark:text-gray-200">
                     {remainingTime?.expired ? 'Free Trial Expired' : 'Free Trial Remaining:'}
                   </span>
                 </div>
-                <button onClick={() => setIsMobileCountdownExpanded(!isMobileCountdownExpanded)}>
-                  {isMobileCountdownExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </button>
-                {!remainingTime?.expired && (
-                  <span className={`text-xs font-bold px-2 py-1 rounded ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                    {subscription.plan.toUpperCase()} PLAN
-                  </span>
-                )}
+                <div className="flex items-center space-x-2">
+                  {!remainingTime?.expired && (
+                    <span className={`text-xs font-bold px-2 py-1 rounded transition-colors duration-200 ${
+                      remainingTime?.days < 3 
+                        ? 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200' 
+                        : remainingTime?.days < 7 
+                          ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' 
+                          : 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200'
+                    }`}>
+                      {subscription.plan.toUpperCase()} PLAN
+                    </span>
+                  )}
+                  <button 
+                    onClick={() => setIsMobileCountdownExpanded(!isMobileCountdownExpanded)}
+                    className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200"
+                  >
+                    {isMobileCountdownExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </button>
+                </div>
               </div>
               {isMobileCountdownExpanded && (
                 <>
                   {!remainingTime?.expired ? (
                     <div className="grid grid-cols-4 gap-2 text-center">
-                      <div className="bg-white p-2 rounded shadow-sm">
-                        <div className="text-xl font-bold">{remainingTime?.days}</div>
-                        <div className="text-xs text-gray-500">Days</div>
+                      <div className="bg-white dark:bg-gray-800 p-2 rounded shadow-sm dark:shadow-gray-900/20 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+                        <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{remainingTime?.days}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Days</div>
                       </div>
-                      <div className="bg-white p-2 rounded shadow-sm">
-                        <div className="text-xl font-bold">{remainingTime?.hours}</div>
-                        <div className="text-xs text-gray-500">Hours</div>
+                      <div className="bg-white dark:bg-gray-800 p-2 rounded shadow-sm dark:shadow-gray-900/20 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+                        <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{remainingTime?.hours}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Hours</div>
                       </div>
-                      <div className="bg-white p-2 rounded shadow-sm">
-                        <div className="text-xl font-bold">{remainingTime?.minutes}</div>
-                        <div className="text-xs text-gray-500">Mins</div>
+                      <div className="bg-white dark:bg-gray-800 p-2 rounded shadow-sm dark:shadow-gray-900/20 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+                        <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{remainingTime?.minutes}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Mins</div>
                       </div>
-                      <div className="bg-white p-2 rounded shadow-sm">
-                        <div className="text-xl font-bold">{remainingTime?.seconds}</div>
-                        <div className="text-xs text-gray-500">Secs</div>
+                      <div className="bg-white dark:bg-gray-800 p-2 rounded shadow-sm dark:shadow-gray-900/20 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+                        <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{remainingTime?.seconds}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Secs</div>
                       </div>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center text-red-600">
+                      <div className="flex items-center text-red-600 dark:text-red-400">
                         <AlertTriangle size={16} className="mr-2" />
                         <span className="font-bold">Free Trial Expired - Payment Required</span>
                       </div>
                       <a 
                         href="/subscription" 
-                        className="text-xs font-bold bg-orange-500 hover:bg-orange-600 text-white py-1 px-3 rounded-md shadow-sm transition-colors"
+                        className="text-xs font-bold bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white py-1 px-3 rounded-md shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400"
                       >
                         Subscribe Now
                       </a>
@@ -208,7 +230,7 @@ const DashboardLayout = ({ children }) => {
         )}
 
         {/* Desktop Header with Subscription Countdown */}
-        <div className="hidden md:block sticky top-0 z-10 bg-white dark:bg-gray-800 p-4 shadow-sm">
+        <div className="hidden md:block sticky top-0 z-10 bg-white dark:bg-gray-800 p-4 shadow-sm dark:shadow-gray-900/20 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mr-4">{getTitle()}</h1>
@@ -217,42 +239,69 @@ const DashboardLayout = ({ children }) => {
             
             {/* Subscription Status for Desktop - Enhanced visibility */}
             {(role === 'outlet' || role === 'admin') && subscription && (
-              <div className="flex items-center space-x-2 p-2 bg-orange-50 dark:bg-orange-900 rounded-lg border border-orange-200 dark:border-orange-700 shadow-sm">
-                <button onClick={() => setIsDesktopCountdownExpanded(!isDesktopCountdownExpanded)}>
+              <div className="flex items-center space-x-2 p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-700 shadow-sm dark:shadow-gray-900/20 transition-colors duration-200">
+                <button 
+                  onClick={() => setIsDesktopCountdownExpanded(!isDesktopCountdownExpanded)}
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200"
+                >
                   {isDesktopCountdownExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
                 {isDesktopCountdownExpanded && (
                   <>
                     {!remainingTime?.expired ? (
-                      <div className="flex items-center space-x-1 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg border border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center space-x-1 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors duration-200">
                         <div className="flex items-center px-2">
-                          <Clock size={16} className="mr-2 text-orange-500" />
-                          <span className="text-sm font-bold text-gray-700">FREE TRIAL REMAINING:</span>
+                          <Clock size={16} className="mr-2 text-orange-500 dark:text-orange-400" />
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">FREE TRIAL REMAINING:</span>
                         </div>
                         <div className="flex space-x-1">
-                          <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          <div className={`px-3 py-1 rounded-md text-sm font-bold transition-colors duration-200 ${
+                            remainingTime?.days < 3 
+                              ? 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200' 
+                              : remainingTime?.days < 7 
+                                ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' 
+                                : 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200'
+                          }`}>
                             {remainingTime?.days}d
                           </div>
-                          <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          <div className={`px-3 py-1 rounded-md text-sm font-bold transition-colors duration-200 ${
+                            remainingTime?.days < 3 
+                              ? 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200' 
+                              : remainingTime?.days < 7 
+                                ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' 
+                                : 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200'
+                          }`}>
                             {remainingTime?.hours}h
                           </div>
-                          <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          <div className={`px-3 py-1 rounded-md text-sm font-bold transition-colors duration-200 ${
+                            remainingTime?.days < 3 
+                              ? 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200' 
+                              : remainingTime?.days < 7 
+                                ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' 
+                                : 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200'
+                          }`}>
                             {remainingTime?.minutes}m
                           </div>
-                          <div className={`px-3 py-1 rounded-md text-sm font-bold ${remainingTime?.days < 3 ? 'bg-red-100 text-red-800' : remainingTime?.days < 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          <div className={`px-3 py-1 rounded-md text-sm font-bold transition-colors duration-200 ${
+                            remainingTime?.days < 3 
+                              ? 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200' 
+                              : remainingTime?.days < 7 
+                                ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' 
+                                : 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200'
+                          }`}>
                             {remainingTime?.seconds}s
                           </div>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-center space-x-2">
-                        <div className="flex items-center px-3 py-1 rounded-md bg-red-100 text-red-800">
+                        <div className="flex items-center px-3 py-1 rounded-md bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-700 transition-colors duration-200">
                           <AlertTriangle size={16} className="mr-2" />
                           <span className="font-bold">Free Trial Expired - Payment Required</span>
                         </div>
                         <a 
                           href="/subscription" 
-                          className="text-sm font-bold bg-orange-500 hover:bg-orange-600 text-white py-1 px-3 rounded-md shadow-sm transition-colors"
+                          className="text-sm font-bold bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white py-1 px-3 rounded-md shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400"
                         >
                           Subscribe Now
                         </a>
@@ -265,7 +314,7 @@ const DashboardLayout = ({ children }) => {
           </div>
         </div>
 
-        <main className="p-6">
+        <main className="p-6 bg-gray-50 dark:bg-gray-900 min-h-full transition-colors duration-200">
           {children}
         </main>
       </div>
