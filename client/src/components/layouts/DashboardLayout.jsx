@@ -123,31 +123,31 @@ const DashboardLayout = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar 
         links={getSidebarLinks()} 
         title={getTitle()} 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
       />
-      <div className="flex-1 overflow-auto md:pl-64 transition-all duration-300">
+      <div className="flex-1 overflow-auto md:pl-64 transition-all duration-300 dark:bg-gray-900">
         {/* Mobile Header */}
-        <div className="sticky top-0 z-10 bg-white md:hidden p-4 shadow-sm flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 md:hidden p-4 shadow-sm flex items-center justify-between">
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
-              className="p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <Menu size={24} />
             </button>
-            <h1 className="ml-4 text-lg font-semibold text-gray-800">{getTitle()}</h1>
+            <h1 className="ml-4 text-lg font-semibold text-gray-800 dark:text-gray-200">{getTitle()}</h1>
           </div>
           <DashboardSearch />
         </div>
 
         {/* Subscription Countdown Banner - Mobile - Always visible for better awareness */}
         {(role === 'outlet' || role === 'admin') && subscription && (
-          <div className="md:hidden sticky top-16 z-10 p-3 border-t border-b border-gray-200 bg-orange-50">
+          <div className="md:hidden sticky top-16 z-10 p-3 border-t border-b border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900">
             <div className={`rounded-lg p-3 ${remainingTime?.expired ? 'bg-red-50' : remainingTime?.days < 3 ? 'bg-yellow-50' : 'bg-green-50'}`}
         >
               <div className="flex justify-between items-center mb-2">
@@ -208,23 +208,23 @@ const DashboardLayout = ({ children }) => {
         )}
 
         {/* Desktop Header with Subscription Countdown */}
-        <div className="hidden md:block sticky top-0 z-10 bg-white p-4 shadow-sm">
+        <div className="hidden md:block sticky top-0 z-10 bg-white dark:bg-gray-800 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-800 mr-4">{getTitle()}</h1>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mr-4">{getTitle()}</h1>
               <DashboardSearch />
             </div>
             
             {/* Subscription Status for Desktop - Enhanced visibility */}
             {(role === 'outlet' || role === 'admin') && subscription && (
-              <div className="flex items-center space-x-2 p-2 bg-orange-50 rounded-lg border border-orange-200 shadow-sm">
+              <div className="flex items-center space-x-2 p-2 bg-orange-50 dark:bg-orange-900 rounded-lg border border-orange-200 dark:border-orange-700 shadow-sm">
                 <button onClick={() => setIsDesktopCountdownExpanded(!isDesktopCountdownExpanded)}>
                   {isDesktopCountdownExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
                 {isDesktopCountdownExpanded && (
                   <>
                     {!remainingTime?.expired ? (
-                      <div className="flex items-center space-x-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                      <div className="flex items-center space-x-1 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg border border-gray-200 dark:border-gray-600">
                         <div className="flex items-center px-2">
                           <Clock size={16} className="mr-2 text-orange-500" />
                           <span className="text-sm font-bold text-gray-700">FREE TRIAL REMAINING:</span>

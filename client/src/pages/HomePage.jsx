@@ -238,7 +238,7 @@ const HomePage = () => {
             <img
               src={heroBanners[currentBanner].image}
               alt={heroBanners[currentBanner].title}
-              className="rounded-lg shadow-lg w-full h-[400px] object-cover"
+              className="rounded-lg shadow-lg w-full h-[400px] object-cover dark:brightness-90"
             />
             <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
               {heroBanners.map((_, index) => (
@@ -395,7 +395,7 @@ const HomePage = () => {
             <img
               src={img1}
               alt="Flash sale banner"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover dark:brightness-90"
             />
             <div className="absolute inset-0   bg-opacity-40 flex flex-col justify-center p-8">
               <h3 className="text-white text-2xl font-bold mb-2">Flash Sale</h3>

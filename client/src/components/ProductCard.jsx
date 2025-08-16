@@ -5,7 +5,7 @@ import { Star, ShoppingCart, Heart, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { addToCart } from '../redux/slices/cartSlice';
 import { toast } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
@@ -53,7 +53,7 @@ const ProductCard = ({ product }) => {
           <img
             src={Array.isArray(images) && images.length > 0 ? images[0] : 'https://via.placeholder.com/150?text=No+Image'}
             alt={productName}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 dark:brightness-90"
             onError={(e) => {
               console.error(`Image failed to load for ${productName}:`, images[0]);
               e.target.src = 'https://via.placeholder.com/150?text=Image+Error';

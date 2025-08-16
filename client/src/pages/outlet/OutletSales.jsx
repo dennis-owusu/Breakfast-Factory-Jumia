@@ -636,12 +636,12 @@ const generatePDFReport = async (data) => {
   };
 
   if (isLoading) return <Loader />;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (error) return <div className="text-red-500 dark:text-red-400">{error}</div>;
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Sales</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Sales</h1>
         <Button 
           onClick={() => setShowReportOptions(!showReportOptions)} 
           className="flex items-center gap-2">
@@ -651,26 +651,26 @@ const generatePDFReport = async (data) => {
       </div>
       
       {showReportOptions && (
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Download Sales Report</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Download Sales Report</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Format</label>
               <select 
                 value={reportFormat} 
                 onChange={(e) => setReportFormat(e.target.value)}
-                className="w-full p-2 border rounded">
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100">
                 <option value="pdf">PDF</option>
                 <option value="csv">CSV</option>
                 <option value="excel">Excel</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Period</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Period</label>
               <select 
                 value={reportPeriod} 
                 onChange={(e) => setReportPeriod(e.target.value)}
-                className="w-full p-2 border rounded">
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100">
                 <option value="all">All Time</option>
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
@@ -682,7 +682,7 @@ const generatePDFReport = async (data) => {
             {reportPeriod === 'custom' && (
               <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
                   <input 
                     type="date" 
                     value={reportDates.startDate} 
@@ -691,11 +691,11 @@ const generatePDFReport = async (data) => {
                       ...prev,
                       startDate: e.target.value
                     }))}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
                   <input 
                     type="date" 
                     value={reportDates.endDate} 
@@ -705,7 +705,7 @@ const generatePDFReport = async (data) => {
                       ...prev,
                       endDate: e.target.value
                     }))}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100"
                   />
                 </div>
               </div>
@@ -719,36 +719,36 @@ const generatePDFReport = async (data) => {
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-lg p-3">
+            <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-lg p-3">
               <DollarSign className="h-8 w-8 text-orange-500" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-600">Total Sales</p>
-              <p className="text-2xl font-semibold text-gray-900">{formatPrice(summary.totalSales)}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Sales</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{formatPrice(summary.totalSales)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-lg p-3">
+            <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-lg p-3">
               <TrendingUp className="h-8 w-8 text-orange-500" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-600">Average Sale</p>
-              <p className="text-2xl font-semibold text-gray-900">{formatPrice(summary.averageSale)}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Sale</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{formatPrice(summary.averageSale)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-lg p-3">
+            <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-lg p-3">
               <ShoppingBag className="h-8 w-8 text-orange-500" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-600">Sale Count</p>
-              <p className="text-2xl font-semibold text-gray-900">{summary.saleCount}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Sale Count</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{summary.saleCount}</p>
             </div>
           </div>
         </div>
@@ -760,48 +760,48 @@ const generatePDFReport = async (data) => {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search sales..."
-            className="flex-1 p-2 border rounded"
+            className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100"
           />
           <Button type="submit"><Search size={20} /></Button>
           <Button type="button" onClick={() => setShowFilters(!showFilters)}><Filter size={20} /></Button>
         </div>
         {showFilters && (
           <div className="mt-4 grid grid-cols-3 gap-4">
-            <select name="period" value={filters.period} onChange={handleFilterChange} className="p-2 border rounded">
+            <select name="period" value={filters.period} onChange={handleFilterChange} className="p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100">
               <option value="all">All Periods</option>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
             </select>
-            <input name="minAmount" value={filters.minAmount} onChange={handleFilterChange} placeholder="Min Amount" className="p-2 border rounded" />
-            <input name="maxAmount" value={filters.maxAmount} onChange={handleFilterChange} placeholder="Max Amount" className="p-2 border rounded" />
+            <input name="minAmount" value={filters.minAmount} onChange={handleFilterChange} placeholder="Min Amount" className="p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100" />
+            <input name="maxAmount" value={filters.maxAmount} onChange={handleFilterChange} placeholder="Max Amount" className="p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100" />
           </div>
         )}
       </form>
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
         {/* Desktop Table View */}
         <div className="hidden sm:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Items</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {sales.map((sale) => (
-                <tr key={sale._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(sale.date)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatPrice(sale.amount)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.items}</td>
+                <tr key={sale._id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{formatDate(sale.date)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{formatPrice(sale.amount)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{sale.items}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Badge className={`${
-                      sale.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                      sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      sale.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
+                      sale.status === 'delivered' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' :
+                      sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200' :
+                      sale.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200' :
+                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                     }`}>{sale.status}</Badge>
                   </td>
                 </tr>
@@ -812,41 +812,41 @@ const generatePDFReport = async (data) => {
         
         {/* Mobile Card View - Two Column Grid */}
         <div className="sm:hidden p-4 overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Date
                 </th>
-                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Amount
                 </th>
-                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Items
                 </th>
-                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {sales.map((sale) => (
                 <tr key={sale._id}>
-                  <td className="px-3 py-2 whitespace-nowrap text-xs">
+                  <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900 dark:text-gray-100">
                     {formatDate(sale.date)}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-xs">
+                  <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900 dark:text-gray-100">
                     {formatPrice(sale.amount)}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-xs">
+                  <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900 dark:text-gray-100">
                     {sale.items}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">
                     <Badge className={`text-xs ${
-                      sale.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                      sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      sale.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
+                      sale.status === 'delivered' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' :
+                      sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200' :
+                      sale.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200' :
+                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                     }`}>
                       {sale.status}
                     </Badge>
@@ -857,7 +857,7 @@ const generatePDFReport = async (data) => {
           </table>
         </div>
       </div>
-      <div className="flex justify-between mt-4">
+      <div className="flex justify-between mt-4 text-gray-900 dark:text-gray-100">
         <Button onClick={() => handlePageChange(pagination.page - 1)} disabled={pagination.page === 1}><ChevronLeft /></Button>
         <span>Page {pagination.page} of {pagination.totalPages}</span>
         <Button onClick={() => handlePageChange(pagination.page + 1)} disabled={pagination.page === pagination.totalPages}><ChevronRight /></Button>

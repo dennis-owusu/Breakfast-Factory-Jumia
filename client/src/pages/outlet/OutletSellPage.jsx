@@ -414,8 +414,8 @@ const OutletSellPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 relative">
-      <h1 className="text-3xl font-bold mb-8">Process In-Store Sale</h1>
+    <div className="container mx-auto px-4 py-8 relative bg-white dark:bg-gray-900">
+      <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-gray-100">Process In-Store Sale</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Product Selection Section */}
@@ -426,7 +426,7 @@ const OutletSellPage = () => {
               <Input
                 type="text"
                 placeholder="Search products..."
-                className="pl-10"
+                className="pl-10 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -452,7 +452,7 @@ const OutletSellPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center lg:hidden">
           <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto m-4">
             <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
-              <h2 className="text-xl font-bold flex items-center">
+              <h2 className="text-xl font-bold flex items-center text-gray-900 dark:text-gray-100">
                 <ShoppingCart className="mr-2" />
                 Cart ({cart.length})
               </h2>
@@ -600,7 +600,7 @@ const OutletSellPage = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredProducts.map((product) => (
-                <Card key={product._id} className="overflow-hidden">
+                <Card key={product._id} className="overflow-hidden bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700">
                   <div className="aspect-square overflow-hidden">
                     <img
                       src={product.productImage}
@@ -609,13 +609,13 @@ const OutletSellPage = () => {
                     />
                   </div>
                   <CardHeader className="p-4">
-                    <CardTitle className="text-lg">{product.productName}</CardTitle>
+                    <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{product.productName}</CardTitle>
                     <p className="font-semibold text-orange-600">{formatPrice(product.productPrice)}</p>
                   </CardHeader>
                   <CardFooter className="p-4 pt-0">
                     <Button 
                       onClick={() => addToCart(product)} 
-                      className="w-full bg-orange-600 hover:bg-orange-700"
+                      className="w-full bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-800"
                     >
                       <Plus className="mr-2 h-4 w-4" /> Add to Cart
                     </Button>

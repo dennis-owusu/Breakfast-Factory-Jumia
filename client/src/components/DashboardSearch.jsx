@@ -265,11 +265,11 @@ const DashboardSearch = () => {
       case 'product':
         return (
           <div 
-            key={result.id} 
-            className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-            onClick={() => handleResultClick(result, 'product')}
-          >
-            <div className="h-10 w-10 rounded-md overflow-hidden mr-3 bg-gray-100 flex-shrink-0 flex items-center justify-center">
+              key={result.id} 
+              className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+              onClick={() => handleResultClick(result, 'product')}
+            >
+            <div className="h-10 w-10 rounded-md overflow-hidden mr-3 bg-gray-100 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center">
               {result.image ? (
                 <img 
                   src={result.image} 
@@ -285,9 +285,9 @@ const DashboardSearch = () => {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{result.name}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{result.name}</p>
               <div className="flex items-center mt-1">
-                <span className="text-xs text-gray-500 mr-2">{result.category}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{result.category}</span>
                 <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-green-100 text-green-800">
                   ${result.price.toFixed(2)}
                 </span>
@@ -308,24 +308,24 @@ const DashboardSearch = () => {
       case 'order':
         return (
           <div 
-            key={result.id} 
-            className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-            onClick={() => handleResultClick(result, 'order')}
-          >
+              key={result.id} 
+              className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+              onClick={() => handleResultClick(result, 'order')}
+            >
             <div className="h-10 w-10 rounded-md overflow-hidden mr-3 bg-gray-100 flex-shrink-0 flex items-center justify-center">
               <ShoppingBag size={20} className="text-gray-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{result.id}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{result.id}</p>
               <div className="flex items-center mt-1">
-                <span className="text-xs text-gray-500 mr-2">{result.customer}</span>
-                <span className="text-xs text-gray-500 mr-2">{result.date}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{result.customer}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{result.date}</span>
                 <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${result.status === 'Delivered' ? 'bg-green-100 text-green-800' : result.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}`}>
                   {result.status}
                 </span>
               </div>
             </div>
-            <div className="text-sm font-medium text-gray-900">${result.total.toFixed(2)}</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">${result.total.toFixed(2)}</div>
             <ArrowRight size={16} className="ml-2 text-gray-400" />
           </div>
         );
@@ -333,10 +333,10 @@ const DashboardSearch = () => {
       case 'customer':
         return (
           <div 
-            key={result.id} 
-            className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-            onClick={() => handleResultClick(result, 'customer')}
-          >
+              key={result.id} 
+              className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+              onClick={() => handleResultClick(result, 'customer')}
+            >
             <div className="h-10 w-10 rounded-md overflow-hidden mr-3 bg-gray-100 flex-shrink-0 flex items-center justify-center">
               <Users size={20} className="text-gray-500" />
             </div>
