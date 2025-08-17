@@ -5,7 +5,9 @@ import { Star, ShoppingCart, Heart, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { addToCart } from '../redux/slices/cartSlice';
 import { toast } from 'react-hot-toast';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+
+
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();

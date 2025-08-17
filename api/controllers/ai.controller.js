@@ -106,22 +106,32 @@ export const askAI = async (req, res, next) => {
       context += `Products: ${inStock} in stock, ${outOfStock} out of stock. Out of stock products: ${outOfStockList}. `;
     }
  
-    if (question.toLowerCase().includes('best selling') || question.toLowerCase().includes('this week')) {
+    if (question.toLowerCase().includes('weekly') || question.toLowerCase().includes('trends') || question.toLowerCase().includes('revenue')) {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
-      const bestSellingMatch = { createdAt: { $gte: weekAgo } };
+      const weeklyFilter = { createdAt: { $gte: weekAgo } };
       if (isOutlet) {
-        bestSellingMatch['items.product'] = { $in: await Product.find({ outlet: req.user.id }).distinct('_id') };
+        weeklyFilter['items.product'] = { $in: await Product.find({ outlet: req.user.id }).distinct('_id') };
       }
-      const bestSelling = await Order.aggregate([
-        { $match: bestSellingMatch },
+      const weeklyRevenue = await Order.aggregate([
+        { $match: weeklyFilter },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, dailyRevenue: { $sum: '$totalPrice' } } },
+        { $sort: { _id: 1 } }
+      ]);
+      context += `Weekly revenue trends: ${JSON.stringify(weeklyRevenue.map(r => ({ date: r._id, revenue: r.dailyRevenue })))}. `;
+    }
+
+    if (question.toLowerCase().includes('top selling') || question.toLowerCase().includes('best selling')) {
+      const topSellingMatch = isOutlet ? { 'items.product': { $in: await Product.find({ outlet: req.user.id }).distinct('_id') } } : {};
+      const topSelling = await Order.aggregate([
+        { $match: topSellingMatch },
         { $unwind: '$items' },
-        { $group: { _id: '$items.product', totalSold: { $sum: '$items.quantity' } } },
+        { $group: { _id: '$items.product', totalSold: { $sum: '$items.quantity' }, totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } } } },
         { $sort: { totalSold: -1 } },
-        { $limit: 1 },
+        { $limit: 5 },
         { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'product' } }
       ]);
-      context += `Best selling product this week: ${bestSelling[0]?.product[0]?.productName || 'None'}, sold ${bestSelling[0]?.totalSold || 0} units. `;
+      context += `Top selling products: ${JSON.stringify(topSelling.map(s => ({ name: s.product[0]?.productName, sold: s.totalSold, revenue: s.totalRevenue })))}. `;
     }
 
     if (question.toLowerCase().includes('products') || question.toLowerCase().includes('how many products')) {
