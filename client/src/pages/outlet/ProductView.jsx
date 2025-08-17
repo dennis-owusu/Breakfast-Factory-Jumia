@@ -93,7 +93,7 @@ const ProductView = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900">
         <Loader size="lg" />
       </div>
     );
@@ -101,20 +101,20 @@ const ProductView = () => {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50 dark:bg-gray-900">
+        <div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 dark:border-red-600 p-4 mb-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg className="h-5 w-5 text-red-400 dark:text-red-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           </div>
         </div>
-        <Button onClick={() => navigate('/outlet/products')} className="flex items-center text-gray-600 hover:text-gray-900">
+        <Button onClick={() => navigate('/outlet/products')} className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back to Products
         </Button>
@@ -124,20 +124,20 @@ const ProductView = () => {
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50 dark:bg-gray-900">
+        <div className="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-yellow-600 p-4 mb-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg className="h-5 w-5 text-yellow-400 dark:text-yellow-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-yellow-700">Product not found</p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">Product not found</p>
             </div>
           </div>
         </div>
-        <Button onClick={() => navigate('/outlet/products')} className="flex items-center text-gray-600 hover:text-gray-900">
+        <Button onClick={() => navigate('/outlet/products')} className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back to Products
         </Button>
@@ -146,7 +146,7 @@ const ProductView = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header with back button and actions */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -154,19 +154,19 @@ const ProductView = () => {
             <Button 
               onClick={() => navigate('/outlet/products')} 
               variant="ghost" 
-              className="mr-4 text-gray-600 hover:text-gray-900"
+              className="mr-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
             >
               <ChevronLeft className="h-5 w-5 mr-1" />
               Back
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               Product Details
             </h1>
           </div>
           <div className="flex space-x-3">
             <Button 
               onClick={handleEdit} 
-              className="bg-amber-500 hover:bg-amber-600 text-white"
+              className="bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white"
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit Product
@@ -174,7 +174,7 @@ const ProductView = () => {
             <Button 
               onClick={handleDeleteClick} 
               variant="outline" 
-              className="border-red-500 text-red-500 hover:bg-red-50"
+              className="border-red-500 dark:border-red-600 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
@@ -183,11 +183,11 @@ const ProductView = () => {
         </div>
 
         {/* Product details card */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
             {/* Product image */}
             <div className="md:col-span-1">
-              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                 {product.productImage ? (
                   <img 
                     src={product.productImage} 
@@ -196,7 +196,7 @@ const ProductView = () => {
                     onError={() => console.error('Failed to load image:', product.productImage)}
                   />
                 ) : (
-                  <Package className="h-24 w-24 text-gray-400" />
+                  <Package className="h-24 w-24 text-gray-400 dark:text-gray-500" />
                 )}
               </div>
             </div>
@@ -205,22 +205,22 @@ const ProductView = () => {
             <div className="md:col-span-2 flex flex-col">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{product.productName}</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{product.productName}</h2>
                   <div className="flex items-center mb-4">
-                    <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 mr-2">
+                    <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/30 mr-2">
                       {product.category}
                     </Badge>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       ID: {product.productId || product._id}
                     </span>
                   </div>
                 </div>
                 <div className="mt-2 md:mt-0 text-right">
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     ₦{product.productPrice.toFixed(2)}
                   </div>
                   {product.discountPrice && (
-                    <div className="text-sm text-gray-500 line-through">
+                    <div className="text-sm text-gray-500 dark:text-gray-400 line-through">
                       ₦{product.discountPrice.toFixed(2)}
                     </div>
                   )}
@@ -228,25 +228,25 @@ const ProductView = () => {
               </div>
 
               <div className="mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Description</h3>
-                <p className="text-gray-700">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Description</h3>
+                <p className="text-gray-700 dark:text-gray-300">
                   {product.description || 'No description available.'}
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Stock Information</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Stock Information</h3>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-500">Available Stock:</span>
-                      <span className={`font-medium ${product.numberOfProductsAvailable > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Available Stock:</span>
+                      <span className={`font-medium ${product.numberOfProductsAvailable > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {product.numberOfProductsAvailable} units
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Status:</span>
-                      <Badge className={product.numberOfProductsAvailable > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Status:</span>
+                      <Badge className={product.numberOfProductsAvailable > 0 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'}>
                         {product.numberOfProductsAvailable > 0 ? 'In Stock' : 'Out of Stock'}
                       </Badge>
                     </div>
@@ -254,19 +254,19 @@ const ProductView = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Product Details</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Product Details</h3>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                     {product.specifications && Array.isArray(product.specifications) && product.specifications.length > 0 ? (
-                      <dl className="divide-y divide-gray-200">
+                      <dl className="divide-y divide-gray-200 dark:divide-gray-600">
                         {product.specifications.map((spec, index) => (
                           <div key={index} className="flex justify-between py-2">
-                            <dt className="text-sm text-gray-500">{spec.key}</dt>
-                            <dd className="text-sm font-medium text-gray-900">{spec.value}</dd>
+                            <dt className="text-sm text-gray-500 dark:text-gray-400">{spec.key}</dt>
+                            <dd className="text-sm font-medium text-gray-900 dark:text-gray-100">{spec.value}</dd>
                           </div>
                         ))}
                       </dl>
                     ) : (
-                      <p className="text-sm text-gray-500">No specifications available.</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No specifications available.</p>
                     )}
                   </div>
                 </div>
@@ -277,23 +277,23 @@ const ProductView = () => {
 
         {/* Delete Confirmation Modal */}
         {isDeleteModalOpen && (
-          <div className="fixed inset-0 bg-black/80 bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
-              <p className="text-sm text-gray-500 mb-6">
+          <div className="fixed inset-0 bg-black/80 dark:bg-black/90 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Confirm Delete</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                 Are you sure you want to delete <span className="font-medium">{product.productName}</span>? This action cannot be undone.
               </p>
               <div className="flex justify-end space-x-3">
                 <Button 
                   onClick={cancelDelete} 
                   variant="outline" 
-                  className="border-gray-300 text-gray-700"
+                  className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </Button>
                 <Button 
                   onClick={confirmDelete} 
-                  className="bg-red-600 hover:bg-red-700 text-white"
+                  className="bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white"
                 >
                   Delete
                 </Button>

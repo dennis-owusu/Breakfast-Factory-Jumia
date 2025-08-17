@@ -62,12 +62,12 @@ const ProductDetailPage = () => {
   };
 
   if (loading) return <Loader />;
-  if (error) return <div className="text-red-500 text-center py-8">{error}</div>;
-  if (!product) return <div className="text-center py-8">Product not found</div>;
+  if (error) return <div className="text-red-500 dark:text-red-400 text-center py-8">{error}</div>;
+  if (!product) return <div className="text-center py-8 text-gray-900 dark:text-gray-100">Product not found</div>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+    <div className="max-w-7xl mx-auto px-4 py-8 bg-gray-50 dark:bg-gray-900">
+      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4 text-gray-900 dark:text-gray-100">
         <ChevronLeft className="mr-2 h-4 w-4" /> Back
       </Button>
       <div className="grid md:grid-cols-2 gap-8">
@@ -77,24 +77,24 @@ const ProductDetailPage = () => {
         </div>
         {/* Product Info */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+          <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">{product.name}</h1>
           <div className="flex items-center mb-4">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className={`h-5 w-5 ${i < Math.round(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+              <Star key={i} className={`h-5 w-5 ${i < Math.round(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} />
             ))}
-            <span className="ml-2 text-sm text-gray-500">({product.numReviews} reviews)</span>
+            <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">({product.numReviews} reviews)</span>
           </div>
-          <p className="text-2xl font-bold mb-4">₵{product.price.toFixed(2)}</p>
-          <p className="text-gray-600 mb-6">{product.description}</p>
+          <p className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">₵{product.price.toFixed(2)}</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">{product.description}</p>
           <div className="flex items-center mb-6">
-            <label className="mr-4">Quantity:</label>
+            <label className="mr-4 text-gray-700 dark:text-gray-300">Quantity:</label>
             <input
               type="number"
               min="1"
               max={product.countInStock}
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value))}
-              className="w-20 border rounded px-2 py-1"
+              className="w-20 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
           </div>
           <div className="flex gap-4">
@@ -121,27 +121,27 @@ const ProductDetailPage = () => {
                 </Button>
               </motion.div>
             </AnimatePresence>
-            <Button variant="outline">
+            <Button variant="outline" className="border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
               <Heart className="mr-2 h-4 w-4" /> Wishlist
             </Button>
           </div>
         </div>
       </div>
       <Tabs defaultValue="description" className="mt-12">
-        <TabsList>
-          <TabsTrigger value="description">Description</TabsTrigger>
-          <TabsTrigger value="reviews">Reviews</TabsTrigger>
+        <TabsList className="bg-gray-50 dark:bg-gray-700">
+          <TabsTrigger value="description" className="text-gray-900 dark:text-gray-100">Description</TabsTrigger>
+          <TabsTrigger value="reviews" className="text-gray-900 dark:text-gray-100">Reviews</TabsTrigger>
         </TabsList>
         <TabsContent value="description">
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="pt-6 text-gray-600 dark:text-gray-400">
               <p>{product.description}</p>
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="reviews">
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="pt-6 text-gray-600 dark:text-gray-400">
               {/* Mock reviews */}
               <p>No reviews yet.</p>
             </CardContent>

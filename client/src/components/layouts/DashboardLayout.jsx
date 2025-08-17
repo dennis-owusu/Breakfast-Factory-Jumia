@@ -142,7 +142,7 @@ const DashboardLayout = ({ children }) => {
             </button>
             <h1 className="ml-4 text-lg font-semibold text-gray-800 dark:text-gray-200">{getTitle()}</h1>
           </div>
-          <DashboardSearch />
+          {/* <DashboardSearch /> */}
         </div>
 
         {/* Subscription Countdown Banner - Mobile - Always visible for better awareness */}
@@ -234,7 +234,7 @@ const DashboardLayout = ({ children }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mr-4">{getTitle()}</h1>
-              <DashboardSearch />
+              {/* <DashboardSearch /> */}
             </div>
             
             {/* Subscription Status for Desktop - Enhanced visibility */}

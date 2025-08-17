@@ -14,19 +14,16 @@ const SubscriptionPage = () => {
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [transactionRef, setTransactionRef] = useState(uuidv4());
   
-  // Initialize publicKey at the top
   const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
-  // Get amount based on selected plan
   const getAmount = () => {
     switch(selectedPlan) {
-      case 'monthly': return 15000; // 150 GHS in kobo
-      case 'bimonthly': return 30000; // 300 GHS in kobo
+      case 'monthly': return 15000;
+      case 'bimonthly': return 30000;
       default: return 0;
     }
   };
 
-  // Paystack config
   const config = {
     reference: transactionRef,
     email: currentUser?.email || '',
@@ -35,10 +32,8 @@ const SubscriptionPage = () => {
     currency: 'GHS',
   };
 
-  // Initialize payment
   const initializePayment = usePaystackPayment(config);
 
-  // Time remaining state
   const [timeRemaining, setTimeRemaining] = useState(() => {
     const storedEndDate = localStorage.getItem('subscriptionEndDate');
     const storedStatus = localStorage.getItem('subscriptionStatus');
@@ -59,7 +54,6 @@ const SubscriptionPage = () => {
     return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
   });
 
-  // Check authentication and fetch subscription
   useEffect(() => {
     if (!currentUser) {
       navigate('/login');
@@ -99,13 +93,20 @@ const SubscriptionPage = () => {
     fetchSubscription();
   }, [currentUser, navigate]);
 
-  // Handle plan selection
   const handlePlanSelect = (plan) => {
+    if (subscription?.status === 'active' && subscription.plan === plan) {
+      toast.info(`You're already subscribed to the ${plan} plan`);
+      return;
+    }
     setSelectedPlan(plan);
   };
 
-  // Handle subscription
   const handleSubscribe = async () => {
+    if (subscription?.status === 'active' && subscription.plan === selectedPlan) {
+      toast.error('You already have an active subscription for this plan');
+      return;
+    }
+
     if (selectedPlan === 'free') {
       handleFreeSubscription();
     } else {
@@ -129,7 +130,6 @@ const SubscriptionPage = () => {
     }
   };
 
-  // Handle successful payment
   const handlePaymentSuccess = async (reference) => {
     try {
       setLoading(true);
@@ -176,7 +176,6 @@ const SubscriptionPage = () => {
     }
   };
 
-  // Handle free subscription
   const handleFreeSubscription = async () => {
     try {
       setLoading(true);
@@ -196,18 +195,15 @@ const SubscriptionPage = () => {
     }
   };
 
-  // Handle payment close
   const handlePaymentClose = () => {
     toast('Payment cancelled');
   };
 
-  // Format date
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // Calculate days remaining
   const getDaysRemaining = (endDate) => {
     const end = new Date(endDate).getTime();
     const now = Date.now();
@@ -216,7 +212,6 @@ const SubscriptionPage = () => {
     return diffDays > 0 ? diffDays : 0;
   };
 
-  // Update countdown timer
   useEffect(() => {
     if (!subscription) return;
 
@@ -256,7 +251,6 @@ const SubscriptionPage = () => {
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Free Trial Countdown Banner */}
         {subscription && (
           <div className="mb-8 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800/50 shadow-sm dark:shadow-md">
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Your Subscription Status</h2>
@@ -358,9 +352,13 @@ const SubscriptionPage = () => {
               </p>
               <button
                 onClick={() => handlePlanSelect('free')}
-                className={`mt-8 block w-full ${selectedPlan === 'free' ? 'bg-orange-500 dark:bg-orange-600 text-white' : 'bg-white dark:bg-gray-700 border border-orange-500 dark:border-orange-400 text-orange-500 dark:text-orange-400'} rounded-md py-2 text-sm font-semibold text-center hover:bg-orange-50 dark:hover:bg-orange-700/20`}
+                disabled={subscription?.status === 'active' && subscription.plan === 'free'}
+                className={`mt-8 block w-full ${
+                  selectedPlan === 'free' ? 'bg-orange-500 dark:bg-orange-600 text-white' : 
+                  'bg-white dark:bg-gray-700 border border-orange-500 dark:border-orange-400 text-orange-500 dark:text-orange-400'
+                } rounded-md py-2 text-sm font-semibold text-center hover:bg-orange-50 dark:hover:bg-orange-700/20 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {selectedPlan === 'free' ? 'Selected' : 'Select Plan'}
+                {subscription?.status === 'active' && subscription.plan === 'free' ? 'Current Plan' : selectedPlan === 'free' ? 'Selected' : 'Select Plan'}
               </button>
             </div>
             <div className="pt-6 pb-8 px-6">
@@ -399,9 +397,13 @@ const SubscriptionPage = () => {
               </p>
               <button
                 onClick={() => handlePlanSelect('monthly')}
-                className={`mt-8 block w-full ${selectedPlan === 'monthly' ? 'bg-orange-500 dark:bg-orange-600 text-white' : 'bg-white dark:bg-gray-700 border border-orange-500 dark:border-orange-400 text-orange-500 dark:text-orange-400'} rounded-md py-2 text-sm font-semibold text-center hover:bg-orange-50 dark:hover:bg-orange-700/20`}
+                disabled={subscription?.status === 'active' && subscription.plan === 'monthly'}
+                className={`mt-8 block w-full ${
+                  selectedPlan === 'monthly' ? 'bg-orange-500 dark:bg-orange-600 text-white' : 
+                  'bg-white dark:bg-gray-700 border border-orange-500 dark:border-orange-400 text-orange-500 dark:text-orange-400'
+                } rounded-md py-2 text-sm font-semibold text-center hover:bg-orange-50 dark:hover:bg-orange-700/20 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {selectedPlan === 'monthly' ? 'Selected' : 'Select Plan'}
+                {subscription?.status === 'active' && subscription.plan === 'monthly' ? 'Current Plan' : selectedPlan === 'monthly' ? 'Selected' : 'Select Plan'}
               </button>
             </div>
             <div className="pt-6 pb-8 px-6">
@@ -440,9 +442,13 @@ const SubscriptionPage = () => {
               </p>
               <button
                 onClick={() => handlePlanSelect('bimonthly')}
-                className={`mt-8 block w-full ${selectedPlan === 'bimonthly' ? 'bg-orange-500 dark:bg-orange-600 text-white' : 'bg-white dark:bg-gray-700 border border-orange-500 dark:border-orange-400 text-orange-500 dark:text-orange-400'} rounded-md py-2 text-sm font-semibold text-center hover:bg-orange-50 dark:hover:bg-orange-700/20`}
+                disabled={subscription?.status === 'active' && subscription.plan === 'bimonthly'}
+                className={`mt-8 block w-full ${
+                  selectedPlan === 'bimonthly' ? 'bg-orange-500 dark:bg-orange-600 text-white' : 
+                  'bg-white dark:bg-gray-700 border border-orange-500 dark:border-orange-400 text-orange-500 dark:text-orange-400'
+                } rounded-md py-2 text-sm font-semibold text-center hover:bg-orange-50 dark:hover:bg-orange-700/20 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {selectedPlan === 'bimonthly' ? 'Selected' : 'Select Plan'}
+                {subscription?.status === 'active' && subscription.plan === 'bimonthly' ? 'Current Plan' : selectedPlan === 'bimonthly' ? 'Selected' : 'Select Plan'}
               </button>
             </div>
             <div className="pt-6 pb-8 px-6">
@@ -478,7 +484,7 @@ const SubscriptionPage = () => {
             className="bg-orange-500 dark:bg-orange-600 text-white px-8 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium hover:bg-orange-600 dark:hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Processing...' : 
-             (subscription?.status === 'active' && selectedPlan === subscription.plan) ? 'Already Subscribed' : 
+             (subscription?.status === 'active' && selectedPlan === subscription.plan) ? 'Current Plan Active' : 
              selectedPlan === subscription?.plan ? 'Renew Subscription' : 
              `Subscribe to ${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} Plan`}
           </button>
