@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Package, BarChart2, ChevronRight, DollarSign, TrendingUp, Users, CreditCard } from 'lucide-react';
+import { ShoppingBag, Package, BarChart2, ChevronRight, DollarSign, TrendingUp, Users, CreditCard, Bot, MessageSquare } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { toast } from 'react-hot-toast';
@@ -643,7 +643,20 @@ const OutletDashboard = () => {
           </div>
         </div>
       </div>
+      {/* AI Chat Modal - Always rendered as an overlay */}
       <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      
+      {/* Floating AI Chat Button */}
+      <button
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-6 right-6 p-4 rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-lg transition-all duration-300 flex items-center justify-center z-40 group"
+        aria-label="Chat with AI Assistant"
+      >
+        <MessageSquare className="h-6 w-6" />
+        <span className="absolute right-full mr-3 bg-gray-900 text-white text-sm py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+          Chat with AI
+        </span>
+      </button>
     </div>
   );
 };

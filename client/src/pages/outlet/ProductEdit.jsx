@@ -10,8 +10,6 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 import Loader from '../../components/ui/Loader';
 
-
-
 const ProductEdit = () => {
   const { id } = useParams();
   const { currentUser } = useSelector((state) => state.user);
@@ -80,7 +78,6 @@ const ProductEdit = () => {
         
         const product = await response.json();
         
-        // Set form data from product
         setFormData({
           title: product.productName || '',
           description: product.description || '',
@@ -92,7 +89,6 @@ const ProductEdit = () => {
           featured: product.featured || false
         });
         
-        // Set current image
         if (product.productImage) {
           setCurrentImage(product.productImage);
           setImagePreviews([product.productImage]);
@@ -148,14 +144,12 @@ const ProductEdit = () => {
       };
       reader.readAsDataURL(file);
     });
-    // Clear image error when new images are selected
     if (formErrors.images) {
       setFormErrors(prev => ({ ...prev, images: null }));
     }
   };
 
   const handleRemoveImage = (index) => {
-    // If removing the current product image
     if (index === 0 && imagePreviews[0] === currentImage) {
       setCurrentImage('');
     }
@@ -163,7 +157,6 @@ const ProductEdit = () => {
     const newImageFiles = [...imageFiles];
     const newImagePreviews = [...imagePreviews];
     
-    // Only revoke URL if it's a blob URL (not the original image URL)
     if (newImagePreviews[index] && newImagePreviews[index].startsWith('blob:')) {
       URL.revokeObjectURL(newImagePreviews[index]);
     }
@@ -202,8 +195,6 @@ const ProductEdit = () => {
 
   const validateForm = () => {
     const errors = {};
-    // Removed required validations for update
-    // Optional: Add type checks if needed, e.g.,
     if (formData.price && isNaN(parseFloat(formData.price))) errors.price = 'Price must be a number';
     if (formData.discountPrice && isNaN(parseFloat(formData.discountPrice))) errors.discountPrice = 'Discount price must be a number';
     if (formData.stock && isNaN(parseInt(formData.stock))) errors.stock = 'Stock must be a number';
@@ -226,7 +217,6 @@ const ProductEdit = () => {
     try {
       const formDataToSend = new FormData();
       
-      // Append all form data
       formDataToSend.append('productName', formData.title);
       formDataToSend.append('category', formData.category);
       formDataToSend.append('numberOfProductsAvailable', parseInt(formData.stock, 10));
@@ -240,11 +230,10 @@ const ProductEdit = () => {
       formDataToSend.append('specifications', JSON.stringify(formData.specifications));
       formDataToSend.append('featured', formData.featured);
       
-      // Append new image only if one is selected
       if (imageFiles.length > 0) {
         formDataToSend.append('productImage', imageFiles[0]);
       }
-      // Do not append anything for productImage if using existing
+
       const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/update/${id}`, {
         method: 'PUT',
         body: formDataToSend
@@ -275,34 +264,34 @@ const ProductEdit = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="md:flex md:items-center md:justify-between mb-6">
           <div className="flex items-center">
             <Button 
               onClick={() => navigate(`/outlet/product/${id}`)} 
               variant="ghost" 
-              className="mr-4 text-gray-600 hover:text-gray-900"
+              className="mr-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
             >
               <ChevronLeft className="h-5 w-5 mr-1" />
               Back
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
               Edit Product
             </h1>
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/10 border-l-4 border-red-400 dark:border-red-600 p-4 mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <svg className="h-5 w-5 text-red-400 dark:text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
+                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
               </div>
             </div>
           </div>
@@ -310,12 +299,12 @@ const ProductEdit = () => {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
             <div className="p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h2>
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Basic Information</h2>
               <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div className="sm:col-span-4">
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700">Product Title</label>
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product Title</label>
                   <div className="mt-1">
                     <Input
                       type="text"
@@ -323,14 +312,14 @@ const ProductEdit = () => {
                       id="title"
                       value={formData.title}
                       onChange={handleChange}
-                      className={formErrors.title ? 'border-red-300' : ''}
+                      className={formErrors.title ? 'border-red-300 dark:border-red-500' : ''}
                     />
-                    {formErrors.title && <p className="mt-2 text-sm text-red-600 error-message">{formErrors.title}</p>}
+                    {formErrors.title && <p className="mt-2 text-sm text-red-600 dark:text-red-400 error-message">{formErrors.title}</p>}
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
                   <div className="mt-1">
                     <Select 
                       name="category" 
@@ -342,23 +331,27 @@ const ProductEdit = () => {
                         }
                       }}
                     >
-                      <SelectTrigger className={formErrors.category ? 'border-red-300' : ''}>
+                      <SelectTrigger className={formErrors.category ? 'border-red-300 dark:border-red-500' : ''}>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white dark:bg-gray-800">
                         {categories.map((category) => (
-                          <SelectItem key={category._id} value={category._id}>
+                          <SelectItem 
+                            key={category._id} 
+                            value={category._id}
+                            className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
                             {category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    {formErrors.category && <p className="mt-2 text-sm text-red-600 error-message">{formErrors.category}</p>}
+                    {formErrors.category && <p className="mt-2 text-sm text-red-600 dark:text-red-400 error-message">{formErrors.category}</p>}
                   </div>
                 </div>
 
                 <div className="sm:col-span-6">
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                   <div className="mt-1">
                     <Textarea
                       id="description"
@@ -367,12 +360,13 @@ const ProductEdit = () => {
                       value={formData.description}
                       onChange={handleChange}
                       placeholder="Describe your product..."
+                      className="bg-white dark:bg-gray-800"
                     />
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price ($)</label>
+                  <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Price ($)</label>
                   <div className="mt-1">
                     <Input
                       type="text"
@@ -380,14 +374,14 @@ const ProductEdit = () => {
                       id="price"
                       value={formData.price}
                       onChange={handleChange}
-                      className={formErrors.price ? 'border-red-300' : ''}
+                      className={formErrors.price ? 'border-red-300 dark:border-red-500' : ''}
                     />
-                    {formErrors.price && <p className="mt-2 text-sm text-red-600 error-message">{formErrors.price}</p>}
+                    {formErrors.price && <p className="mt-2 text-sm text-red-600 dark:text-red-400 error-message">{formErrors.price}</p>}
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="discountPrice" className="block text-sm font-medium text-gray-700">Discount Price ($)</label>
+                  <label htmlFor="discountPrice" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Discount Price ($)</label>
                   <div className="mt-1">
                     <Input
                       type="text"
@@ -400,7 +394,20 @@ const ProductEdit = () => {
                   </div>
                 </div>
 
-
+                <div className="sm:col-span-2">
+                  <label htmlFor="stock" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Stock</label>
+                  <div className="mt-1">
+                    <Input
+                      type="text"
+                      name="stock"
+                      id="stock"
+                      value={formData.stock}
+                      onChange={handleChange}
+                      className={formErrors.stock ? 'border-red-300 dark:border-red-500' : ''}
+                    />
+                    {formErrors.stock && <p className="mt-2 text-sm text-red-600 dark:text-red-400 error-message">{formErrors.stock}</p>}
+                  </div>
+                </div>
 
                 <div className="sm:col-span-6">
                   <div className="flex items-center">
@@ -411,8 +418,9 @@ const ProductEdit = () => {
                       onCheckedChange={(checked) => {
                         setFormData(prev => ({ ...prev, featured: checked }));
                       }}
+                      className="border-gray-300 dark:border-gray-600"
                     />
-                    <label htmlFor="featured" className="ml-2 block text-sm text-gray-900">
+                    <label htmlFor="featured" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                       Feature this product on the homepage
                     </label>
                   </div>
@@ -422,14 +430,14 @@ const ProductEdit = () => {
           </div>
 
           {/* Images */}
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
             <div className="p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Product Images</h2>
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Product Images</h2>
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-4">
                   {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative">
-                      <div className="h-24 w-24 rounded-md overflow-hidden bg-gray-100">
+                      <div className="h-24 w-24 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
                         <img
                           src={preview}
                           alt={`Preview ${index + 1}`}
@@ -446,10 +454,10 @@ const ProductEdit = () => {
                     </div>
                   ))}
                   {imagePreviews.length < 5 && (
-                    <div className="h-24 w-24 rounded-md border-2 border-dashed border-gray-300 flex items-center justify-center">
+                    <div className="h-24 w-24 rounded-md border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
                       <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
-                        <Plus className="h-6 w-6 text-gray-400" />
-                        <span className="mt-1 text-xs text-gray-500">Add Image</span>
+                        <Plus className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+                        <span className="mt-1 text-xs text-gray-500 dark:text-gray-400">Add Image</span>
                         <input
                           id="image-upload"
                           name="image-upload"
@@ -462,20 +470,20 @@ const ProductEdit = () => {
                     </div>
                   )}
                 </div>
-                {formErrors.images && <p className="text-sm text-red-600 error-message">{formErrors.images}</p>}
-                <p className="text-sm text-gray-500">Upload up to 5 images. First image will be used as the product thumbnail.</p>
+                {formErrors.images && <p className="text-sm text-red-600 dark:text-red-400 error-message">{formErrors.images}</p>}
+                <p className="text-sm text-gray-500 dark:text-gray-400">Upload up to 5 images. First image will be used as the product thumbnail.</p>
               </div>
             </div>
           </div>
 
           {/* Specifications */}
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
             <div className="p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Specifications</h2>
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Specifications</h2>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                   <div className="sm:col-span-2">
-                    <label htmlFor="spec-key" className="block text-sm font-medium text-gray-700">Specification</label>
+                    <label htmlFor="spec-key" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Specification</label>
                     <div className="mt-1">
                       <Input
                         type="text"
@@ -488,7 +496,7 @@ const ProductEdit = () => {
                     </div>
                   </div>
                   <div className="sm:col-span-3">
-                    <label htmlFor="spec-value" className="block text-sm font-medium text-gray-700">Value</label>
+                    <label htmlFor="spec-value" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Value</label>
                     <div className="mt-1">
                       <Input
                         type="text"
@@ -514,19 +522,19 @@ const ProductEdit = () => {
 
                 {formData.specifications.length > 0 && (
                   <div className="mt-4">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Added Specifications</h3>
-                    <div className="bg-gray-50 rounded-md p-3">
-                      <ul className="divide-y divide-gray-200">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Added Specifications</h3>
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-3">
+                      <ul className="divide-y divide-gray-200 dark:divide-gray-600">
                         {formData.specifications.map((spec, index) => (
                           <li key={index} className="py-2 flex justify-between items-center">
                             <div>
-                              <span className="font-medium text-gray-900">{spec.key}: </span>
-                              <span className="text-gray-700">{spec.value}</span>
+                              <span className="font-medium text-gray-900 dark:text-white">{spec.key}: </span>
+                              <span className="text-gray-700 dark:text-gray-300">{spec.value}</span>
                             </div>
                             <button
                               type="button"
                               onClick={() => handleRemoveSpec(index)}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-red-500 hover:text-red-700 dark:hover:text-red-400"
                             >
                               <X className="h-4 w-4" />
                             </button>
@@ -546,14 +554,14 @@ const ProductEdit = () => {
               type="button"
               onClick={() => navigate(`/outlet/product/${id}`)}
               variant="outline"
-              className="border-gray-300 text-gray-700"
+              className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSaving}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white"
             >
               {isSaving ? (
                 <>

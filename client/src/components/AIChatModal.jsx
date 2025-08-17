@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 const AIChatModal = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState([
@@ -15,6 +16,18 @@ const AIChatModal = ({ isOpen, onClose }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Quick action suggestions
+  const quickActions = [
+    { text: "Show me today's sales summary", label: "Today's Sales" },
+    { text: "What are my top selling products?", label: "Top Products" },
+    { text: "Show pending orders", label: "Pending Orders" },
+    { text: "Show me weekly revenue trends", label: "Revenue Trends" },
+    { text: "List low stock items", label: "Low Stock Alert" },
+    { text: "Show customer feedback summary", label: "Customer Feedback" },
+    { text: "Compare sales with last week", label: "Sales Comparison" },
+    { text: "Show cancelled orders", label: "Cancelled Orders" }
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -44,17 +57,47 @@ const AIChatModal = ({ isOpen, onClose }) => {
     setInputMessage('');
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/ai/ask', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          question: inputMessage,
+          conversation: messages.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await response.json();
       const aiResponse = {
         id: Date.now() + 1,
-        text: "I understand you're asking about " + inputMessage + ". Let me help you with that. Based on your outlet data, here are some insights and recommendations...",
+        text: data.answer,
         sender: 'ai',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      const errorResponse = {
+        id: Date.now() + 1,
+        text: 'Sorry, there was an error processing your request. Please try again.',
+        sender: 'ai',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -68,24 +111,33 @@ const AIChatModal = ({ isOpen, onClose }) => {
     return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Define markdown components for styling
+  const markdownComponents = {
+    p: ({node, ...props}) => <p className="text-sm whitespace-pre-wrap" {...props} />,
+    // Add other components as needed
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-25 transition-opacity"
+        className="fixed inset-0 bg-black/50 bg-opacity-25 transition-opacity"
         onClick={onClose}
       />
       
-      {/* Modal Container */}
-      <div className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+      {/* Modal Container - Changed to left center positioning */}
+      <div className="fixed inset-0 flex items-center md:items-center lg:items-start justify-end p-4 pointer-events-none">
         <div 
           className={`bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 pointer-events-auto transition-all duration-300 ${
             isMinimized 
-              ? 'w-80 h-16' 
-              : 'w-full max-w-2xl h-[600px] max-h-[80vh]'
+              ? 'w-80 h-16 ml-4'  // Added ml-4 for minimized state
+              : 'w-full max-w-2xl h-[600px] max-h-[80vh] ml-4'  // Added ml-4
           }`}
+          style={{
+            transform: isMinimized ? 'translateY(0)' : 'translateY(0)',
+          }}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-white dark:from-purple-900/20 dark:to-gray-800 rounded-t-lg">
@@ -148,7 +200,13 @@ const AIChatModal = ({ isOpen, onClose }) => {
                           <User className="w-4 h-4 mt-1 text-white flex-shrink-0" />
                         )}
                         <div className="flex-1">
-                          <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                          {message.sender === 'ai' ? (
+                            <ReactMarkdown components={markdownComponents}>
+                              {message.text}
+                            </ReactMarkdown>
+                          ) : (
+                            <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                          )}
                           <p className={`text-xs mt-1 ${
                             message.sender === 'user' 
                               ? 'text-purple-200' 
@@ -204,24 +262,18 @@ const AIChatModal = ({ isOpen, onClose }) => {
                   </button>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setInputMessage("Show me today's sales summary")}
-                    className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Today's Sales
-                  </button>
-                  <button
-                    onClick={() => setInputMessage("What are my top selling products?")}
-                    className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Top Products
-                  </button>
-                  <button
-                    onClick={() => setInputMessage("Show pending orders")}
-                    className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Pending Orders
-                  </button>
+                  {quickActions
+                    .sort(() => Math.random() - 0.5) // Randomly shuffle the array
+                    .slice(0, 6) // Take first 3 items after shuffling
+                    .map((action, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputMessage(action.text)}
+                        className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                      >
+                        {action.label}
+                      </button>
+                    ))}
                 </div>
               </div>
             </>
