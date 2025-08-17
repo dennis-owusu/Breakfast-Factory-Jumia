@@ -20,7 +20,7 @@ const endpoint = 'https://models.inference.ai.azure.com';
 const modelName = 'Llama-3.3-70B-Instruct';
 
 export const askAI = async (req, res, next) => {
-  const { question } = req.body;
+  const { question, conversation = [] } = req.body;
 
   try {
     const isOutlet = req.user && (req.user.usersRole === 'outlet' || req.user.usersRole === 'admin');
@@ -202,7 +202,8 @@ export const askAI = async (req, res, next) => {
     const response = await client.path('/chat/completions').post({
       body: {
         messages: [
-          { role: 'system', content: 'You are a friendly and knowledgeable AI assistant with full real-time access to the e-commerce system\'s data. Always provide precise, specific, and accurate answers based solely on the provided context. For sales or analysis queries, include data-driven insights, trends, and practical suggestions to improve sales (e.g., based on product performance, user engagement, or order patterns). Do not retrieve or provide sensitive data such as user personal information, passwords, or payment details unless explicitly requested by the user. If data is limited, make reasonable predictions based on available information without claiming lack of data. Format your responses in a clear, organized manner using markdown: use headings, bullet points, bold text for key information, and short paragraphs for readability. Use the data given to give confident, helpful responses in simple language without technical jargon: ' + context },
+          { role: 'system', content: 'You are a knowledgeable AI assistant with full real-time access to the e-commerce system\'s data. Provide direct, concise, and accurate answers based solely on the provided context, without repeating the query or using filler phrases like \'I understand you\'re asking about...\'. Vary your response style to be dynamic and engaging without repetition. For sales or analysis queries, include data-driven insights, trends, and practical suggestions to improve sales (e.g., based on product performance, user engagement, or order patterns). Do not retrieve or provide sensitive data such as user personal information, passwords, or payment details unless explicitly requested by the user. If data is limited, make reasonable predictions based on available information without claiming lack of data. Format your responses in a clear, organized manner using markdown: use headings, bullet points, bold text for key information, and short paragraphs for readability. Use the data given to give confident, helpful responses in simple language without technical jargon: ' + context },
+          ...conversation,
           { role: 'user', content: question }
         ],
         temperature: 1.0,

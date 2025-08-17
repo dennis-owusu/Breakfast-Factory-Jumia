@@ -6,6 +6,7 @@ import Loader from '../../components/ui/Loader';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { toast } from 'react-hot-toast';
 import AIQuery from '../../components/ui/AIQuery';
+import AIChatModal from '../../components/AIChatModal';
 import { saveAs } from 'file-saver';
 import io from 'socket.io-client';
 
@@ -21,6 +22,7 @@ const OutletDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleDownloadReport = async () => {
     setIsDownloading(true);
@@ -232,6 +234,12 @@ const OutletDashboard = () => {
             >
               Add New Product
             </Link>
+            <button
+               onClick={() => setIsChatOpen(true)}
+               className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+             >
+               Chat with AI
+             </button>
           </div>
         </div>
         
@@ -635,6 +643,7 @@ const OutletDashboard = () => {
           </div>
         </div>
       </div>
+      <AIChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );
 };
