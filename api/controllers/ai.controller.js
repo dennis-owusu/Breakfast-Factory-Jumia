@@ -122,16 +122,91 @@ export const askAI = async (req, res, next) => {
     }
 
     if (question.toLowerCase().includes('top selling') || question.toLowerCase().includes('best selling')) {
-      const topSellingMatch = isOutlet ? { 'items.product': { $in: await Product.find({ outlet: req.user.id }).distinct('_id') } } : {};
-      const topSelling = await Order.aggregate([
-        { $match: topSellingMatch },
-        { $unwind: '$items' },
-        { $group: { _id: '$items.product', totalSold: { $sum: '$items.quantity' }, totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } } } },
-        { $sort: { totalSold: -1 } },
-        { $limit: 5 },
-        { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'product' } }
-      ]);
-      context += `Top selling products: ${JSON.stringify(topSelling.map(s => ({ name: s.product[0]?.productName, sold: s.totalSold, revenue: s.totalRevenue })))}. `;
+      // Try multiple data sources for top selling products
+      let topSelling = [];
+      
+      // First try to get data from Orders collection
+      const orderMatch = isOutlet ? { 'products.product._id': { $in: await Product.find({ outlet: req.user.id }).distinct('_id') } } : {};
+      try {
+        topSelling = await Order.aggregate([
+          { $match: orderMatch },
+          { $unwind: '$products' },
+          { $group: { 
+            _id: '$products.product.name', 
+            totalSold: { $sum: '$products.quantity' }, 
+            totalRevenue: { $sum: { $multiply: ['$products.quantity', '$products.product.price'] } },
+            image: { $first: '$products.product.images' }
+          }},
+          { $sort: { totalSold: -1 } },
+          { $limit: 5 }
+        ]);
+      } catch (err) {
+        console.log('Error fetching top selling products from orders:', err.message);
+      }
+      
+      // If no results from Orders, try Sales collection
+      if (topSelling.length === 0) {
+        const salesMatch = isOutlet ? { outletId: req.user.id } : {};
+        try {
+          topSelling = await Sales.aggregate([
+            { $match: salesMatch },
+            { $group: { 
+              _id: '$product.name', 
+              totalSold: { $sum: '$quantity' }, 
+              totalRevenue: { $sum: '$total' },
+              image: { $first: '$product.images' }
+            }},
+            { $sort: { totalSold: -1 } },
+            { $limit: 5 }
+          ]);
+        } catch (err) {
+          console.log('Error fetching top selling products from sales:', err.message);
+        }
+      }
+      
+      // If still no data, use product metrics to infer potential top sellers
+      if (topSelling.length === 0) {
+        const productFilter = isOutlet ? { outlet: req.user.id } : {};
+        
+        // Strategy 1: Featured products (likely promoted as best sellers)
+        const featuredProducts = await Product.find({ ...productFilter, featured: true })
+          .sort({ createdAt: -1 })
+          .limit(3)
+          .select('productName productPrice productImage description featured createdAt numberOfProductsAvailable');
+          
+        // Strategy 2: Products with low stock (might indicate high demand)
+        const lowStockProducts = await Product.find({ 
+          ...productFilter, 
+          numberOfProductsAvailable: { $gt: 0, $lt: 10 } 
+        })
+          .sort({ numberOfProductsAvailable: 1 })
+          .limit(2)
+          .select('productName productPrice productImage description featured createdAt numberOfProductsAvailable');
+          
+        // Strategy 3: Newest products (recent additions)
+        const newestProducts = await Product.find(productFilter)
+          .sort({ createdAt: -1 })
+          .limit(5 - (featuredProducts.length + lowStockProducts.length))
+          .select('productName productPrice productImage description featured createdAt numberOfProductsAvailable');
+          
+        const potentialTopSellers = [...featuredProducts, ...lowStockProducts, ...newestProducts];
+        
+        context += `Based on product metrics analysis, these are likely top sellers: ${JSON.stringify(potentialTopSellers.map(p => ({ 
+          name: p.productName, 
+          price: p.productPrice,
+          image: p.productImage,
+          featured: p.featured ? 'Yes (Featured Product)' : 'No',
+          stock: p.numberOfProductsAvailable,
+          added: p.createdAt
+        })))}. `;
+      } else {
+        context += `Top selling products: ${JSON.stringify(topSelling.map(s => ({ 
+          name: s._id, 
+          sold: s.totalSold, 
+          revenue: s.totalRevenue,
+          image: s.image
+        })))}. `;
+      }
     }
 
     if (question.toLowerCase().includes('products') || question.toLowerCase().includes('how many products')) {

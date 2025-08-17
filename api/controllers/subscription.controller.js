@@ -13,8 +13,10 @@ export const createSubscription = async (req, res, next) => {
     
     if (plan === 'free') {
       endDate.setUTCDate(endDate.getUTCDate() + 14);
-    } else if (plan === 'pro') {
-      endDate.setUTCDate(endDate.getUTCDate() + 30);
+    } else if (plan === 'monthly') {
+      endDate.setUTCMonth(endDate.getUTCMonth() + 1);
+    } else if (plan === 'bimonthly') {
+      endDate.setUTCMonth(endDate.getUTCMonth() + 2);
     }
     
     // Set features based on plan
@@ -24,9 +26,12 @@ export const createSubscription = async (req, res, next) => {
     if (plan === 'free') {
       features = ['Basic Analytics', 'Limited Product Listings', 'Standard Support'];
       price = 0;
-    } else if (plan === 'pro') {
+    } else if (plan === 'monthly') {
       features = ['Advanced Analytics', 'Unlimited Product Listings', 'Priority Support', 'Featured Listings', 'Custom Branding'];
-      price = 300; // 300 GHS per month
+      price = 150; // 150 GHS per month
+    } else if (plan === 'bimonthly') {
+      features = ['Advanced Analytics', 'Unlimited Product Listings', 'Priority Support', 'Featured Listings', 'Custom Branding'];
+      price = 300; // 300 GHS for 2 months
     }
     
     // Check if user already has an active subscription
@@ -143,8 +148,10 @@ export const renewSubscription = async (req, res, next) => {
     
     if (subscription.plan === 'free') {
       endDate.setDate(endDate.getDate() + 14);
-    } else if (subscription.plan === 'pro') {
+    } else if (subscription.plan === 'monthly') {
       endDate.setMonth(endDate.getMonth() + 1);
+    } else if (subscription.plan === 'bimonthly') {
+      endDate.setMonth(endDate.getMonth() + 2);
     }
     
     // Update subscription
@@ -176,29 +183,42 @@ export const upgradeSubscription = async (req, res, next) => {
       return next(errorHandler(404, 'Subscription not found'));
     }
     
-    if (subscription.plan === 'pro') {
-      return next(errorHandler(400, 'Subscription is already on pro plan'));
+    // For simplicity, assuming upgrade is to a specified plan in req.body
+    const { newPlan } = req.body;
+    if (!['monthly', 'bimonthly'].includes(newPlan)) {
+      return next(errorHandler(400, 'Invalid upgrade plan'));
+    }
+    if (subscription.plan === newPlan) {
+      return next(errorHandler(400, `Subscription is already on ${newPlan} plan`));
     }
     
-    // Calculate new end date (1 month from now for pro plan)
+    // Calculate new end date
     const startDate = new Date();
     let endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + 1);
+    if (newPlan === 'monthly') {
+      endDate.setMonth(endDate.getMonth() + 1);
+    } else if (newPlan === 'bimonthly') {
+      endDate.setMonth(endDate.getMonth() + 2);
+    }
     
-    // Update subscription to pro
-    subscription.plan = 'pro';
+    // Set features and price
+    let features = ['Advanced Analytics', 'Unlimited Product Listings', 'Priority Support', 'Featured Listings', 'Custom Branding'];
+    let price = newPlan === 'monthly' ? 150 : 300;
+    
+    // Update subscription
+    subscription.plan = newPlan;
     subscription.startDate = startDate;
     subscription.endDate = endDate;
     subscription.status = 'active';
     subscription.paymentId = paymentId;
-    subscription.features = ['Advanced Analytics', 'Unlimited Product Listings', 'Priority Support', 'Featured Listings', 'Custom Branding'];
-    subscription.price = 300;
+    subscription.features = features;
+    subscription.price = price;
     
     await subscription.save();
     
     res.status(200).json({
       success: true,
-      message: 'Subscription upgraded to pro successfully',
+      message: `Subscription upgraded to ${newPlan} successfully`,
       subscription
     });
   } catch (error) {
