@@ -18,7 +18,8 @@ const usersSchema = new mongoose.Schema({
     }, 
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     password: {
         type: String,
@@ -26,7 +27,8 @@ const usersSchema = new mongoose.Schema({
     },
     phoneNumber: {
         type: Number,
-        required: false
+        required: false,
+        unique: true
     },
     profilePicture: { 
         type: String,

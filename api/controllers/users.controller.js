@@ -10,6 +10,12 @@ export const createUser = async(req, res, next) => {
     if (user) {
       return res.status(400).json({ message: 'Email already exists' });
     }
+    if (phoneNumber) {
+      const phoneUser = await Users.findOne({ phoneNumber });
+      if (phoneUser) {
+        return res.status(400).json({ message: 'Phone number already exists' });
+      }
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new Users({
       name,
@@ -58,6 +64,21 @@ export const login = async (req, res, next) => {
     if (user.status === 'inactive') {
       return res.status(403).json({ message: 'Your account is inactive. Please contact support.' });
     }
+    if (user.usersRole === 'outlet' || user.usersRole === 'admin') {
+      const subscription = await Subscription.findOne({ userId: user._id });
+      if (subscription) {
+        const now = new Date();
+        if (subscription.status === 'active' && subscription.endDate <= now) {
+          subscription.status = 'expired';
+          await subscription.save();
+        }
+        if (subscription.status !== 'active') {
+          return res.status(403).json({ message: 'Your subscription has expired. Please renew to continue.' });
+        }
+      } else {
+        return res.status(403).json({ message: 'No subscription found. Please contact support.' });
+      }
+    }
     // Update last login time
     user.lastLogin = new Date();
     await user.save();
@@ -85,6 +106,21 @@ export const google = async (req, res, next) => {
         if (user.status === 'inactive') {
           return res.status(403).json({ message: 'Your account is inactive. Please contact support.' });
         }
+        if (user.usersRole === 'outlet' || user.usersRole === 'admin') {
+          const subscription = await Subscription.findOne({ userId: user._id });
+          if (subscription) {
+            const now = new Date();
+            if (subscription.status === 'active' && subscription.endDate <= now) {
+              subscription.status = 'expired';
+              await subscription.save();
+            }
+            if (subscription.status !== 'active') {
+              return res.status(403).json({ message: 'Your subscription has expired. Please renew to continue.' });
+            }
+          } else {
+            return res.status(403).json({ message: 'No subscription found. Please contact support.' });
+          }
+        }
         // Update last login time
         user.lastLogin = new Date();
         await user.save();
@@ -100,6 +136,12 @@ export const google = async (req, res, next) => {
           })
           .json(user);
       } else {
+        if (phoneNumber) {
+          const phoneUser = await Users.findOne({ phoneNumber });
+          if (phoneUser) {
+            return res.status(400).json({ message: 'Phone number already exists' });
+          }
+        }
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new Users({
           name,
