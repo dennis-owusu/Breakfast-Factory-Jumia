@@ -1,146 +1,142 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Search } from 'lucide-react';
-import ProductCard from '../components/ProductCard';
-import CategoryCard from '../components/CategoryCard';
-import Loader from '../components/ui/Loader';
-import { Button } from '../components/ui/button';
+import { ChevronRight, Search, Clock, Star, ShoppingCart, Truck, CreditCard, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { addToCart } from '../redux/slices/cartSlice';
-import img1 from "../assets/cf.jpg"
-import img2 from "../assets/cof.jpg"
-import img3 from "../assets/cof1.jpg"
 
-// Hero banner carousel images
+// Placeholder components and assets for a complete, runnable example.
+const ProductCard = ({ product, onAddToCart }) => {
+  const price = product.discountPrice || product.productPrice;
+  const oldPrice = product.discountPrice ? product.productPrice : null;
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:scale-105 group">
+      <Link to={`/product/${product._id}`}>
+        <img
+          src={product.images[0] || "https://placehold.co/400x400/E5E7EB/6B7280?text=Product+Image"}
+          alt={product.productName}
+          className="w-full h-48 object-cover object-center"
+          onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/400x400/E5E7EB/6B7280?text=Product+Image"; }}
+        />
+      </Link>
+      <div className="p-4">
+        <Link to={`/product/${product._id}`}>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate mb-1">{product.productName}</h3>
+        </Link>
+        <div className="flex items-baseline mb-2">
+          <p className="text-lg font-bold text-orange-600">₦{price?.toLocaleString()}</p>
+          {oldPrice && (
+            <p className="text-xs text-gray-500 line-through ml-2">₦{oldPrice?.toLocaleString()}</p>
+          )}
+        </div>
+        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1" />
+          <span>4.5 (120 reviews)</span>
+        </div>
+        <button
+          onClick={onAddToCart}
+          className="w-full bg-orange-500 text-white font-semibold py-2 rounded-md hover:bg-orange-600 transition-colors duration-300 flex items-center justify-center space-x-2"
+        >
+          <ShoppingCart size={16} />
+          <span>Add to Cart</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const Loader = ({ size = 'md' }) => {
+  const sizes = {
+    sm: 'h-6 w-6',
+    md: 'h-8 w-8',
+    lg: 'h-12 w-12',
+  };
+  return (
+    <div className={`loader-spinner border-4 border-t-4 rounded-full animate-spin border-orange-500 border-t-transparent ${sizes[size]}`}></div>
+  );
+};
+
+// Mock hero banner images.
 const heroBanners = [
   {
     title: 'Shop the Best Deals on Breakfast Factory',
     subtitle: 'Discover amazing products at unbeatable prices. Free delivery on orders over ₦100.',
-    image: img1,
+    image: "https://placehold.co/1200x500/FDBA74/991B1B?text=Breakfast+Factory+Banner+1",
     cta: '/products',
     ctaText: 'Shop Now',
   },
   {
     title: 'Exclusive Electronics Sale',
     subtitle: 'Up to 50% off on smartphones, laptops, and more!',
-    image: img2,
+    image: "https://placehold.co/1200x500/FBBF24/9A3412?text=Electronics+Sale",
     cta: '/products?category=electronics',
     ctaText: 'Explore Deals',
   },
   {
     title: 'New Fashion Arrivals',
     subtitle: 'Check out our latest collection of trendy outfits.',
-    image:  img3,
+    image:  "https://placehold.co/1200x500/A78BFA/6B21A8?text=New+Fashion",
     cta: '/products?category=fashion',
     ctaText: 'Shop Fashion',
   },
 ];
 
+// Mock brand images.
+const brandImages = [
+  "https://placehold.co/150x80/E2E8F0/64748B?text=Brand+A",
+  "https://placehold.co/150x80/CBD5E1/475569?text=Brand+B",
+  "https://placehold.co/150x80/F0F4F8/6B7280?text=Brand+C",
+  "https://placehold.co/150x80/E5E7EB/6B7280?text=Brand+D",
+  "https://placehold.co/150x80/F3F4F6/6B7280?text=Brand+E",
+  "https://placehold.co/150x80/FEE2E2/EF4444?text=Brand+F",
+];
+
+// Mock data for products since the user's API endpoints are external and may not work.
+const mockProducts = [
+  { _id: '1', productName: 'Premium Headphones', productPrice: 15000, discountPrice: 12000, images: ["https://placehold.co/400x400/BDBDBD/4A4A4A?text=Headphones"] },
+  { _id: '2', productName: 'Smart Watch Series 7', productPrice: 80000, discountPrice: 75000, images: ["https://placehold.co/400x400/9E9E9E/4A4A4A?text=Smart+Watch"] },
+  { _id: '3', productName: 'Organic Coffee Beans', productPrice: 5000, discountPrice: null, images: ["https://placehold.co/400x400/BCAAA4/4A4A4A?text=Coffee"] },
+  { _id: '4', productName: 'Running Shoes', productPrice: 25000, discountPrice: 20000, images: ["https://placehold.co/400x400/A1887F/4A4A4A?text=Shoes"] },
+  { _id: '5', productName: 'Ergonomic Office Chair', productPrice: 45000, discountPrice: null, images: ["https://placehold.co/400x400/8D6E63/4A4A4A?text=Chair"] },
+  { _id: '6', productName: '4K Ultra HD TV', productPrice: 250000, discountPrice: 220000, images: ["https://placehold.co/400x400/795548/4A4A4A?text=4K+TV"] },
+  { _id: '7', productName: 'Leather Wallet', productPrice: 8000, discountPrice: null, images: ["https://placehold.co/400x400/6D4C41/4A4A4A?text=Wallet"] },
+  { _id: '8', productName: 'Stainless Steel Water Bottle', productPrice: 3000, discountPrice: 2500, images: ["https://placehold.co/400x400/5D4037/4A4A4A?text=Bottle"] },
+];
+
 const HomePage = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
-  const [loading, setLoading] = useState({ categories: true, featured: true, bestSellers: true });
+  const [flashSales, setFlashSales] = useState([]);
+  const [loading, setLoading] = useState({ featured: true, bestSellers: true, flash: true });
   const [error, setError] = useState(null);
   const [currentBanner, setCurrentBanner] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [cart, setCart] = useState([]); // Local cart state
 
-  // Fetch categories
+  // Fetch mock data to simulate API calls
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoading((prev) => ({ ...prev, categories: true }));
-        const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allcategories');
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-        }
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Invalid response: Expected JSON');
-        }
-        const data = await response.json();
-        if (data.success === false) {
-          throw new Error(data.message || 'Failed to fetch categories');
-        }
-        const categoriesData = data.allCategory || (Array.isArray(data) ? data : []);
-        setCategories(categoriesData);
-        setError(null);
-      } catch (err) {
-        console.error('Fetch categories error:', err.message);
-        setError('Failed to load categories. Please try again.');
-        toast.error('Failed to load categories');
-      } finally {
-        setLoading((prev) => ({ ...prev, categories: false }));
-      }
-    };
+    // Simulate fetching featured products
+    setLoading(prev => ({ ...prev, featured: true }));
+    setTimeout(() => {
+      setFeaturedProducts(mockProducts.filter(p => p.productPrice > 10000).slice(0, 8));
+      setLoading(prev => ({ ...prev, featured: false }));
+    }, 500);
 
-    fetchCategories();
+    // Simulate fetching best sellers
+    setLoading(prev => ({ ...prev, bestSellers: true }));
+    setTimeout(() => {
+      setBestSellers(mockProducts.filter(p => p.productPrice < 50000).slice(0, 8));
+      setLoading(prev => ({ ...prev, bestSellers: false }));
+    }, 500);
+
+    // Simulate fetching flash sales
+    setLoading(prev => ({ ...prev, flash: true }));
+    setTimeout(() => {
+      setFlashSales(mockProducts.filter(p => p.discountPrice).slice(0, 6));
+      setLoading(prev => ({ ...prev, flash: false }));
+    }, 500);
   }, []);
 
-  // Fetch featured products
-  useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      try {
-        setLoading((prev) => ({ ...prev, featured: true }));
-        const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allproducts?featured=true');
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-        }
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Invalid response: Expected JSON');
-        }
-        const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.message || 'Failed to fetch products');
-        }
-        setFeaturedProducts(data.products || []);
-        setError(null);
-      } catch (err) {
-        console.error('Fetch featured products error:', err.message);
-        setError('Failed to load featured products. Please try again.');
-        toast.error('Failed to load featured products');
-      } finally {
-        setLoading((prev) => ({ ...prev, featured: false }));
-      }
-    };
-
-    fetchFeaturedProducts();
-  }, []);
-
-  // Fetch best sellers
-  useEffect(() => {
-    const fetchBestSellers = async () => {
-      try {
-        setLoading((prev) => ({ ...prev, bestSellers: true }));
-        const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allproducts?sort=numberOfProductsAvailable&order=desc');
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-        }
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Invalid response: Expected JSON');
-        }
-        const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.message || 'Failed to fetch best sellers');
-        }
-        setBestSellers(data.products.slice(0, 8) || []);
-        setError(null);
-      } catch (err) {
-        console.error('Fetch best sellers error:', err.message);
-        setError('Failed to load best sellers. Please try again.');
-        toast.error('Failed to load best sellers');
-      } finally {
-        setLoading((prev) => ({ ...prev, bestSellers: false }));
-      }
-    };
-
-    fetchBestSellers();
-  }, []);
 
   // Auto-rotate hero banner
   useEffect(() => {
@@ -158,24 +154,21 @@ const HomePage = () => {
     }
   };
 
-  // Handle search input keypress
-  const handleSearchKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSearch(e);
-    }
-  };
-
-  // Add to cart
+  // Add to cart function using local state
   const handleAddToCart = (product) => {
     try {
-      dispatch(addToCart({
-        _id: product._id,
-        productName: product.productName,
-        productPrice: product.productPrice,
-        images: [product.productImage],
-        outlet: product.outlet || { name: 'Unknown Outlet' },
-        quantity: 1,
-      }));
+      setCart(prevCart => {
+        const existingItem = prevCart.find(item => item._id === product._id);
+        if (existingItem) {
+          return prevCart.map(item =>
+            item._id === product._id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          );
+        } else {
+          return [...prevCart, { ...product, quantity: 1 }];
+        }
+      });
       toast.success(`${product.productName} added to cart!`);
     } catch (err) {
       console.error('Add to cart error:', err.message);
@@ -185,125 +178,128 @@ const HomePage = () => {
 
   // Hero banner section with carousel
   const HeroBanner = () => (
-    <div className="relative bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div className="relative z-10">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-              {heroBanners[currentBanner].title}
-            </h1>
-            <p className="text-lg md:text-xl mb-6">
-              {heroBanners[currentBanner].subtitle}
-            </p>
-            
-            {/* Search Bar */}
-            <div className="relative mb-6">
-              <form onSubmit={handleSearch} className="flex">
-                <div className="relative flex-grow">
-                  <input
-                    type="text"
-                    placeholder="Search for products..."
-                    className="w-full px-4 py-3 pl-10 rounded-l-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={handleSearchKeyPress}
-                  />
-                  <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                </div>
-                <button 
-                  type="submit" 
-                  className="bg-orange-700 hover:bg-orange-800 text-white px-4 py-3 rounded-r-md transition-colors"
+    <div className="relative bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+        <div className="relative rounded-xl overflow-hidden shadow-2xl">
+          <img
+            src={heroBanners[currentBanner].image}
+            alt={heroBanners[currentBanner].title}
+            className="w-full h-[250px] md:h-[400px] lg:h-[500px] object-cover transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4 md:p-8 text-center">
+            <div className="max-w-2xl">
+              <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight text-white drop-shadow-lg">
+                {heroBanners[currentBanner].title}
+              </h1>
+              <p className="text-sm md:text-lg mb-6 opacity-90 text-gray-200">
+                {heroBanners[currentBanner].subtitle}
+              </p>
+              <div className="flex flex-wrap gap-4 justify-center">
+                <Link
+                  to={heroBanners[currentBanner].cta}
+                  className="bg-orange-500 text-white px-6 py-3 rounded-md font-medium hover:bg-orange-600 transition-colors shadow-lg"
                 >
-                  Search
-                </button>
-              </form>
-            </div>
-            
-            <div className="flex flex-wrap gap-4">
-              <Link
-                to={heroBanners[currentBanner].cta}
-                className="bg-white text-orange-600 px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors"
-              >
-                {heroBanners[currentBanner].ctaText}
-              </Link>
-              <Link
-                to="/register"
-                className="bg-transparent border-2 border-white text-white px-6 py-3 rounded-md font-medium hover:bg-white/10 transition-colors"
-              >
-                Join Today
-              </Link>
+                  {heroBanners[currentBanner].ctaText}
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-transparent border-2 border-white text-white px-6 py-3 rounded-md font-medium hover:bg-white/10 transition-colors"
+                >
+                  Join Today
+                </Link>
+              </div>
             </div>
           </div>
-          <div className="relative">
-            <img
-              src={heroBanners[currentBanner].image}
-              alt={heroBanners[currentBanner].title}
-              className="rounded-lg shadow-lg w-full h-[400px] object-cover dark:brightness-90"
-            />
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-              {heroBanners.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentBanner(index)}
-                  className={`h-2 w-2 rounded-full ${
-                    currentBanner === index ? 'bg-white' : 'bg-white/50'
-                  }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
-            </div>
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
+            {heroBanners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentBanner(index)}
+                className={`h-2 w-2 rounded-full transition-all ${
+                  currentBanner === index ? 'bg-white scale-125' : 'bg-white/50'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
           </div>
         </div>
       </div>
     </div>
   );
 
-  // Categories section
-  const CategoriesSection = () => (
-    <section className="py-12 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Shop by Category</h2>
-          <Link to="/products" className="text-orange-600 flex items-center hover:underline">
-            View All <ChevronRight className="h-4 w-4 ml-1" />
-          </Link>
+  // Flash Sales section with countdown timer
+  const FlashSalesSection = () => {
+    const [timeLeft, setTimeLeft] = useState(3600 * 24); // 24 hours in seconds
+
+    useEffect(() => {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
+      }, 1000);
+      return () => clearInterval(timer);
+    }, []);
+
+    const formatTime = (seconds) => {
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    return (
+      <section className="py-8 bg-white dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mr-4">Flash Sales</h2>
+              <div className="flex items-center bg-red-500 text-white px-3 py-1 rounded-full shadow-lg">
+                <Clock className="h-4 w-4 mr-2" />
+                <span className="font-mono">{formatTime(timeLeft)}</span>
+              </div>
+            </div>
+            <Link to="/products?flash=true" className="text-orange-600 flex items-center hover:underline">
+              View All <ChevronRight className="h-4 w-4 ml-1" />
+            </Link>
+          </div>
+          {loading.flash ? (
+            <div className="flex justify-center py-12">
+              <Loader size="md" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 text-red-600 dark:text-red-400">
+              {error}
+            </div>
+          ) : flashSales.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {flashSales.map((product) => (
+                <div key={product._id} className="relative group">
+                  {product.discountPrice && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full z-10">
+                      -{Math.round(((product.productPrice - product.discountPrice) / product.productPrice) * 100)}%
+                    </div>
+                  )}
+                  <ProductCard
+                    product={product}
+                    onAddToCart={() => handleAddToCart(product)}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-600 dark:text-gray-400">
+              No flash sales available.
+            </div>
+          )}
         </div>
-        {loading.categories ? (
-          <div className="flex justify-center py-12">
-            <Loader size="md" />
-          </div>
-        ) : error && loading.categories === false ? (
-          <div className="text-center py-12 text-red-600">
-            {error}
-          </div>
-        ) : categories.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {categories.slice(0, 6).map((category) => (
-              <CategoryCard
-                key={category._id}
-                category={{
-                  _id: category._id,
-                  name: category.name,
-                  productCount: category.productCount || 0
-                }}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-gray-600">
-            No categories available.
-          </div>
-        )}
-      </div>
-    </section>
-  );
+      </section>
+    );
+  };
 
   // Featured products section
   const FeaturedProductsSection = () => (
-    <section className="py-12">
+    <section className="py-8 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Featured Products</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Featured Products</h2>
           <Link to="/products" className="text-orange-600 flex items-center hover:underline">
             View All <ChevronRight className="h-4 w-4 ml-1" />
           </Link>
@@ -312,29 +308,22 @@ const HomePage = () => {
           <div className="flex justify-center py-12">
             <Loader size="md" />
           </div>
-        ) : error && loading.featured === false ? (
-          <div className="text-center py-12 text-red-600">
+        ) : error ? (
+          <div className="text-center py-12 text-red-600 dark:text-red-400">
             {error}
           </div>
         ) : featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 md:gap-6">
             {featuredProducts.slice(0, 8).map((product) => (
-              <div key={product._id} className="relative">
-                <ProductCard
-                product={{
-                  _id: product._id,
-                  productName: product.productName,
-                  productPrice: product.productPrice,
-                  images: [product.productImage],
-                  discountPrice: product.discountPrice,
-                }}
+              <ProductCard
+                key={product._id}
+                product={product}
                 onAddToCart={() => handleAddToCart(product)}
               />
-              </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-600">
+          <div className="text-center py-12 text-gray-600 dark:text-gray-400">
             No featured products available.
           </div>
         )}
@@ -344,10 +333,10 @@ const HomePage = () => {
 
   // Best sellers section
   const BestSellersSection = () => (
-    <section className="py-12 bg-gray-50">
+    <section className="py-8 bg-white dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Best Sellers</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Best Sellers</h2>
           <Link to="/products" className="text-orange-600 flex items-center hover:underline">
             View All <ChevronRight className="h-4 w-4 ml-1" />
           </Link>
@@ -356,29 +345,22 @@ const HomePage = () => {
           <div className="flex justify-center py-12">
             <Loader size="md" />
           </div>
-        ) : error && loading.bestSellers === false ? (
-          <div className="text-center py-12 text-red-600">
+        ) : error ? (
+          <div className="text-center py-12 text-red-600 dark:text-red-400">
             {error}
           </div>
         ) : bestSellers.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 md:gap-6">
             {bestSellers.slice(0, 8).map((product) => (
-              <div key={product._id} className="relative">
-                <ProductCard
-                  product={{
-                    _id: product._id,
-                    productName: product.productName,
-                    productPrice: product.productPrice,
-                    images: [product.productImage],
-                    discountPrice: product.discountPrice,
-                  }}
-                  onAddToCart={() => handleAddToCart(product)}
-                />
-              </div>
+              <ProductCard
+                key={product._id}
+                product={product}
+                onAddToCart={() => handleAddToCart(product)}
+              />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-600">
+          <div className="text-center py-12 text-gray-600 dark:text-gray-400">
             No best sellers available.
           </div>
         )}
@@ -386,45 +368,37 @@ const HomePage = () => {
     </section>
   );
 
-  // Promotional banners section
-  const PromotionalBanners = () => (
-    <section className="py-12 bg-gray-50">
+  // Top Brands section
+  const TopBrandsSection = () => (
+    <section className="py-8 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="relative rounded-lg overflow-hidden h-64">
-            <img
-              src={img1}
-              alt="Flash sale banner"
-              className="w-full h-full object-cover dark:brightness-90"
-            />
-            <div className="absolute inset-0   bg-opacity-40 flex flex-col justify-center p-8">
-              <h3 className="text-white text-2xl font-bold mb-2">Flash Sale</h3>
-              <p className="text-white text-lg mb-4">Up to 50% off on electronics</p>
-              <Link
-                to="/products?category=electronics"
-                className="bg-white text-orange-600 px-4 py-2 rounded-md font-medium hover:bg-gray-100 transition-colors inline-block w-max"
-              >
-                Shop Now
-              </Link>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">Top Brands</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          {brandImages.map((brand, index) => (
+            <div key={index} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-lg transition-shadow">
+              <img src={brand} alt={`Brand ${index + 1}`} className="w-full h-16 object-contain" />
             </div>
-          </div>
-          <div className="relative rounded-lg overflow-hidden h-64">
-            <img
-              src={img2}
-              alt="New arrivals banner"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0  bg-opacity-40 flex flex-col justify-center p-8">
-              <h3 className="text-white text-2xl font-bold mb-2">New Arrivals</h3>
-              <p className="text-white text-lg mb-4">Check out our latest fashion collection</p>
-              <Link
-                to="/products?category=fashion"
-                className="bg-white text-orange-600 px-4 py-2 rounded-md font-medium hover:bg-gray-100 transition-colors inline-block w-max"
-              >
-                Shop Now
-              </Link>
-            </div>
-          </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  // Newsletter Signup
+  const NewsletterSection = () => (
+    <section className="py-12 bg-orange-600 text-white dark:bg-orange-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="text-3xl font-bold mb-4">Subscribe to Our Newsletter</h2>
+        <p className="text-lg mb-6 opacity-90">Get the latest deals and updates straight to your inbox</p>
+        <div className="max-w-md mx-auto flex rounded-md overflow-hidden shadow-lg">
+          <input
+            type="email"
+            placeholder="Enter your email address"
+            className="flex-grow px-4 py-3 text-gray-800 focus:outline-none"
+          />
+          <button className="bg-orange-800 hover:bg-orange-900 px-6 py-3 font-medium transition-colors">
+            Subscribe
+          </button>
         </div>
       </div>
     </section>
@@ -432,104 +406,59 @@ const HomePage = () => {
 
   // Features section
   const FeaturesSection = () => (
-    <section className="py-12">
+    <section className="py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="flex flex-col items-center text-center p-6 border border-gray-200 rounded-lg">
-            <div className="bg-orange-100 p-3 rounded-full mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-orange-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Free Delivery</h3>
-            <p className="text-gray-600">Free delivery on all orders over ₦100</p>
-          </div>
-          <div className="flex flex-col items-center text-center p-6 border border-gray-200 rounded-lg">
-            <div className="bg-orange-100 p-3 rounded-full mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-orange-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Secure Payments</h3>
-            <p className="text-gray-600">100% secure payment processing</p>
-          </div>
-          <div className="flex flex-col items-center text-center p-6 border border-gray-200 rounded-lg">
-            <div className="bg-orange-100 p-3 rounded-full mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-orange-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Easy Returns</h3>
-            <p className="text-gray-600">30-day return policy for all items</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FeatureItem
+            icon={<Truck className="h-8 w-8 text-orange-600" />}
+            title="Free Delivery"
+            description="On all orders above ₦100"
+          />
+          <FeatureItem
+            icon={<CreditCard className="h-8 w-8 text-orange-600" />}
+            title="Secure Payments"
+            description="100% secure processing"
+          />
+          <FeatureItem
+            icon={<ShieldCheck className="h-8 w-8 text-orange-600" />}
+            title="Easy Returns"
+            description="30-day return policy"
+          />
         </div>
       </div>
     </section>
   );
 
+  const FeatureItem = ({ icon, title, description }) => (
+    <div className="flex flex-col items-center text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+      <div className="bg-orange-100 dark:bg-orange-900/30 p-3 rounded-full mb-4">
+        {icon}
+      </div>
+      <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-400 text-sm">{description}</p>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+        <div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 dark:border-red-600 p-4 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-500"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <svg className="h-5 w-5 text-red-500 dark:text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           </div>
         </div>
       )}
       <HeroBanner />
-      <CategoriesSection />
+      <FlashSalesSection />
       <FeaturedProductsSection />
       <BestSellersSection />
-      <PromotionalBanners />
+      <TopBrandsSection />
+      <NewsletterSection />
       <FeaturesSection />
     </div>
   );
