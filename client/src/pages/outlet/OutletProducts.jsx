@@ -53,7 +53,7 @@ const OutletProducts = () => {
       } catch (err) {
         toast.error('Error loading categories');
         setCategories([]);
-        console.error(err);
+        toast.error(err);
       }
     };
     fetchCategories();
@@ -98,7 +98,7 @@ const handleDeleteProduct = async (productId) => {
     }
 
   } catch (err) {
-    console.error('Delete product error:', err);
+    toast.error('Delete product error:', err);
     toast.error(err.message || 'Error deleting product');
   } finally {
     setLoading(false);
@@ -128,7 +128,6 @@ const handleDeleteProduct = async (productId) => {
         setTotalProducts(data.totalProducts || 0);
         setTotalPages(Math.ceil((data.totalProducts || 0) / ITEMS_PER_PAGE));
       } catch (err) {
-        console.error(err);
         toast.error('Error loading products');
         setProducts([]);
       } finally {

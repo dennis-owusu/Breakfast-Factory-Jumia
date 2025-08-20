@@ -53,39 +53,35 @@ const OutletOrders = () => {
 
   useEffect(() => {
     if (currentUser && currentUser.token) {
-      console.log('Setting up Socket.IO connection for outlet:', currentUser._id);
       const socket = io('http://localhost:3000', {
         auth: { token: currentUser.token }
       });
 
       socket.on('connect', () => {
-        console.log('Socket connected for outlet orders. Socket ID:', socket.id);
-        console.log('Outlet should be in room:', currentUser._id);
+
       });
 
       socket.on('orderStatusUpdated', (data) => {
-        console.log('Received order status update for outlet:', data);
-        console.log('Current orders before update:', orders);
+       
         setOrders(prevOrders => {
           const updatedOrders = prevOrders.map(order =>
             order._id === data.orderId ? { ...order, status: data.newStatus } : order
           );
-          console.log('Orders after update:', updatedOrders);
           return updatedOrders;
         });
         toast.success(data.message);
       });
 
       socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error.message);
+        
       });
 
       socket.on('disconnect', (reason) => {
-        console.log('Socket disconnected from outlet orders. Reason:', reason);
+       
       });
 
       return () => {
-        console.log('Cleaning up socket connection for outlet orders');
+        
         socket.disconnect();
       };
     }
@@ -147,7 +143,6 @@ const OutletOrders = () => {
         }
 
         const data = await response.json();
-        console.log('Fetched orders:', data);
         if (!data) {
           setOrders([]);
           setError('No orders found');
@@ -176,7 +171,6 @@ const OutletOrders = () => {
         }
         setError(null);
       } catch (err) {
-        console.error('Fetch orders error:', err.message);
         setError(err.message);
         toast.error(err.message);
         setOrders([]);
@@ -223,7 +217,7 @@ const OutletOrders = () => {
           });
         }
       } catch (err) {
-        console.error('Polling error:', err);
+        toast.error('Polling error:', err);
       }
     };
 
@@ -296,7 +290,6 @@ const OutletOrders = () => {
       setIsDeleteModalOpen(false);
       setOrderToDelete(null);
     } catch (err) {
-      console.error('Delete order error:', err.message);
       toast.error(err.message);
       setIsDeleteModalOpen(false);
       setOrderToDelete(null);
@@ -580,7 +573,7 @@ const OutletOrders = () => {
                                   toast.success('Order status updated');
                                 }
                               } catch (err) {
-                                console.error('Update order error:', err.message);
+                                toast.error('Update order error:', err.message);
                                 toast.error('Failed to update order status');
                               }
                             }}

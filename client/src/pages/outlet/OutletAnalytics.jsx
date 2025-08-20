@@ -219,7 +219,6 @@ const OutletAnalytics = () => {
         }
         setData(result.data);
       } catch (err) {
-        console.error('Failed to load analytics data:', err.message);
         setError('Failed to load analytics data. Please try again later.');
         toast.error('Failed to load analytics data');
       } finally {

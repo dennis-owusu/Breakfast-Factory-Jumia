@@ -111,7 +111,7 @@ const OutletSellPage = () => {
         }),
       });
     } catch (err) {
-      console.error('Failed to log failed transaction:', err);
+      toast.error('Failed to log failed transaction:', err);
     }
     setError('Payment popup closed.');
     toast.error('Payment was not completed.');
@@ -136,7 +136,6 @@ const OutletSellPage = () => {
         setProducts(data.products || []);
         setFilteredProducts(data.products || []);
       } catch (error) {
-        console.error('Error fetching products:', error);
         toast.error('Failed to load products');
       } finally {
         setIsLoading(false);
@@ -193,7 +192,6 @@ const OutletSellPage = () => {
       });
       toast.success(`${latestProduct.productName} added to cart`);
     } catch (error) {
-      console.error('Error adding to cart:', error);
       toast.error('Failed to add to cart. Please try again.');
     }
   };
@@ -223,7 +221,6 @@ const OutletSellPage = () => {
         )
       );
     } catch (error) {
-      console.error('Error updating quantity:', error);
       toast.error('Failed to update quantity. Please try again.');
     }
   };
@@ -329,7 +326,7 @@ const OutletSellPage = () => {
               throw new Error('Empty response received from payment gateway');
             }
           } catch (parseError) {
-            console.error('JSON parsing error:', parseError, 'Response text:', momoResponseText);
+           
             throw new Error(`Failed to parse payment response: ${momoResponseText || 'Empty response'}`);
           }
           
@@ -343,7 +340,7 @@ const OutletSellPage = () => {
           // Now create the order with pending status
           orderData.momoTransactionId = momoData.transactionId;
         } catch (momoError) {
-          console.error('Error initiating MTN Mobile Money payment:', momoError);
+        
           toast.error(momoError.message || 'Failed to initiate mobile money payment');
           setIsSubmitting(false);
           return;
@@ -368,7 +365,7 @@ const OutletSellPage = () => {
           throw new Error('Empty response received from server');
         }
       } catch (parseError) {
-        console.error('JSON parsing error:', parseError, 'Response text:', responseText);
+       
         throw new Error(`Failed to parse order response: ${responseText || 'Empty response'}`);
       }
       
@@ -402,7 +399,6 @@ const OutletSellPage = () => {
       // You could redirect to order details or print receipt here
       
     } catch (error) {
-      console.error('Error processing order:', error);
       toast.error(error.message || 'Failed to process order');
     } finally {
       setIsSubmitting(false);

@@ -154,7 +154,7 @@ const OutletSales = () => {
         const data = await response.json();
         return data;
       } catch (apiError) {
-        console.warn('API fetch failed, using current sales data:', apiError);
+       
         
         // Fallback: Use the current sales data from state
         return {
@@ -171,7 +171,6 @@ const OutletSales = () => {
         };
       }
     } catch (error) {
-      console.error('Error in fetchSalesDataForReport:', error);
       
       // Final fallback: Return empty data structure
       return {
@@ -190,7 +189,6 @@ const OutletSales = () => {
 // Enhanced PDF generation function with better styling and extended table
 const generatePDFReport = async (data) => {
   try {
-    console.log('Attempting enhanced PDF generation');
     
     // Create a new PDF document
     const pdf = new jsPDF('p', 'pt', 'a4');
@@ -461,11 +459,10 @@ const generatePDFReport = async (data) => {
     const fileName = `${outletName.replace(/\s+/g, '-').toLowerCase()}-sales-report-${new Date().toISOString().split('T')[0]}.pdf`;
     pdf.save(fileName);
     
-    console.log('Enhanced PDF generated successfully');
     return true;
     
   } catch (error) {
-    console.error('Error generating enhanced PDF:', error);
+    toast.error('Error generating enhanced PDF:', error);
     throw error;
   }
 };
@@ -500,7 +497,7 @@ const generatePDFReport = async (data) => {
       
       return true;
     } catch (error) {
-      console.error('Error generating CSV:', error);
+      toast.error('Error generating CSV:', error);
       throw error;
     }
   };
@@ -535,7 +532,7 @@ const generatePDFReport = async (data) => {
       
       return true;
     } catch (error) {
-      console.error('Error generating Excel:', error);
+      toast.error('Error generating Excel:', error);
       throw error;
     }
   };
@@ -568,13 +565,10 @@ const generatePDFReport = async (data) => {
       }
       
       // Fetch sales data for the report
-      console.log('Fetching sales data for report...');
       let salesData;
       try {
         salesData = await fetchSalesDataForReport();
-        console.log('Sales data fetched successfully');
       } catch (fetchError) {
-        console.error('Error fetching sales data:', fetchError);
         toast.error('Failed to fetch sales data. Using cached data if available.');
         // Try to use current sales data as fallback
         salesData = { sales: sales, summary: salesSummary };
@@ -587,17 +581,12 @@ const generatePDFReport = async (data) => {
         return;
       }
       
-      console.log('Processing sales data:', {
-        salesCount: salesData.sales.length,
-        summary: salesData.summary
-      });
       
       // Generate report based on selected format
       let success = false;
       
       try {
         toast(`Generating ${reportFormat.toUpperCase()} report...`);
-        console.log(`Generating ${reportFormat} report...`);
         
         if (reportFormat === 'pdf') {
           success = await generatePDFReport(salesData);
@@ -613,11 +602,10 @@ const generatePDFReport = async (data) => {
           toast.warning(`Report may have been generated but not downloaded properly. Check your downloads folder.`);
         }
       } catch (reportError) {
-        console.error('Error generating report:', reportError);
         
         // Provide more specific error messages based on the error type
         if (reportError.message?.includes('Unable to find element in cloned iframe')) {
-          console.log('Detected iframe error - this is a known issue with html2canvas');
+        
           toast.error(`PDF generation encountered an issue with complex styling. Try using CSV or Excel format instead.`);
         } else if (reportError.message?.includes('NetworkError')) {
           toast.error(`Network error while generating report. Please check your connection and try again.`);
@@ -628,7 +616,6 @@ const generatePDFReport = async (data) => {
         }
       }
     } catch (err) {
-      console.error('Error in report generation process:', err);
       toast.error(err.message || 'Failed to process report request');
     } finally {
       setIsLoading(false);

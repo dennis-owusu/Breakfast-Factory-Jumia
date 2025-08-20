@@ -66,7 +66,6 @@ const OutletDashboard = () => {
       saveAs(blob, `daily-sales-report-${summary.date}.csv`);
 
     } catch (error) {
-      console.error('Download failed', error);
       toast.error('Failed to download report.');
     } finally {
       setIsDownloading(false);
@@ -80,8 +79,6 @@ const OutletDashboard = () => {
         setIsLoading(true);
         setError(null);
         
-        console.log('Current outlet object:', outlet);
-        console.log('Outlet ID being used:', outlet._id);
         
         // Set headers with authentication token
         const headers = {
@@ -95,8 +92,6 @@ const OutletDashboard = () => {
           throw new Error(`HTTP error ${ordersResponse.status}: ${ordersResponse.statusText}`);
         }
         const ordersData = await ordersResponse.json();
-        console.log('Orders data:', ordersData);
-        console.log('Orders data structure:', JSON.stringify(ordersData));
         
         // Fetch analytics summary for the outlet
         const analyticsResponse = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/analytics?period=monthly&outletId=${outlet._id}`, { headers });
@@ -104,7 +99,6 @@ const OutletDashboard = () => {
           throw new Error(`HTTP error ${analyticsResponse.status}: ${analyticsResponse.statusText}`);
         }
         const analyticsData = await analyticsResponse.json();
-        console.log('Analytics data:', analyticsData);
         
         // Combine data for dashboard
         setStats({
@@ -117,7 +111,6 @@ const OutletDashboard = () => {
         });
         setAllOrders(ordersData.orders);
       } catch (err) {
-        console.error('Failed to load dashboard data:', err.message);
         setError('Failed to load dashboard data. Please try again later.');
         toast.error('Failed to load dashboard data');
       } finally {
@@ -141,7 +134,7 @@ const OutletDashboard = () => {
       });
 
       socket.on('connect', () => {
-        console.log('Socket connected for outlet dashboard');
+        
       });
 
       socket.on('lowStockAlert', (data) => {
@@ -149,7 +142,7 @@ const OutletDashboard = () => {
       });
 
       socket.on('disconnect', () => {
-        console.log('Socket disconnected from outlet dashboard');
+        
       });
 
       return () => {
