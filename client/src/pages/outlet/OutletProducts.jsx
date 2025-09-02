@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import autoTable from 'jspdf-autotable'
 import {
   AlertCircle,
   ShoppingBag,
@@ -10,7 +11,8 @@ import {
   Trash2,
   Edit,
   Eye,
-  RefreshCw
+  RefreshCw,
+  Download
 } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
 import { Button } from '../../components/ui/button';
@@ -23,6 +25,8 @@ import {
   SelectValue
 } from '../../components/ui/select';
 import { toast } from 'react-hot-toast';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas-pro';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -53,7 +57,8 @@ const OutletProducts = () => {
       } catch (err) {
         toast.error('Error loading categories');
         setCategories([]);
-        toast.error(err);
+        // FIX: Extract the error message instead of passing the error object
+        toast.error(err.message || 'Unknown error occurred');
       }
     };
     fetchCategories();
@@ -98,7 +103,8 @@ const handleDeleteProduct = async (productId) => {
     }
 
   } catch (err) {
-    toast.error('Delete product error:', err);
+    // FIX: Extract the error message instead of passing the error object
+    console.error('Delete product error:', err);
     toast.error(err.message || 'Error deleting product');
   } finally {
     setLoading(false);
@@ -153,23 +159,261 @@ const handleDeleteProduct = async (productId) => {
   };
 
   const handleClearFilters = () => {
-    setSearchTerm('');
-    setCategoryFilter('all');
-    setSortBy('newest');
-    setCurrentPage(1);
+  setSearchTerm('');
+  setCategoryFilter('all');
+  setSortBy('newest');
+  setCurrentPage(1);
+};
+
+// Put these inside OutletProducts (above handleDownload)
+
+// Build query with the same filters/sorting you're using in the UI
+const buildQueryParams = (overrides = {}) => {
+  const params = new URLSearchParams({
+    startIndex: String(overrides.startIndex ?? 0),
+    limit: String(overrides.limit ?? ITEMS_PER_PAGE),
+  });
+
+  if (searchTerm) params.set('searchTerm', searchTerm);
+
+  params.set('order', sortBy.includes('asc') ? 'asc' : 'desc');
+
+  let sortField = 'updatedAt';
+  if (sortBy.includes('price')) sortField = 'productPrice';
+  else if (sortBy.includes('name')) sortField = 'productName';
+  else if (sortBy.includes('category')) sortField = 'category';
+  else if (sortBy.includes('stock')) sortField = 'numberOfProductsAvailable';
+  params.set('sort', sortField);
+
+  if (categoryFilter !== 'all') params.set('category', categoryFilter);
+
+  return params;
+};
+
+// Fetch all products across pages for export (respects current filters/sort)
+const fetchAllProductsForExport = async () => {
+  const CHUNK_SIZE = 200;
+  let startIndex = 0;
+  const all = [];
+
+  while (true) {
+    const queryParams = buildQueryParams({ startIndex, limit: CHUNK_SIZE });
+    const res = await fetch(
+      `https://breakfast-factory-jumia.onrender.com/api/route/allproducts?${queryParams.toString()}`
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch products for export');
+
+    const batch = Array.isArray(data.products) ? data.products : [];
+    all.push(...batch);
+
+    if (batch.length < CHUNK_SIZE) break;
+    startIndex += CHUNK_SIZE;
+  }
+
+  return all;
+};
+
+const handleDownload = async () => {
+  const loadingToast = toast.loading('Generating PDF...');
+  const pdf = new jsPDF('p', 'mm', 'a4');
+
+  // 1) Fetch ALL products across pagination with current filters/sort
+  let allProducts = [];
+  try {
+    allProducts = await fetchAllProductsForExport();
+  } catch (err) {
+    console.error('Export fetch error:', err);
+    toast.dismiss(loadingToast);
+    toast.error(err.message || 'Error fetching all products for export');
+    return;
+  }
+
+  // 2) Build larger, high-contrast HTML (Category + Description removed)
+  const element = document.createElement('div');
+  element.style.cssText = `
+    width: 820px;              /* smaller width => larger output in PDF */
+    padding: 44px;
+    background: #ffffff;
+    color: #0f172a;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  `;
+
+  const placeholderImage =
+    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiByeD0iMTAiIGZpbGw9IiNFRkUxRTYiLz4KPHBhdGggZD0iTTQwIDU3QzQ0LjQxODMgNTcgNDggNTMuNDE4MyA0OCA0OUM0OCA0NC41ODE3IDQ0LjQxODMgNDEgNDAgNDFDMzUuNTgxNyA0MSAzMiA0NC41ODE3IDMyIDQ5QzMyIDUzLjQxODMgMzUuNTgxNyA1NyA0MCA1N1oiIHN0cm9rZT0iI0MwQzhEMSIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Ik0yNiA2MUwzNyA0NEw0MCA0OC41TDQ3IDQwTDU2IDUwTDYwIDQ2VjYxSDI2WiIgc3Ryb2tlPSIjQzBDOEQxIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+';
+
+  const formatCurrency = (value) => {
+    try {
+      return new Intl.NumberFormat('en-GH', {
+        style: 'currency',
+        currency: 'GHS',
+        minimumFractionDigits: 2,
+      }).format(Number(value) || 0);
+    } catch {
+      const num = Number(value);
+      return `₵${Number.isFinite(num) ? num.toFixed(2) : '0.00'}`;
+    }
   };
+
+  let html = `
+    <div style="margin-bottom: 30px; text-align: center;">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 800; color: #0f172a; letter-spacing: 0.2px;">
+        Products Report
+      </h1>
+      <div style="margin-top: 8px; font-size: 14px; color: #475569;">
+        Generated on ${new Date().toLocaleDateString()}
+      </div>
+      <div style="margin-top: 16px; height: 4px; background: linear-gradient(90deg, #0ea5e9 0%, #10b981 100%); border-radius: 3px;"></div>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #e5e7eb;">
+      <colgroup>
+        <col style="width: 120px" />
+        <col />
+        <col style="width: 160px" />
+        <col style="width: 120px" />
+      </colgroup>
+      <thead>
+        <tr style="background: #0f172a;">
+          <th style="padding: 16px 12px; text-align: left; color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 0.3px; border-right: 1px solid #1f2937;">Image</th>
+          <th style="padding: 16px 12px; text-align: left; color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 0.3px; border-right: 1px solid #1f2937;">Name</th>
+          <th style="padding: 16px 12px; text-align: right; color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 0.3px; border-right: 1px solid #1f2937;">Price</th>
+          <th style="padding: 16px 12px; text-align: right; color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 0.3px;">Stock</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  allProducts.forEach((p, i) => {
+    const rowBg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+    const stock = Number(p.numberOfProductsAvailable) || 0;
+    const stockBg = stock > 10 ? '#ecfdf5' : stock > 0 ? '#fffbeb' : '#fef2f2';
+    const stockColor = stock > 10 ? '#065f46' : stock > 0 ? '#92400e' : '#991b1b';
+    const img = p.productImage || placeholderImage;
+
+    html += `
+      <tr style="background: ${rowBg}; border-top: 1px solid #e5e7eb;">
+        <td style="padding: 14px 12px; border-right: 1px solid #e5e7eb;">
+          <div style="width: 88px; height: 88px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
+            <img src="${img}" crossorigin="anonymous" referrerpolicy="no-referrer"
+                 width="88" height="88"
+                 style="width: 88px; height: 88px; object-fit: cover; display: block;" />
+          </div>
+        </td>
+        <td style="padding: 16px 14px; border-right: 1px solid #e5e7eb; color: #0f172a; font-weight: 700; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          ${p.productName || 'N/A'}
+        </td>
+        <td style="padding: 16px 14px; border-right: 1px solid #e5e7eb; color: #065f46; font-weight: 800; font-size: 16px; text-align: right;">
+          ${formatCurrency(p.productPrice)}
+        </td>
+        <td style="padding: 16px 14px; text-align: right;">
+          <span style="
+            display: inline-block;
+            min-width: 44px;
+            text-align: center;
+            background: ${stockBg};
+            color: ${stockColor};
+            font-weight: 800;
+            font-size: 15px;
+            padding: 6px 10px;
+            border-radius: 9999px;
+            border: 1px solid #e5e7eb;
+          ">
+            ${stock}
+          </span>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+
+    <div style="margin-top: 18px; text-align: center; color: #475569; font-size: 14px; font-weight: 600;">
+      Total Products: ${allProducts.length}
+    </div>
+  `;
+
+  element.innerHTML = html;
+  document.body.appendChild(element);
+
+  // 3) Render and split across multiple PDF pages (higher scale + smaller margins)
+  try {
+    await new Promise((r) => setTimeout(r, 700)); // allow images to load
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 6; // mm (smaller margin => more room => bigger appearance)
+    const contentWidth = pageWidth - margin * 2;
+
+    const scale = Math.max(3, Math.min(4, (window.devicePixelRatio || 1) * 2.5)); // high scale for sharpness
+    const canvas = await html2canvas(element, {
+      scale,
+      useCORS: true,
+      allowTaint: true,
+      imageTimeout: 15000,
+      backgroundColor: '#ffffff',
+      logging: false,
+      width: element.scrollWidth,
+      height: element.scrollHeight,
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight,
+    });
+
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    const imgHeight = (canvas.height * contentWidth) / canvas.width;
+    const usableHeight = pageHeight - margin * 2;
+
+    let heightLeft = imgHeight;
+    let position = margin;
+
+    // First page
+    pdf.addImage(imgData, 'PNG', margin, position, contentWidth, imgHeight);
+    heightLeft -= usableHeight;
+
+    // Additional pages
+    while (heightLeft > 0) {
+      pdf.addPage();
+      position = margin - (imgHeight - heightLeft);
+      pdf.addImage(imgData, 'PNG', margin, position, contentWidth, imgHeight);
+      heightLeft -= usableHeight;
+    }
+
+    pdf.save(`products-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success('PDF downloaded');
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    toast.error('Error generating PDF');
+  } finally {
+    document.body.removeChild(element);
+    toast.dismiss(loadingToast);
+  }
+};
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Manage Products</h1>
-        <Button
-          onClick={() => navigate('/outlet/product/new')}
-          className="bg-orange-500 text-white hover:bg-orange-600"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Product
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleDownload}
+            className="bg-blue-500 text-white hover:bg-blue-600"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download Products
+          </Button>
+          <Button
+            onClick={() => navigate('/outlet/product/new')}
+            className="bg-orange-500 text-white hover:bg-orange-600"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add New Product
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md mb-6">
