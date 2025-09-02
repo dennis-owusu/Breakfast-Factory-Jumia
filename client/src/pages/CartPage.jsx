@@ -201,24 +201,19 @@ const CartPage = () => {
                 <div className="pt-3 border-t border-gray-200">
                   <div className="flex justify-between text-sm">
                     <p className="font-bold text-gray-900">Total</p>
-                    <p className="font-bold text-orange-600">{formatPrice(totalPrice)}</p>
+                    <p className="font-bold text-amber-800">{formatPrice(totalPrice)}</p>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Including VAT</p>
                 </div>
               </div>
 
-              <Button
-                onClick={handleCheckout}
-                disabled={checkoutLoading}
-                className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-md text-sm font-medium flex items-center justify-center"
+              <Button 
+                onClick={handleCheckout} 
+                disabled={checkoutLoading || cart.length === 0}
+                className="w-full bg-amber-800 hover:bg-amber-900 text-white font-medium py-3 rounded-md transition-colors duration-300 flex items-center justify-center"
               >
-                {checkoutLoading ? (
-                  <Loader size="sm" color="white" />
-                ) : (
-                  <>
-                    Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
+                {checkoutLoading ? <Loader size="sm" className="mr-2" /> : <ArrowRight className="mr-2 h-4 w-4" />}
+                Proceed to Checkout
               </Button>
 
               <div className="mt-3 text-xs text-gray-500">

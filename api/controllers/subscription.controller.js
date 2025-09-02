@@ -14,7 +14,7 @@ export const createSubscription = async (req, res, next) => {
     if (plan === 'free') {
       endDate.setUTCDate(endDate.getUTCDate() + 14);
     } else if (plan === 'monthly') {
-      endDate.setUTCMonth(endDate.getUTCMonth() + 1);
+      endDate.setUTCMonth(endDate.getUTCMonth() + 1); 
     } else if (plan === 'bimonthly') {
       endDate.setUTCMonth(endDate.getUTCMonth() + 2);
     }
@@ -92,8 +92,7 @@ export const getSubscriptionByUserId = async (req, res, next) => {
     if (!subscription) {
       return res.status(200).json({
         success: true,
-        hasActiveSubscription: false,
-        message: 'No active subscription found'
+        hasActiveSubscription: false
       });
     }
     

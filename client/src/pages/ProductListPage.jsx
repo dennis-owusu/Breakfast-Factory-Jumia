@@ -136,7 +136,7 @@ const ProductListPage = () => {
       search: '',
       category: 'all',
       minPrice: 0,
-      maxPrice: 10000,
+      maxPrice: 5000, // Updated to a more reasonable max price for coffee shop
       minRating: 0,
       sort: 'name',
     };
@@ -167,7 +167,7 @@ const ProductListPage = () => {
         <Button
           key={1}
           variant="outline"
-          className="mx-1 hover:bg-orange-50 dark:hover:bg-orange-900"
+          className="mx-1 hover:bg-amber-50 dark:hover:bg-amber-900"
           onClick={() => changePage(1)}
         >
           1
@@ -185,8 +185,8 @@ const ProductListPage = () => {
           variant={pagination.page === i ? 'default' : 'outline'}
           className={`mx-1 ${
             pagination.page === i 
-              ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500' 
-              : 'hover:bg-orange-50 dark:hover:bg-orange-900'
+              ? 'bg-amber-800 hover:bg-amber-900 text-white border-amber-800' 
+              : 'hover:bg-amber-100 dark:hover:bg-amber-900'
           }`}
           onClick={() => changePage(i)}
         >
@@ -203,7 +203,7 @@ const ProductListPage = () => {
         <Button
           key={totalPages}
           variant="outline"
-          className="mx-1 hover:bg-orange-50 dark:hover:bg-orange-900"
+          className="mx-1 hover:bg-amber-50 dark:hover:bg-amber-900"
           onClick={() => changePage(totalPages)}
         >
           {totalPages}
@@ -217,7 +217,7 @@ const ProductListPage = () => {
           variant="outline"
           disabled={pagination.page === 1}
           onClick={() => changePage(pagination.page - 1)}
-          className="mr-2 hover:bg-orange-50 dark:hover:bg-orange-900 disabled:opacity-50"
+          className="mr-2 hover:bg-amber-50 dark:hover:bg-amber-900 disabled:opacity-50"
         >
           <ChevronLeft className="h-4 w-4" />
           <span className="ml-1">Previous</span>
@@ -227,7 +227,7 @@ const ProductListPage = () => {
           variant="outline"
           disabled={pagination.page >= totalPages}
           onClick={() => changePage(pagination.page + 1)}
-          className="ml-2 hover:bg-orange-50 dark:hover:bg-orange-900 disabled:opacity-50"
+          className="ml-2 hover:bg-amber-50 dark:hover:bg-amber-900 disabled:opacity-50"
         >
           <span className="mr-1">Next</span>
           <ChevronRight className="h-4 w-4" />
@@ -243,7 +243,7 @@ const ProductListPage = () => {
         <div className="text-red-500 dark:text-red-400 text-lg font-medium mb-4">{error}</div>
         <Button 
           onClick={fetchProducts} 
-          className="bg-orange-500 hover:bg-orange-600 text-white"
+          className="bg-amber-800 hover:bg-amber-900 text-white"
         >
           Retry
         </Button>
@@ -263,12 +263,12 @@ const ProductListPage = () => {
                 placeholder="Search for products, brands and categories..."
                 value={tempFilters.search}
                 onChange={handleSearchChange}
-                className="pl-12 pr-4 py-3 text-base border-2 border-orange-200 dark:border-orange-800 focus:border-orange-500 dark:focus:border-orange-400 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                className="pl-12 pr-4 py-3 text-base border-2 border-amber-200 dark:border-amber-800 focus:border-amber-500 dark:focus:border-amber-400 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <Button 
                 type="submit" 
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-orange-500 hover:bg-orange-600 px-6 py-2 rounded-md text-white"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-amber-800 hover:bg-amber-900 px-6 py-2 rounded-md text-white"
               >
                 Search
               </Button>
@@ -281,7 +281,7 @@ const ProductListPage = () => {
               <nav className="text-sm text-gray-600 dark:text-gray-400">
                 <span className="hover:text-gray-900 dark:hover:text-white">Home</span>
                 <span className="mx-2">›</span>
-                <span className="font-medium text-orange-600 dark:text-orange-400">Products</span>
+                <span className="font-medium text-amber-600 dark:text-amber-400">Products</span>
               </nav>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
                 {pagination.total > 0 ? 
@@ -314,7 +314,7 @@ const ProductListPage = () => {
               {/* Mobile Filter Toggle */}
               <Button
                 variant="outline"
-                className="lg:hidden border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900 text-gray-900 dark:text-gray-100"
+                className="lg:hidden border-amber-200 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-900 text-gray-900 dark:text-gray-100"
                 onClick={() => setIsFilterOpen(true)}
               >
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
@@ -350,7 +350,7 @@ const ProductListPage = () => {
                     variant="ghost"
                     size="sm"
                     onClick={clearFilters}
-                    className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300"
+                    className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300"
                   >
                     Clear All
                   </Button>
@@ -399,17 +399,17 @@ const ProductListPage = () => {
                   <Slider
                     value={[tempFilters.minPrice, tempFilters.maxPrice]}
                     min={0}
-                    max={10000}
+                    max={5000}
                     step={100}
                     onValueChange={(v) => handleFilterChange('priceRange', { minPrice: v[0], maxPrice: v[1] })}
-                    className="mb-3 [&>span]:bg-orange-500"
+                    className="mb-3 [&>span]:bg-amber-500"
                   />
                   <div className="flex justify-between text-sm">
                     <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300">
-                      ₦{tempFilters.minPrice.toLocaleString()}
+                      ₵{tempFilters.minPrice.toLocaleString()}
                     </span>
                     <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300">
-                      ₦{tempFilters.maxPrice.toLocaleString()}
+                      ₵{tempFilters.maxPrice.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -423,7 +423,7 @@ const ProductListPage = () => {
                         <Checkbox
                           checked={tempFilters.minRating >= rating}
                           onCheckedChange={() => handleFilterChange('minRating', tempFilters.minRating >= rating ? 0 : rating)}
-                          className="mr-3 border-gray-300 dark:border-gray-600 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                          className="mr-3 border-gray-300 dark:border-gray-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                         />
                         <div className="flex items-center">
                           {[1, 2, 3, 4, 5].map((star) => (
@@ -494,7 +494,7 @@ const ProductListPage = () => {
                 {/* Apply Filters Button */}
                 <Button 
                   onClick={applyFilters} 
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 font-medium"
+                  className="w-full bg-amber-800 hover:bg-amber-900 text-white py-3 font-medium"
                 >
                   Apply Filters
                 </Button>
@@ -516,7 +516,7 @@ const ProductListPage = () => {
                 <Button 
                   onClick={clearFilters} 
                   variant="outline" 
-                  className="border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900"
+                  className="border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900"
                 >
                   Clear Filters
                 </Button>

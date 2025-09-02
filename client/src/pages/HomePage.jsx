@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Search, Clock, Star, ShoppingCart, Truck, CreditCard, ShieldCheck } from 'lucide-react';
+import { ChevronRight, Search, Clock, Star, ShoppingCart, Truck, CreditCard, ShieldCheck, Coffee, PieChart, Users, BookOpen, Heart, Gift, MapPin, Mail, Phone, Instagram, Facebook, Twitter } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 // Placeholder components and assets for a complete, runnable example.
@@ -23,9 +23,9 @@ const ProductCard = ({ product, onAddToCart }) => {
           <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate mb-1">{product.productName}</h3>
         </Link>
         <div className="flex items-baseline mb-2">
-          <p className="text-lg font-bold text-orange-600">₦{price?.toLocaleString()}</p>
+          <p className="text-lg font-bold text-amber-600">₵{price?.toLocaleString()}</p>
           {oldPrice && (
-            <p className="text-xs text-gray-500 line-through ml-2">₦{oldPrice?.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 line-through ml-2">₵{oldPrice?.toLocaleString()}</p>
           )}
         </div>
         <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
@@ -34,7 +34,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         </div>
         <button
           onClick={onAddToCart}
-          className="w-full bg-orange-500 text-white font-semibold py-2 rounded-md hover:bg-orange-600 transition-colors duration-300 flex items-center justify-center space-x-2"
+          className="w-full bg-amber-800 text-white font-semibold py-2 rounded-md hover:bg-amber-900 transition-colors duration-300 flex items-center justify-center space-x-2"
         >
           <ShoppingCart size={16} />
           <span>Add to Cart</span>
@@ -51,55 +51,83 @@ const Loader = ({ size = 'md' }) => {
     lg: 'h-12 w-12',
   };
   return (
-    <div className={`loader-spinner border-4 border-t-4 rounded-full animate-spin border-orange-500 border-t-transparent ${sizes[size]}`}></div>
+    <div className={`loader-spinner border-4 border-t-4 rounded-full animate-spin border-amber-500 border-t-transparent ${sizes[size]}`}></div>
   );
 };
 
-// Mock hero banner images.
+// Mock hero banner section
 const heroBanners = [
   {
-    title: 'Shop the Best Deals on Breakfast Factory',
-    subtitle: 'Discover amazing products at unbeatable prices. Free delivery on orders over ₦100.',
-    image: "https://placehold.co/1200x500/FDBA74/991B1B?text=Breakfast+Factory+Banner+1",
+    title: 'Welcome to Breakfast Factory Coffee Shop',
+    subtitle: 'Indulge in our premium coffees, refreshing drinks, and delicious pies. Free delivery on orders over ₵100.',
+    image: "https://placehold.co/1200x500/8B4513/FFD700?text=Coffee+Shop+Banner+1",
     cta: '/products',
     ctaText: 'Shop Now',
   },
   {
-    title: 'Exclusive Electronics Sale',
-    subtitle: 'Up to 50% off on smartphones, laptops, and more!',
-    image: "https://placehold.co/1200x500/FBBF24/9A3412?text=Electronics+Sale",
-    cta: '/products?category=electronics',
-    ctaText: 'Explore Deals',
+    title: 'Freshly Brewed Coffees',
+    subtitle: 'Discover our selection of aromatic coffees and espressos!',
+    image: "https://placehold.co/1200x500/A0522D/FFFACD?text=Fresh+Coffee",
+    cta: '/products?category=coffee',
+    ctaText: 'Explore Coffees',
   },
   {
-    title: 'New Fashion Arrivals',
-    subtitle: 'Check out our latest collection of trendy outfits.',
-    image:  "https://placehold.co/1200x500/A78BFA/6B21A8?text=New+Fashion",
-    cta: '/products?category=fashion',
-    ctaText: 'Shop Fashion',
+    title: 'Delicious Pies & Pastries',
+    subtitle: 'Try our homemade pies and sweet treats.',
+    image:  "https://placehold.co/1200x500/DEB887/8B4513?text=Delicious+Pies",
+    cta: '/products?category=pies',
+    ctaText: 'Shop Pies',
+  },
+  {
+    title: 'Refresh with Our Smoothies',
+    subtitle: 'Cool down with our fresh fruit smoothies!',
+    image: "https://placehold.co/1200x500/FF69B4/FFFFFF?text=Smoothies",
+    cta: '/products?category=smoothies',
+    ctaText: 'Try Smoothies',
+  },
+  {
+    title: 'Discover Our Teas',
+    subtitle: 'Relax with our premium selection of teas.',
+    image: "https://placehold.co/1200x500/228B22/FFFFFF?text=Teas",
+    cta: '/products?category=teas',
+    ctaText: 'Explore Teas',
   },
 ];
 
 // Mock brand images.
 const brandImages = [
-  "https://placehold.co/150x80/E2E8F0/64748B?text=Brand+A",
-  "https://placehold.co/150x80/CBD5E1/475569?text=Brand+B",
-  "https://placehold.co/150x80/F0F4F8/6B7280?text=Brand+C",
-  "https://placehold.co/150x80/E5E7EB/6B7280?text=Brand+D",
-  "https://placehold.co/150x80/F3F4F6/6B7280?text=Brand+E",
-  "https://placehold.co/150x80/FEE2E2/EF4444?text=Brand+F",
+  "https://placehold.co/150x80/8B4513/FFD700?text=Starbucks",
+  "https://placehold.co/150x80/A0522D/FFFACD?text=Dunkin",
+  "https://placehold.co/150x80/DEB887/8B4513?text=Costa",
+  "https://placehold.co/150x80/8B4513/FFD700?text=Tim+Hortons",
+  "https://placehold.co/150x80/A0522D/FFFACD?text=Peets",
+  "https://placehold.co/150x80/DEB887/8B4513?text=Lavazza",
+  "https://placehold.co/150x80/8B4513/FFD700?text=Nespresso",
+  "https://placehold.co/150x80/A0522D/FFFACD?text=Illy",
+  "https://placehold.co/150x80/DEB887/8B4513?text=Folgers",
+  "https://placehold.co/150x80/8B4513/FFD700?text=Maxwell+House",
+  "https://placehold.co/150x80/A0522D/FFFACD?text=Green+Mountain",
+  "https://placehold.co/150x80/DEB887/8B4513?text=Caribou",
 ];
 
 // Mock data for products since the user's API endpoints are external and may not work.
 const mockProducts = [
-  { _id: '1', productName: 'Premium Headphones', productPrice: 15000, discountPrice: 12000, images: ["https://placehold.co/400x400/BDBDBD/4A4A4A?text=Headphones"] },
-  { _id: '2', productName: 'Smart Watch Series 7', productPrice: 80000, discountPrice: 75000, images: ["https://placehold.co/400x400/9E9E9E/4A4A4A?text=Smart+Watch"] },
-  { _id: '3', productName: 'Organic Coffee Beans', productPrice: 5000, discountPrice: null, images: ["https://placehold.co/400x400/BCAAA4/4A4A4A?text=Coffee"] },
-  { _id: '4', productName: 'Running Shoes', productPrice: 25000, discountPrice: 20000, images: ["https://placehold.co/400x400/A1887F/4A4A4A?text=Shoes"] },
-  { _id: '5', productName: 'Ergonomic Office Chair', productPrice: 45000, discountPrice: null, images: ["https://placehold.co/400x400/8D6E63/4A4A4A?text=Chair"] },
-  { _id: '6', productName: '4K Ultra HD TV', productPrice: 250000, discountPrice: 220000, images: ["https://placehold.co/400x400/795548/4A4A4A?text=4K+TV"] },
-  { _id: '7', productName: 'Leather Wallet', productPrice: 8000, discountPrice: null, images: ["https://placehold.co/400x400/6D4C41/4A4A4A?text=Wallet"] },
-  { _id: '8', productName: 'Stainless Steel Water Bottle', productPrice: 3000, discountPrice: 2500, images: ["https://placehold.co/400x400/5D4037/4A4A4A?text=Bottle"] },
+  { _id: '1', productName: 'Espresso', productPrice: 2000, discountPrice: 1800, images: ["https://placehold.co/400x400/8B4513/FFD700?text=Espresso"] },
+  { _id: '2', productName: 'Cappuccino', productPrice: 3000, discountPrice: 2800, images: ["https://placehold.co/400x400/A0522D/FFFACD?text=Cappuccino"] },
+  { _id: '3', productName: 'Latte', productPrice: 2500, discountPrice: null, images: ["https://placehold.co/400x400/DEB887/8B4513?text=Latte"] },
+  { _id: '4', productName: 'Apple Pie', productPrice: 4000, discountPrice: 3500, images: ["https://placehold.co/400x400/8B4513/FFD700?text=Apple+Pie"] },
+  { _id: '5', productName: 'Chocolate Pie', productPrice: 4500, discountPrice: null, images: ["https://placehold.co/400x400/A0522D/FFFACD?text=Chocolate+Pie"] },
+  { _id: '6', productName: 'Iced Tea', productPrice: 1500, discountPrice: 1200, images: ["https://placehold.co/400x400/DEB887/8B4513?text=Iced+Tea"] },
+  { _id: '7', productName: 'Lemonade', productPrice: 1800, discountPrice: null, images: ["https://placehold.co/400x400/8B4513/FFD700?text=Lemonade"] },
+  { _id: '8', productName: 'Berry Smoothie', productPrice: 3500, discountPrice: 3000, images: ["https://placehold.co/400x400/A0522D/FFFACD?text=Berry+Smoothie"] },
+  { _id: '9', productName: 'Mocha', productPrice: 3200, discountPrice: 2900, images: ["https://placehold.co/400x400/DEB887/8B4513?text=Mocha"] },
+  { _id: '10', productName: 'Americano', productPrice: 2200, discountPrice: null, images: ["https://placehold.co/400x400/8B4513/FFD700?text=Americano"] },
+  { _id: '11', productName: 'Cherry Pie', productPrice: 4200, discountPrice: 3800, images: ["https://placehold.co/400x400/A0522D/FFFACD?text=Cherry+Pie"] },
+  { _id: '12', productName: 'Green Tea', productPrice: 1400, discountPrice: 1200, images: ["https://placehold.co/400x400/DEB887/8B4513?text=Green+Tea"] },
+  { _id: '13', productName: 'Mango Smoothie', productPrice: 3400, discountPrice: 3100, images: ["https://placehold.co/400x400/8B4513/FFD700?text=Mango+Smoothie"] },
+  { _id: '14', productName: 'Pumpkin Pie', productPrice: 4100, discountPrice: null, images: ["https://placehold.co/400x400/A0522D/FFFACD?text=Pumpkin+Pie"] },
+  { _id: '15', productName: 'Herbal Tea', productPrice: 1600, discountPrice: 1400, images: ["https://placehold.co/400x400/DEB887/8B4513?text=Herbal+Tea"] },
+  { _id: '16', productName: 'Strawberry Smoothie', productPrice: 3300, discountPrice: null, images: ["https://placehold.co/400x400/8B4513/FFD700?text=Strawberry+Smoothie"] },
 ];
 
 const HomePage = () => {
@@ -118,14 +146,14 @@ const HomePage = () => {
     // Simulate fetching featured products
     setLoading(prev => ({ ...prev, featured: true }));
     setTimeout(() => {
-      setFeaturedProducts(mockProducts.filter(p => p.productPrice > 10000).slice(0, 8));
+      setFeaturedProducts(mockProducts.filter(p => p.productPrice > 2000).slice(0, 8));
       setLoading(prev => ({ ...prev, featured: false }));
     }, 500);
 
     // Simulate fetching best sellers
     setLoading(prev => ({ ...prev, bestSellers: true }));
     setTimeout(() => {
-      setBestSellers(mockProducts.filter(p => p.productPrice < 50000).slice(0, 8));
+      setBestSellers(mockProducts.filter(p => p.productPrice < 5000).slice(0, 8));
       setLoading(prev => ({ ...prev, bestSellers: false }));
     }, 500);
 
@@ -136,7 +164,6 @@ const HomePage = () => {
       setLoading(prev => ({ ...prev, flash: false }));
     }, 500);
   }, []);
-
 
   // Auto-rotate hero banner
   useEffect(() => {
@@ -197,7 +224,7 @@ const HomePage = () => {
               <div className="flex flex-wrap gap-4 justify-center">
                 <Link
                   to={heroBanners[currentBanner].cta}
-                  className="bg-orange-500 text-white px-6 py-3 rounded-md font-medium hover:bg-orange-600 transition-colors shadow-lg"
+                  className="bg-amber-800 text-white px-6 py-3 rounded-md font-medium hover:bg-amber-900 transition-colors shadow-lg"
                 >
                   {heroBanners[currentBanner].ctaText}
                 </Link>
@@ -256,7 +283,7 @@ const HomePage = () => {
                 <span className="font-mono">{formatTime(timeLeft)}</span>
               </div>
             </div>
-            <Link to="/products?flash=true" className="text-orange-600 flex items-center hover:underline">
+            <Link to="/products?flash=true" className="text-amber-600 flex items-center hover:underline">
               View All <ChevronRight className="h-4 w-4 ml-1" />
             </Link>
           </div>
@@ -300,7 +327,7 @@ const HomePage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Featured Products</h2>
-          <Link to="/products" className="text-orange-600 flex items-center hover:underline">
+          <Link to="/products" className="text-amber-600 flex items-center hover:underline">
             View All <ChevronRight className="h-4 w-4 ml-1" />
           </Link>
         </div>
@@ -337,7 +364,7 @@ const HomePage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Best Sellers</h2>
-          <Link to="/products" className="text-orange-600 flex items-center hover:underline">
+          <Link to="/products" className="text-amber-600 flex items-center hover:underline">
             View All <ChevronRight className="h-4 w-4 ml-1" />
           </Link>
         </div>
@@ -386,7 +413,7 @@ const HomePage = () => {
 
   // Newsletter Signup
   const NewsletterSection = () => (
-    <section className="py-12 bg-orange-600 text-white dark:bg-orange-800">
+    <section className="py-12 bg-amber-600 text-white dark:bg-amber-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl font-bold mb-4">Subscribe to Our Newsletter</h2>
         <p className="text-lg mb-6 opacity-90">Get the latest deals and updates straight to your inbox</p>
@@ -396,7 +423,7 @@ const HomePage = () => {
             placeholder="Enter your email address"
             className="flex-grow px-4 py-3 text-gray-800 focus:outline-none"
           />
-          <button className="bg-orange-800 hover:bg-orange-900 px-6 py-3 font-medium transition-colors">
+          <button className="bg-amber-800 hover:bg-amber-900 px-6 py-3 font-medium transition-colors">
             Subscribe
           </button>
         </div>
@@ -410,17 +437,17 @@ const HomePage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <FeatureItem
-            icon={<Truck className="h-8 w-8 text-orange-600" />}
+            icon={<Truck className="h-8 w-8 text-amber-600" />}
             title="Free Delivery"
-            description="On all orders above ₦100"
+            description="On all orders above ₵100"
           />
           <FeatureItem
-            icon={<CreditCard className="h-8 w-8 text-orange-600" />}
+            icon={<CreditCard className="h-8 w-8 text-amber-600" />}
             title="Secure Payments"
             description="100% secure processing"
           />
           <FeatureItem
-            icon={<ShieldCheck className="h-8 w-8 text-orange-600" />}
+            icon={<ShieldCheck className="h-8 w-8 text-amber-600" />}
             title="Easy Returns"
             description="30-day return policy"
           />
@@ -431,7 +458,7 @@ const HomePage = () => {
 
   const FeatureItem = ({ icon, title, description }) => (
     <div className="flex flex-col items-center text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-      <div className="bg-orange-100 dark:bg-orange-900/30 p-3 rounded-full mb-4">
+      <div className="bg-amber-100 dark:bg-amber-900/30 p-3 rounded-full mb-4">
         {icon}
       </div>
       <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">{title}</h3>

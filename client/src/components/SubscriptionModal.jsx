@@ -290,7 +290,7 @@ const SubscriptionModal = () => {
   const hasActiveSubscription = () => {
     // Developer bypass - if email contains 'dev' or 'admin', always return true
     // This allows developers to bypass subscription requirements
-    if (currentUser?.email && (currentUser.email.includes('dev') || currentUser.email.includes('admin') || currentUser.email === 'kwesimodestygh111@gmail.com')) {
+    if (currentUser?.email && (currentUser.email.includes('dev'))) {
       return true;
     }
     

@@ -262,8 +262,13 @@ const handlePaystackClose = async () => {
     <div className="bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <Link to="/cart" className="text-orange-500 hover:text-orange-600 flex items-center">
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Cart
+          // Update back button to amber
+          <Link
+            to="/cart"
+            className="inline-flex items-center text-amber-800 hover:text-amber-900 mb-6"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Cart
           </Link>
         </div>
 
@@ -520,14 +525,13 @@ const handlePaystackClose = async () => {
               </div>
 
               <div className="mt-6 hidden lg:block">
-                <button
+                <Button
                   type="submit"
-                  form="checkout-form"
                   disabled={loading}
-                  className="w-full bg-orange-500 text-white py-3 px-4 rounded-md font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center"
+                  className="w-full bg-amber-800 hover:bg-amber-900 text-white py-3 rounded-md text-sm font-medium flex items-center justify-center"
                 >
                   {loading ? <Loader size="sm" color="white" /> : 'Place Order'}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

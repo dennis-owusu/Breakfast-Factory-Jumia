@@ -4,13 +4,13 @@ const subscriptionSchema = new mongoose.Schema({
   userId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Users', 
-    required: true 
+    required: false 
   },
   plan: { 
     type: String, 
     enum: ['free', 'monthly', 'bimonthly'], 
     default: 'free', 
-    required: true 
+    required: false 
   },
   status: { 
     type: String, 

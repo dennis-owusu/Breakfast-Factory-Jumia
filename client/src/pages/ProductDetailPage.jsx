@@ -104,10 +104,11 @@ const ProductDetailPage = () => {
                 animate={isAdded ? { scale: [1, 1.2, 1] } : { scale: 1 }}
                 transition={{ duration: 0.3 }}
               >
+                {/* Change button colors to amber */}
                 <Button 
                   onClick={handleAddToCart} 
                   disabled={isAdded || product.countInStock < quantity}
-                  className={`${isAdded ? 'bg-green-500 hover:bg-green-600' : ''} transition-colors duration-300`}
+                  className={`${isAdded ? 'bg-green-500 hover:bg-green-600' : 'bg-amber-800 hover:bg-amber-900'}`}
                 >
                   {isAdded ? (
                     <>
@@ -121,14 +122,14 @@ const ProductDetailPage = () => {
                 </Button>
               </motion.div>
             </AnimatePresence>
-            <Button variant="outline" className="border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Button variant="outline" className="border-amber-300 dark:border-amber-600 text-amber-900 dark:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-700">
               <Heart className="mr-2 h-4 w-4" /> Wishlist
             </Button>
           </div>
         </div>
       </div>
       <Tabs defaultValue="description" className="mt-12">
-        <TabsList className="bg-gray-50 dark:bg-gray-700">
+        <TabsList className="bg-amber-50 dark:bg-amber-900/30">
           <TabsTrigger value="description" className="text-gray-900 dark:text-gray-100">Description</TabsTrigger>
           <TabsTrigger value="reviews" className="text-gray-900 dark:text-gray-100">Reviews</TabsTrigger>
         </TabsList>
