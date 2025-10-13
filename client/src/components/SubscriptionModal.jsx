@@ -43,6 +43,7 @@ const SubscriptionModal = () => {
       try {
         const savedSubscription = localStorage.getItem('subscription');
         const savedLastFetchTime = localStorage.getItem('subscriptionLastFetch');
+        const savedAPIResponse = localStorage.getItem('subscriptionAPIResponse');
         
         if (savedSubscription && savedLastFetchTime) {
           const parsedSubscription = JSON.parse(savedSubscription);
@@ -84,6 +85,8 @@ const SubscriptionModal = () => {
         // Save to localStorage for persistence
         if (subscriptionData) {
           localStorage.setItem('subscription', JSON.stringify(subscriptionData));
+          // Also store the complete API response to check hasActiveSubscription flag
+          localStorage.setItem('subscriptionAPIResponse', JSON.stringify(response));
           const fetchTime = Date.now();
           localStorage.setItem('subscriptionLastFetch', fetchTime.toString());
           setLastFetchTime(fetchTime);
@@ -291,10 +294,28 @@ const SubscriptionModal = () => {
     // Developer bypass - if email contains 'dev' or 'admin', always return true
     // This allows developers to bypass subscription requirements
     if (currentUser?.email && (currentUser.email.includes('dev') || currentUser.email === 'kwesimodestygh111@gmail.com' || currentUser.email === 'awesomebridash269@gmail.com')) {
-      return true;
+      return true; 
     }
     
+    // If there's no subscription data, user doesn't have a subscription
     if (!subscription) return false;
+    
+    // If the API response indicates success and hasActiveSubscription is true,
+    // we should respect that even if our local checks might say otherwise
+    try {
+      const apiResponseStr = localStorage.getItem('subscriptionAPIResponse');
+      if (apiResponseStr) {
+        const apiResponse = JSON.parse(apiResponseStr);
+        if (apiResponse && apiResponse.success && apiResponse.hasActiveSubscription) {
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing subscription API response:', error);
+      // Continue with regular checks if there's an error
+    }
+    
+    // Otherwise, perform our regular checks
     if (subscription.status !== 'active') return false;
     
     const now = new Date();
