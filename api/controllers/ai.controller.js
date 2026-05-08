@@ -1,6 +1,8 @@
 import ModelClient, { isUnexpected } from '@azure-rest/ai-inference';
 import { AzureKeyCredential } from '@azure/core-auth';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import path from 'path';
 import Order from '../models/order.model.js';
 import Product from '../models/product.model.js';
 import Analytics from '../models/analytics.model.js';
@@ -11,54 +13,124 @@ import Feedback from '../models/feedback.js';
 import Sales from '../models/sales.model.js';
 import { errorHandler } from '../utils/error.js';
 
-dotenv.config();
+// Load .env from the api directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envPath = path.resolve(__dirname, '../.env');
 
-// const token = process.env.GITHUB_TOKEN;
-const token = process.env.GITHUB_TOKEN; // your actual Azure API key variable
+// Try multiple possible locations for .env
+const possiblePaths = [
+  path.resolve(__dirname, '../.env'),      // api/.env
+  path.resolve(process.cwd(), '.env'),     // cwd/.env
+  path.resolve(__dirname, '../../.env'),   // root/.env
+];
 
-const endpoint = 'https://models.inference.ai.azure.com';
-const modelName = 'Llama-3.3-70B-Instruct';
+let envLoaded = false;
+for (const tryPath of possiblePaths) {
+  const result = dotenv.config({ path: tryPath });
+  if (!result.error) {
+    console.log('✅ .env loaded from:', tryPath);
+    envLoaded = true;
+    break;
+  }
+}
+
+if (!envLoaded) {
+  console.warn('⚠️ Could not load .env file from any location');
+}
+
+// Debug: Log environment info
+console.log('🔧 AI Controller loaded');
+console.log('📁 Process cwd:', process.cwd());
+console.log('🔑 GITHUB_TOKEN exists:', !!process.env['GITHUB_TOKEN']);
+console.log('🔑 GITHUB_TOKEN length:', process.env['GITHUB_TOKEN'] ? process.env['GITHUB_TOKEN'].length : 0);
+
+// GitHub Models API Configuration - matching the working sample
+const token = process.env['GITHUB_TOKEN'];
+const endpoint = 'https://models.github.ai/inference';
+const modelName = 'meta/Llama-3.3-70B-Instruct';
 
 export const askAI = async (req, res, next) => {
+  // Check token at runtime
+  const runtimeToken = process.env['GITHUB_TOKEN'];
+  
+  if (!runtimeToken) {
+    console.error('❌ GITHUB_TOKEN not found at runtime');
+    console.error('📁 Checked env path:', envPath);
+    console.error('🔍 Available env vars:', Object.keys(process.env).filter(k => k.includes('TOKEN') || k.includes('GITHUB')));
+    return next(errorHandler(500, 'AI Service is not configured. Please add GITHUB_TOKEN to your .env file.'));
+  }
+
+  console.log('✅ GITHUB_TOKEN found, length:', runtimeToken.length);
+
   const { question, conversation = [] } = req.body;
 
   try {
-    const isOutlet = req.user && (req.user.usersRole === 'outlet' || req.user.usersRole === 'admin');
+    const isOutlet = req.user && req.user.usersRole === 'outlet';
+    const isAdmin = req.user && req.user.usersRole === 'admin';
+    const userId = req.user?.id;
+
     // Fetch baseline summary data for comprehensive context
-    const totalProductsFilter = isOutlet ? { outlet: req.user.id } : {};
-    const totalProducts = await Product.countDocuments(totalProductsFilter);
-    const totalOrdersFilter = isOutlet ? { 'items.product': { $in: await Product.find({ outlet: req.user.id }).distinct('_id') } } : {};
-    const totalOrders = await Order.countDocuments(totalOrdersFilter);
-    const pendingOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'pending' });
-    const processingOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'processing' });
-    const shippedOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'shipped' });
-    const deliveredOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'delivered' });
-    const totalUsers = await User.countDocuments();
-    const adminCount = await User.countDocuments({ usersRole: 'admin' });
-    const outletCount = await User.countDocuments({ usersRole: 'outlet' });
-    const customerCount = await User.countDocuments({ usersRole: 'user' });
-    const totalCategories = await Category.countDocuments();
-    const totalPaymentsFilter = isOutlet ? { order: { $in: await Order.find(totalOrdersFilter).distinct('_id') } } : {};
-    const totalPayments = await Payment.countDocuments(totalPaymentsFilter);
-    const totalFeedbackFilter = isOutlet ? { product: { $in: await Product.find({ outlet: req.user.id }).distinct('_id') } } : {};
-    const totalFeedback = await Feedback.countDocuments(totalFeedbackFilter);
+    let totalProducts = 0;
+    let totalOrders = 0;
+    let pendingOrders = 0;
+    let processingOrders = 0;
+    let shippedOrders = 0;
+    let deliveredOrders = 0;
+    let totalUsers = 0;
+    let adminCount = 0;
+    let outletCount = 0;
+    let customerCount = 0;
+    let totalCategories = 0;
+    let totalPayments = 0;
+    let totalFeedback = 0;
+    let todaySalesData = { count: 0, totalSales: 0 };
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    const salesFilter = { createdAt: { $gte: todayStart } };
-    let todaySales;
-    if (isOutlet) {
-      todaySales = await Sales.aggregate([
-        { $match: { outletId: req.user.id, soldAt: { $gte: todayStart } } },
-        { $group: { _id: null, totalSales: { $sum: '$total' }, orderIds: { $addToSet: '$orderId' } } },
-        { $project: { totalSales: 1, count: { $size: '$orderIds' } } }
-      ]);
-    } else {
-      todaySales = await Order.aggregate([
-        { $match: salesFilter },
-        { $group: { _id: null, totalSales: { $sum: '$totalPrice' }, count: { $sum: 1 } } }
-      ]);
+
+    try {
+      const totalProductsFilter = isOutlet ? { outlet: userId } : {};
+      totalProducts = await Product.countDocuments(totalProductsFilter);
+
+      const totalOrdersFilter = isOutlet ? { 'products.product.outlet': userId } : {};
+      totalOrders = await Order.countDocuments(totalOrdersFilter);
+      pendingOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'pending' });
+      processingOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'processing' });
+      shippedOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'shipped' });
+      deliveredOrders = await Order.countDocuments({ ...totalOrdersFilter, status: 'delivered' });
+
+      totalUsers = await User.countDocuments();
+      adminCount = await User.countDocuments({ usersRole: 'admin' });
+      outletCount = await User.countDocuments({ usersRole: 'outlet' });
+      customerCount = await User.countDocuments({ usersRole: 'user' });
+
+      totalCategories = await Category.countDocuments();
+
+      const totalPaymentsFilter = isOutlet ? { userId: userId } : {}; 
+      totalPayments = await Payment.countDocuments(totalPaymentsFilter);
+
+      const totalFeedbackFilter = isOutlet ? { outletId: userId } : {};
+      totalFeedback = await Feedback.countDocuments(totalFeedbackFilter);
+      
+      if (isOutlet) {
+        const sales = await Sales.aggregate([
+          { $match: { outletId: userId, soldAt: { $gte: todayStart } } },
+          { $group: { _id: null, totalSales: { $sum: '$total' }, count: { $sum: 1 } } }
+        ]);
+        if (sales.length > 0) todaySalesData = { count: sales[0].count, totalSales: sales[0].totalSales };
+      } else {
+        const sales = await Order.aggregate([
+          { $match: { createdAt: { $gte: todayStart } } },
+          { $group: { _id: null, totalSales: { $sum: '$totalPrice' }, count: { $sum: 1 } } }
+        ]);
+        if (sales.length > 0) todaySalesData = { count: sales[0].count, totalSales: sales[0].totalSales };
+      }
+    } catch (err) {
+      console.error('Error fetching baseline data:', err.message);
     }
-    let context = `Baseline system data: Total products: ${totalProducts}. Total orders: ${totalOrders} (Pending: ${pendingOrders}, Processing: ${processingOrders}, Shipped: ${shippedOrders}, Delivered: ${deliveredOrders}). Today's sales: ${todaySales[0]?.count || 0} orders, total ${todaySales[0]?.totalSales || 0}. Total users: ${totalUsers} (Admins: ${adminCount}, Outlets: ${outletCount}, Customers: ${customerCount}). Total categories: ${totalCategories}. Total payments: ${totalPayments}. Total feedback: ${totalFeedback}. `;
+
+    let context = `Baseline system data: Total products: ${totalProducts}. Total orders: ${totalOrders} (Pending: ${pendingOrders}, Processing: ${processingOrders}, Shipped: ${shippedOrders}, Delivered: ${deliveredOrders}). Today's sales: ${todaySalesData.count} orders, total ${todaySalesData.totalSales}. Total users: ${totalUsers} (Admins: ${adminCount}, Outlets: ${outletCount}, Customers: ${customerCount}). Total categories: ${totalCategories}. Total payments: ${totalPayments}. Total feedback: ${totalFeedback}. `;
+
 
     // Add products added today
     const filter = { createdAt: { $gte: todayStart } };
@@ -74,50 +146,68 @@ export const askAI = async (req, res, next) => {
       const yesterdayStart = new Date();
       yesterdayStart.setDate(yesterdayStart.getDate() - 1);
       yesterdayStart.setHours(0, 0, 0, 0);
-      let sales;
-      if (isOutlet) {
-        sales = await Sales.aggregate([
-          { $match: { outletId: req.user.id, soldAt: { $gte: yesterdayStart } } },
-          { $group: { _id: null, totalSales: { $sum: '$total' }, orderIds: { $addToSet: '$orderId' } } },
-          { $project: { totalSales: 1, count: { $size: '$orderIds' } } }
-        ]);
-      } else {
-        sales = await Order.aggregate([
-          { $match: { createdAt: { $gte: yesterdayStart } } },
-          { $group: { _id: null, totalSales: { $sum: '$totalPrice' }, count: { $sum: 1 } } }
-        ]);
+      const yesterdayEnd = new Date(yesterdayStart);
+      yesterdayEnd.setHours(23, 59, 59, 999);
+      
+      let salesData = { count: 0, totalSales: 0 };
+      try {
+        if (isOutlet) {
+          const sales = await Sales.aggregate([
+            { $match: { outletId: userId, soldAt: { $gte: yesterdayStart, $lte: yesterdayEnd } } },
+            { $group: { _id: null, totalSales: { $sum: '$total' }, count: { $sum: 1 } } }
+          ]);
+          if (sales.length > 0) salesData = { count: sales[0].count, totalSales: sales[0].totalSales };
+        } else {
+          const sales = await Order.aggregate([
+            { $match: { createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd } } },
+            { $group: { _id: null, totalSales: { $sum: '$totalPrice' }, count: { $sum: 1 } } }
+          ]);
+          if (sales.length > 0) salesData = { count: sales[0].count, totalSales: sales[0].totalSales };
+        }
+      } catch (err) {
+        console.error('Error fetching yesterday sales:', err.message);
       }
-      context += `Sales data for yesterday: ${sales[0]?.count || 0} orders, total ${sales[0]?.totalSales || 0}. `;
+      context += `Sales data for yesterday: ${salesData.count} orders, total ${salesData.totalSales}. `;
     } 
 
     if (question.toLowerCase().includes('stock')) {
-      const stockFilter = { numberOfProductsAvailable: 0 };
-      if (isOutlet) {
-        stockFilter.outlet = req.user.id;
+      let inStock = 0;
+      let outOfStock = 0;
+      let outOfStockList = 'None';
+      
+      try {
+        const stockFilter = { numberOfProductsAvailable: 0 };
+        if (isOutlet) stockFilter.outlet = userId;
+        const outOfStockProducts = await Product.find(stockFilter).select('productName');
+        outOfStock = outOfStockProducts.length;
+        outOfStockList = outOfStockProducts.map(p => p.productName).join(', ') || 'None';
+
+        const inStockFilter = { numberOfProductsAvailable: { $gt: 0 } };
+        if (isOutlet) inStockFilter.outlet = userId;
+        inStock = await Product.countDocuments(inStockFilter);
+      } catch (err) {
+        console.error('Error fetching stock data:', err.message);
       }
-      const outOfStockProducts = await Product.find(stockFilter).select('productName');
-      const outOfStock = outOfStockProducts.length;
-      const inStockFilter = { numberOfProductsAvailable: { $gt: 0 } };
-      if (isOutlet) {
-        inStockFilter.outlet = req.user.id;
-      }
-      const inStock = await Product.countDocuments(inStockFilter);
-      let outOfStockList = outOfStockProducts.map(p => p.productName).join(', ') || 'None';
       context += `Products: ${inStock} in stock, ${outOfStock} out of stock. Out of stock products: ${outOfStockList}. `;
     }
  
     if (question.toLowerCase().includes('weekly') || question.toLowerCase().includes('trends') || question.toLowerCase().includes('revenue')) {
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const weeklyFilter = { createdAt: { $gte: weekAgo } };
-      if (isOutlet) {
-        weeklyFilter['items.product'] = { $in: await Product.find({ outlet: req.user.id }).distinct('_id') };
+      let weeklyRevenue = [];
+      try {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const weeklyFilter = { createdAt: { $gte: weekAgo } };
+        if (isOutlet) {
+          weeklyFilter['products.product.outlet'] = userId;
+        }
+        weeklyRevenue = await Order.aggregate([
+          { $match: weeklyFilter },
+          { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, dailyRevenue: { $sum: '$totalPrice' } } },
+          { $sort: { _id: 1 } }
+        ]);
+      } catch (err) {
+        console.error('Error fetching weekly trends:', err.message);
       }
-      const weeklyRevenue = await Order.aggregate([
-        { $match: weeklyFilter },
-        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, dailyRevenue: { $sum: '$totalPrice' } } },
-        { $sort: { _id: 1 } }
-      ]);
       context += `Weekly revenue trends: ${JSON.stringify(weeklyRevenue.map(r => ({ date: r._id, revenue: r.dailyRevenue })))}. `;
     }
 
@@ -126,8 +216,8 @@ export const askAI = async (req, res, next) => {
       let topSelling = [];
       
       // First try to get data from Orders collection
-      const orderMatch = isOutlet ? { 'products.product._id': { $in: await Product.find({ outlet: req.user.id }).distinct('_id') } } : {};
       try {
+        const orderMatch = isOutlet ? { 'products.product.outlet': userId } : {};
         topSelling = await Order.aggregate([
           { $match: orderMatch },
           { $unwind: '$products' },
@@ -143,6 +233,7 @@ export const askAI = async (req, res, next) => {
       } catch (err) {
         console.log('Error fetching top selling products from orders:', err.message);
       }
+
       
       // If no results from Orders, try Sales collection
       if (topSelling.length === 0) {
@@ -273,16 +364,22 @@ export const askAI = async (req, res, next) => {
     }
 
     if (question.toLowerCase().includes('feedback') || question.toLowerCase().includes('reviews')) {
-      const recentFeedback = await Feedback.find(totalFeedbackFilter).sort({ createdAt: -1 }).limit(5);
-      context += `Recent feedback: ${JSON.stringify(recentFeedback.map(f => ({ product: f.product, rating: f.rating, comment: f.comment })))}. `;
+      const feedbackFilter = isOutlet ? { outletId: userId } : {};
+      const recentFeedback = await Feedback.find(feedbackFilter).sort({ createdAt: -1 }).limit(5);
+      context += `Recent feedback: ${JSON.stringify(recentFeedback.map(f => ({ rating: f.rating, message: f.message })))}. `;
     }
 
     // Add general system details
     const systemDetails = 'The system is a MERN stack e-commerce app with roles: Admin, Outlet, User. Features include product listings, carts, orders, payments (Cash on Delivery), JWT auth, image uploads.';
     context += systemDetails + ' ';
 
+    // Use the working sample code pattern
+    const client = ModelClient(
+      endpoint,
+      new AzureKeyCredential(runtimeToken),
+    );
 
-    const client = ModelClient(endpoint, new AzureKeyCredential(token));
+    console.log('🚀 Sending request to GitHub Models...');
 
     const response = await client.path('/chat/completions').post({
       body: {
@@ -293,6 +390,7 @@ export const askAI = async (req, res, next) => {
         ],
         temperature: 1.0,
         top_p: 1.0,
+        max_tokens: 1000,
         model: modelName
       }
     });
@@ -301,8 +399,10 @@ export const askAI = async (req, res, next) => {
       throw response.body.error;
     }
 
+    console.log('✅ AI response received successfully');
     res.json({ answer: response.body.choices[0].message.content });
   } catch (err) {
+    console.error('❌ AI Error:', err.message);
     next(errorHandler(500, err.message));
   }
 };

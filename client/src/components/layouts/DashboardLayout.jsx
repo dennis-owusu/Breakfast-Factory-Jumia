@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard, Star, RefreshCw, Menu, Clock, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import DashboardSearch from '../DashboardSearch';
+import AIChatModal from '../AIChatModal';
+import { Bot } from 'lucide-react';
 import api from '../../utils/api';
 
 const DashboardLayout = ({ children }) => {
@@ -16,6 +18,7 @@ const DashboardLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobileCountdownExpanded, setIsMobileCountdownExpanded] = useState(true);
   const [isDesktopCountdownExpanded, setIsDesktopCountdownExpanded] = useState(true);
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
 
   const getSidebarLinks = () => {
     if (role === 'outlet') {
@@ -318,6 +321,27 @@ const DashboardLayout = ({ children }) => {
           {children}
         </main>
       </div>
+
+      {/* AI Chat Floating Button */}
+      {(role === 'admin' || role === 'outlet') && (
+        <>
+          <button
+            onClick={() => setIsAIChatOpen(true)}
+            className="fixed bottom-6 right-6 p-4 bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-full shadow-lg z-50 transition-all duration-300 transform hover:scale-110 flex items-center justify-center group"
+            title="Ask AI Assistant"
+          >
+            <Bot size={28} className="group-hover:animate-pulse" />
+            <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:ml-2 transition-all duration-300 font-medium whitespace-nowrap">
+              Ask AI
+            </span>
+          </button>
+          
+          <AIChatModal 
+            isOpen={isAIChatOpen} 
+            onClose={() => setIsAIChatOpen(false)} 
+          />
+        </>
+      )}
     </div>
   );
 };

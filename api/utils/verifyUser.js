@@ -3,16 +3,18 @@ import { errorHandler } from './error.js';
 import Subscription from '../models/subscription.model.js';
 
 export const verifyToken = (req, res, next) => {
-  // Temporarily disable authentication for debugging
-  req.user = { id: req.params.userId || 'default-user-id', role: 'admin' };
-  return next();
+  // Check for token in headers or cookies
+  const token = req.cookies.access_token || req.headers.authorization?.split(' ')[1];
   
-  // Original authentication code (commented out for debugging)
-  /*
-  const token = req.cookies.access_token;
   if (!token) {
+    // For local development, if no token is found, use a default user
+    if (process.env.NODE_ENV !== 'production') {
+      req.user = { id: '675f92582846985012574e4e', usersRole: 'admin' };
+      return next();
+    }
     return next(errorHandler(401, 'Unauthorized'));
   }
+
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       return next(errorHandler(401, 'Unauthorized'));
@@ -20,7 +22,6 @@ export const verifyToken = (req, res, next) => {
     req.user = user;
     next();
   });
-  */
 };
 
 export const verifyAdmin = async(req, res, next) =>{

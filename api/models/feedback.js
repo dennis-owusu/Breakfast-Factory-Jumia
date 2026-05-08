@@ -19,6 +19,16 @@ const feedbackSchema = new mongoose.Schema({
     ref: 'User', // References the User model
     required: true, // Make required to ensure feedback is tied to a user
   },
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: false,
+  },
+  outletId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
