@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { signInStart, signInSuccess, signInFailure } from '../../redux/slices/authSlice';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import Loader from '../../components/ui/Loader';
+import { authAPI } from '../../utils/api';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -61,20 +62,10 @@ const handleSubmit = async (e) => {
 
   try {
     dispatch(signInStart());
-    // Simulate an API call (replace with actual API call)
-    const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Login failed');
-    }
-
-    const data = await response.json();
+    
+    // Use the configured API utility
+    const response = await authAPI.login({ email, password });
+    const data = response.data;
     dispatch(signInSuccess(data));
    
       // Redirect based on user role

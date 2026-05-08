@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import api from '../utils/api';
 
 const AIChatModal = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState([
@@ -58,27 +59,15 @@ const AIChatModal = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/ai/ask', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          question: inputMessage,
-          conversation: messages.map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.text
-          }))
-        })
+      const response = await api.post('/api/ai/ask', {
+        question: inputMessage,
+        conversation: messages.map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        }))
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-
-      const data = await response.json();
+      const data = response.data;
       const aiResponse = {
         id: Date.now() + 1,
         text: data.answer,

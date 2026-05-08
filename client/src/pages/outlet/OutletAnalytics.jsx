@@ -201,11 +201,7 @@ const OutletAnalytics = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
-        };
-        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/analytics?period=${period}&outletId=${outlet._id}`, { headers });
+        const response = await fetch(`/api/route/analytics?period=${period}&outletId=${outlet._id}`);
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }

@@ -9,6 +9,7 @@ import AIQuery from '../../components/ui/AIQuery';
 import AIChatModal from '../../components/AIChatModal';
 import { saveAs } from 'file-saver';
 import io from 'socket.io-client';
+import api from '../../utils/api';
 
 
 // Fetch outlet dashboard statistics from the API
@@ -27,11 +28,11 @@ const OutletDashboard = () => {
   const handleDownloadReport = async () => {
     setIsDownloading(true);
     try {
-      const res = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/dashboard/outlet/${outlet._id}/daily-report`);
-      if (!res.ok) {
+      const res = await api.get(`/api/route/dashboard/outlet/${outlet._id}/daily-report`);
+      const data = res.data;
+      if (!data) {
         throw new Error('Failed to fetch daily report');
       }
-      const data = await res.json();
 
       // Convert JSON to CSV
       const { summary, report } = data;
@@ -87,18 +88,12 @@ const OutletDashboard = () => {
         };
         
         // Fetch all orders for the outlet 
-        const ordersResponse = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/getOutletOrders/${outlet._id}`, { headers });
-        if (!ordersResponse.ok) {
-          throw new Error(`HTTP error ${ordersResponse.status}: ${ordersResponse.statusText}`);
-        }
-        const ordersData = await ordersResponse.json();
+        const ordersResponse = await api.get(`/api/route/getOutletOrders/${outlet._id}`, { headers });
+        const ordersData = ordersResponse.data;
         
         // Fetch analytics summary for the outlet
-        const analyticsResponse = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/analytics?period=monthly&outletId=${outlet._id}`, { headers });
-        if (!analyticsResponse.ok) {
-          throw new Error(`HTTP error ${analyticsResponse.status}: ${analyticsResponse.statusText}`);
-        }
-        const analyticsData = await analyticsResponse.json();
+        const analyticsResponse = await api.get(`/api/route/analytics?period=monthly&outletId=${outlet._id}`, { headers });
+        const analyticsData = analyticsResponse.data;
         
         // Combine data for dashboard
         setStats({

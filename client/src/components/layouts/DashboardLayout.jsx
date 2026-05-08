@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Package, BarChart2, User, Settings, DollarSign, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, CreditCard, Star, RefreshCw, Menu, Clock, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import DashboardSearch from '../DashboardSearch';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const DashboardLayout = ({ children }) => {
   const { currentUser } = useSelector((state) => state.user);
@@ -67,7 +67,7 @@ const DashboardLayout = ({ children }) => {
     const fetchSubscription = async () => {
       if (role === 'outlet' || role === 'admin') {
         try {
-          const res = await axios.get(`https://breakfast-factory-jumia.onrender.com/api/route/subscription/user/${currentUser._id}`, {
+          const res = await api.get(`/api/route/subscription/user/${currentUser._id}`, {
             headers: { Authorization: `Bearer ${currentUser.token}` }
           });
           setSubscription(res.data.subscription);

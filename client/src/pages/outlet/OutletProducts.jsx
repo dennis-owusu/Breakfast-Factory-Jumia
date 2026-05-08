@@ -50,7 +50,7 @@ const OutletProducts = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/allcategories');
+        const res = await fetch('/api/route/allcategories');
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to fetch categories');
         setCategories(Array.isArray(data.allCategory) ? data.allCategory : []);
@@ -69,7 +69,7 @@ const handleDeleteProduct = async (productId) => {
 
   try {
     setLoading(true);
-    const res = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/delete/${productId}`, {
+    const res = await fetch(`/api/route/delete/${productId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
@@ -127,7 +127,7 @@ const handleDeleteProduct = async (productId) => {
                 sortBy.includes('stock') ? 'numberOfProductsAvailable' : 'updatedAt',
           ...(categoryFilter !== 'all' && { category: categoryFilter })
         });
-        const res = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/allproducts?${queryParams.toString()}`);
+        const res = await fetch(`/api/route/allproducts?${queryParams.toString()}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to fetch products');
         setProducts(Array.isArray(data.products) ? data.products : []);
@@ -199,7 +199,7 @@ const fetchAllProductsForExport = async () => {
   while (true) {
     const queryParams = buildQueryParams({ startIndex, limit: CHUNK_SIZE });
     const res = await fetch(
-      `https://breakfast-factory-jumia.onrender.com/api/route/allproducts?${queryParams.toString()}`
+      `/api/route/allproducts?${queryParams.toString()}`
     );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to fetch products for export');

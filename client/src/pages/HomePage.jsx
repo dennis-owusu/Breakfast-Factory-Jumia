@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Search, Clock, Star, ShoppingCart, Truck, CreditCard, ShieldCheck, Coffee, PieChart, Users, BookOpen, Heart, Gift, MapPin, Mail, Phone, Instagram, Facebook, Twitter } from 'lucide-react';
+import { ChevronRight, Search, Clock, Star, ShoppingCart, Truck, CreditCard, ShieldCheck, Coffee, PieChart, Users, BookOpen, Heart, Gift, MapPin, Mail, Phone } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 // Placeholder components and assets for a complete, runnable example.

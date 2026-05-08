@@ -210,74 +210,81 @@ export const getOutletOrders = async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const searchTerm = req.query.searchTerm || '';
   const status = req.query.status;
-  const dateRange = req.query.dateRange;
-
-  console.log('Outlet ID received:', outletId);
-  
-  // Find all products for this outlet
-  const products = await Product.find({ outlet: outletId });
-  const productIds = products.map(product => product._id.toString());
-  console.log('Product IDs for this outlet:', productIds);
-  
-  // Find orders containing these products
-  let query = {};
-  
-  if (status && status !== 'all') {
-    query.status = status;
-  }
-
-  if (searchTerm) {
-    query.orderNumber = { $regex: searchTerm, $options: 'i' };
-  }
-
-  let dateFilter = {};
-  if (dateRange) {
-    const now = new Date();
-    switch (dateRange) {
-      case 'today':
-        dateFilter = { createdAt: { $gte: new Date(now.setHours(0,0,0,0)) } };
-        break;
-      case 'yesterday':
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        dateFilter = { createdAt: { $gte: new Date(yesterday.setHours(0,0,0,0)), $lt: new Date(now.setHours(0,0,0,0)) } };
-        break;
-      case 'last7days':
-        const last7 = new Date(now);
-        last7.setDate(last7.getDate() - 7);
-        dateFilter = { createdAt: { $gte: last7 } };
-        break;
-      case 'last30days':
-        const last30 = new Date(now);
-        last30.setDate(last30.getDate() - 30);
-        dateFilter = { createdAt: { $gte: last30 } };
-        break;
-    }
-    query = { ...query, ...dateFilter };
-  }
-
   try {
-    // Get all orders
+    const dateRange = req.query.dateRange || ({
+      daily: 'today',
+      weekly: 'last7days',
+      monthly: 'last30days',
+      yearly: 'last30days',
+    }[req.query.timeRange] || null);
+    const query = {};
+
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    if (searchTerm) {
+      query.orderNumber = { $regex: searchTerm, $options: 'i' };
+    }
+
+    if (dateRange) {
+      const now = new Date();
+
+      switch (dateRange) {
+        case 'today': {
+          const startOfToday = new Date(now);
+          startOfToday.setHours(0, 0, 0, 0);
+          query.createdAt = { $gte: startOfToday };
+          break;
+        }
+        case 'yesterday': {
+          const startOfToday = new Date(now);
+          startOfToday.setHours(0, 0, 0, 0);
+          const startOfYesterday = new Date(startOfToday);
+          startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+          query.createdAt = { $gte: startOfYesterday, $lt: startOfToday };
+          break;
+        }
+        case 'last7days': {
+          const last7Days = new Date(now);
+          last7Days.setDate(last7Days.getDate() - 7);
+          query.createdAt = { $gte: last7Days };
+          break;
+        }
+        case 'last30days': {
+          const last30Days = new Date(now);
+          last30Days.setDate(last30Days.getDate() - 30);
+          query.createdAt = { $gte: last30Days };
+          break;
+        }
+      }
+    }
+
+    const products = await Product.find({ outlet: outletId })
+      .select('productName')
+      .lean();
+    const outletProductNames = new Set(
+      products
+        .map((product) => product.productName?.trim().toLowerCase())
+        .filter(Boolean)
+    );
+
+    if (outletProductNames.size === 0) {
+      return res.status(200).json({ orders: [], totalOrders: 0 });
+    }
+
     const allOrders = await Order.find(query)
       .populate('user', 'name email phoneNumber')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     
-    // Filter orders that contain products from this outlet
     const outletOrders = allOrders.filter(order => {
-      // Check if any product in the order matches the outlet's products
       return order.products.some(item => {
-        // For each product in the order, check if it's from our outlet
-        // This requires the original product ID which we don't have in the embedded data
-        // Instead, we'll check if the product name matches any of our outlet's products
-        return products.some(outletProduct => 
-          outletProduct.productName === item.product.name
-        );
+        const productName = item.product?.name?.trim().toLowerCase();
+        return productName ? outletProductNames.has(productName) : false;
       });
     });
-    
-    console.log(`Found ${outletOrders.length} orders for outlet ${outletId} out of ${allOrders.length} total orders`);
-    
-    // Apply pagination
+
     const paginatedOrders = outletOrders.slice(startIndex, startIndex + limit);
     
     res.status(200).json({ orders: paginatedOrders, totalOrders: outletOrders.length });

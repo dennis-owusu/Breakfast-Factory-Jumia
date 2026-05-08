@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Categories from "../models/categories.model.js";
 
 export const category = async(req, res, next) => {
@@ -24,7 +25,24 @@ export const category = async(req, res, next) => {
 
 export const fetchCategory = async(req, res, next) =>{
     try {
-        const allCategory = await Categories.find().populate('parent', 'categoryName');
+        const categories = await Categories.find().lean();
+        const parentIds = [...new Set(
+            categories
+                .map((category) => category.parent)
+                .filter((parentId) => mongoose.isValidObjectId(parentId))
+                .map((parentId) => parentId.toString())
+        )];
+        const parents = await Categories.find({ _id: { $in: parentIds } })
+            .select('_id categoryName')
+            .lean();
+        const parentMap = new Map(parents.map((parent) => [parent._id.toString(), parent]));
+        const allCategory = categories.map((category) => ({
+            ...category,
+            parent: mongoose.isValidObjectId(category.parent)
+                ? (parentMap.get(category.parent.toString()) || category.parent)
+                : category.parent,
+        }));
+
         res.json({allCategory});
     } catch (error) {
         next(error);
@@ -33,13 +51,26 @@ export const fetchCategory = async(req, res, next) =>{
 
 export const getCategoryById = async(req, res, next) => {
     try {
-        const category = await Categories.findById(req.params.id).populate('parent', 'categoryName');
+        const category = await Categories.findById(req.params.id).lean();
         
         if (!category) {
             return res.status(404).json({ message: 'Category not found' });
         }
+
+        let normalizedCategory = category;
+
+        if (mongoose.isValidObjectId(category.parent)) {
+            const parentCategory = await Categories.findById(category.parent)
+                .select('_id categoryName')
+                .lean();
+
+            normalizedCategory = {
+                ...category,
+                parent: parentCategory || category.parent,
+            };
+        }
         
-        res.json(category);
+        res.json(normalizedCategory);
     } catch (error) {
         next(error);
     }

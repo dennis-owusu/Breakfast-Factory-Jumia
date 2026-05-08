@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { createSubscription, getUserSubscription } from '../utils/subscriptionService';
+import api from '../utils/api';
 
 const SubscriptionModal = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -217,23 +218,18 @@ const SubscriptionModal = () => {
       setLoading(true);
       
       // First record the payment
-      const paymentResponse = await fetch('https://breakfast-factory-jumia.onrender.com/api/route/payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          referenceId: reference.reference,
-          userId: currentUser._id,
-          amount: 300, // 300 GHS
-          phoneNumber: currentUser?.phoneNumber,
-          currency: 'GHS',
-          payerEmail: currentUser?.email,
-          paymentMethod: 'paystack',
-          status: 'paid',
-        }),
+      const paymentResponse = await api.post('/api/route/payment', {
+        referenceId: reference.reference,
+        userId: currentUser._id,
+        amount: 300, // 300 GHS
+        phoneNumber: currentUser?.phoneNumber,
+        currency: 'GHS',
+        payerEmail: currentUser?.email,
+        paymentMethod: 'paystack',
+        status: 'paid',
       });
       
-      if (!paymentResponse.ok) {
+      if (!paymentResponse.data) {
         throw new Error('Failed to record payment');
       }
       

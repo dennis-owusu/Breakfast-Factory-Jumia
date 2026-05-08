@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
+import api from '../../utils/api';
 
 const AIQuery = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -18,20 +19,8 @@ const AIQuery = () => {
     setAnswer('');
 
     try {
-      const response = await fetch('https://breakfast-factory-jumia.onrender.com/api/ai/ask', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify({ question }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
-
-      const data = await response.json();
+      const response = await api.post('/api/ai/ask', { question });
+      const data = response.data;
       setAnswer(data.answer);
     } catch (error) {
       toast.error('Error querying AI: ' + error.message);

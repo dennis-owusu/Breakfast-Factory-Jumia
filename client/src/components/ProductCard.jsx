@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button';
 import { addToCart } from '../redux/slices/cartSlice';
 import { toast } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
+import api from '../utils/api';
 
 
 
@@ -15,8 +16,8 @@ const ProductCard = ({ product }) => {
 
   const handleAddToCart = async () => {
     try {
-      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/product/${_id}`);
-      const data = await response.json();
+      const response = await api.get(`/api/route/product/${_id}`);
+      const data = response.data;
       if (!data.success) throw new Error(data.message);
       const freshProduct = data.product;
       if (freshProduct.countInStock <= 0) {

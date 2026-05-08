@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePaystackPayment } from 'react-paystack';
 import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
+import api from '../utils/api';
 
 const CreditPaymentModal = ({ creditId, remainingAmount, onClose, onPaymentSuccess }) => {
   const { currentUser } = useSelector((state) => state.user);
@@ -29,13 +30,13 @@ const CreditPaymentModal = ({ creditId, remainingAmount, onClose, onPaymentSucce
   const onSuccess = async (reference) => {
     setLoading(true);
     try {
-      const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/credit/${creditId}/payment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: paymentAmount, paymentMethod: 'paystack', reference: reference.reference }),
+      const response = await api.post(`/api/route/credit/${creditId}/payment`, {
+        amount: paymentAmount,
+        paymentMethod: 'paystack',
+        reference: reference.reference
       });
 
-      const data = await response.json();
+      const data = response.data;
       if (data.success) {
         toast.success('Payment recorded successfully');
         onPaymentSuccess();

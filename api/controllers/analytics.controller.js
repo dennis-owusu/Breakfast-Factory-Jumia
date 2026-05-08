@@ -298,12 +298,22 @@ export const getAnalytics = async (req, res, next) => {
 
 export const getSales = async (req, res, next) => {
      try {
-       const { outletId, period, search, minAmount, maxAmount, page = 1, limit = 10 } = req.query;
+       const { outletId, period, search, minAmount, maxAmount, page = 1, limit = 10, startDate, endDate } = req.query;
+       const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+       const limitNumber = Math.max(parseInt(limit, 10) || 10, 0);
 
-       const matchStage = {};
+       const matchStage = {}; 
        // Remove outletId validation as requested
        
-       if (period && period !== 'all') {
+       if (startDate && endDate) {
+         const parsedStartDate = new Date(startDate);
+         parsedStartDate.setHours(0, 0, 0, 0);
+
+         const parsedEndDate = new Date(endDate);
+         parsedEndDate.setHours(23, 59, 59, 999);
+
+         matchStage.createdAt = { $gte: parsedStartDate, $lte: parsedEndDate };
+       } else if (period && period !== 'all') {
          // Use current date ranges
          let startDate;
          let endDate = new Date(); // Current date
@@ -333,12 +343,12 @@ export const getSales = async (req, res, next) => {
        }
        if (minAmount) matchStage.totalPrice = { $gte: Number(minAmount) };
        if (maxAmount) matchStage.totalPrice = { ...matchStage.totalPrice, $lte: Number(maxAmount) };
-       if (search) matchStage._id = { $regex: search, $options: 'i' };
+       if (search) matchStage.orderNumber = { $regex: search, $options: 'i' };
 
        const sales = await Order.find(matchStage)
          .sort({ createdAt: -1 })
-         .skip((page - 1) * limit)
-         .limit(Number(limit))
+         .skip(limitNumber > 0 ? (pageNumber - 1) * limitNumber : 0)
+         .limit(limitNumber)
          .select('_id createdAt totalPrice products status')
          .lean()
          .then((docs) => docs.map((doc) => ({
@@ -371,7 +381,7 @@ export const getSales = async (req, res, next) => {
        console.log('Sales summary results:', summary);
 
        const totalSalesCount = await Order.countDocuments(matchStage);
-       const totalPages = Math.ceil(totalSalesCount / limit);
+       const totalPages = limitNumber > 0 ? Math.ceil(totalSalesCount / limitNumber) : 1;
 
        res.status(200).json({
          success: true,

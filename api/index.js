@@ -1,8 +1,10 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import mongoose from 'mongoose';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
 import productRoute from './routes/product.route.js';
 import userRoute from './routes/users.route.js';
 import imageRoute from './routes/image.route.js';
@@ -21,16 +23,39 @@ import { Server } from 'socket.io';
 import http from 'http';
 import jwt from 'jsonwebtoken';
 import searchRoute from './routes/search.route.js';
+import Feedback from './models/feedback.js';
  
 dotenv.config();
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'http://localhost:5177',
+  'https://breakfast-factory-jumia-1.onrender.com',
+];
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+
 const io = new Server(server, {
   cors: {
-    origin: 'https://breakfast-factory-jumia-1.onrender.com',
-    methods: ['GET', 'POST'],
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true
   }
 });
@@ -61,7 +86,7 @@ io.on('connection', (socket) => {
         return callback({ error: 'Message and rating are required' });
       }
 
-      const feedback = new feedback({
+      const feedback = new Feedback({
         message,
         rating,
         userId: socket.user.id, // Associate feedback with authenticated user
@@ -88,12 +113,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Middlewares
-app.use(cors({
-  origin: ['http://localhost:5173', 'https://breakfast-factory-jumia-1.onrender.com'],
-  methods: ['GET', 'DELETE', 'PUT', 'POST'],
-  credentials: true
-}));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
+
+  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
+  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  return next();
+});
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Serve static files from the uploads directory
@@ -101,16 +141,67 @@ app.use('/uploads', [
   express.static(path.join(__dirname, 'uploads')),
   express.static(path.join(__dirname, 'Uploads'))
 ]);
+ 
+// MongoDB Connection with retry logic
+const connectDB = async (retries = 5) => {
+  try {
+    console.log('🔍 Attempting MongoDB connection...');
+    console.log('📋 Connection URI:', process.env.MONGO_URI ? 'SET' : 'NOT SET');
+    
+    if (!process.env.MONGO_URI) {
+      throw new Error('MONGO_URI environment variable is not set');
+    }
+    
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      retryWrites: true,
+      w: 'majority',
+      ssl: true,
+      authSource: 'admin'
+    });
+    console.log('✅ MongoDB connected successfully');
+  } catch (error) {
+    console.error('❌ MongoDB connection failed:', error.message);
+    console.error('🔍 Connection string preview:', process.env.MONGO_URI?.substring(0, 50) + '...');
+    
+    if (retries > 0) {
+      console.log(`🔄 Retrying MongoDB connection... (${retries} attempts left)`);
+      setTimeout(() => connectDB(retries - 1), 5000);
+    } else {
+      console.error('🚨 MongoDB connection failed after all retries');
+      console.error('💡 Please check:');
+      console.error('   - MongoDB Atlas cluster is running');
+      console.error('   - Your IP address is whitelisted in Atlas');
+      console.error('   - Connection string is correct');
+      console.error('   - Internet connection is stable');
+      console.error('   - Atlas username/password are correct');
+    }
+  }
+};
 
-// MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection failed:', err));
+connectDB();
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState;
+  const status = {
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    database: {
+      status: dbStatus === 1 ? 'connected' : 'disconnected',
+      readyState: dbStatus
+    },
+    server: 'running'
+  };
+  res.status(dbStatus === 1 ? 200 : 503).json(status);
+});
 
 // Routes
 app.use('/api/route', productRoute);
 app.use('/api/auth', userRoute);
-app.use('/api/route', imageRoute);
+app.use('/api/route', imageRoute); 
 app.use('/api/route', orderRoute);
 app.use('/api/route', categoryRoute);
 app.use('/api/route', analyticsRoute);

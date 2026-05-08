@@ -47,14 +47,8 @@ const OutletSales = () => {
         if (filters.minAmount) queryParams.append('minAmount', filters.minAmount);
         if (filters.maxAmount) queryParams.append('maxAmount', filters.maxAmount);
         
-        // Set headers with authentication token
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
-        };
-        
         // Make API call to fetch sales data
-        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/sales?${queryParams.toString()}`, { headers });
+        const response = await fetch(`/api/route/sales?${queryParams.toString()}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
@@ -127,12 +121,6 @@ const OutletSales = () => {
         queryParams.append('endDate', reportDates.endDate);
       }
       
-      // Set headers with authentication token
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(currentUser?.token && { Authorization: `Bearer ${currentUser.token}` }),
-      };
-      
       // Get outlet ID from current user
       const outletId = currentUser?.outletId || currentUser?._id;
       
@@ -142,8 +130,7 @@ const OutletSales = () => {
       
       try {
         // Make API call to fetch sales data
-        const response = await fetch(`https://breakfast-factory-jumia.onrender.com/api/route/sales?${queryParams.toString()}`, { 
-          headers,
+        const response = await fetch(`/api/route/sales?${queryParams.toString()}`, { 
           method: 'GET'
         });
         
