@@ -64,8 +64,8 @@ const RestockManagement = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Restock Requests Management</h1>
+    <div className="p-6 max-w-7xl mx-auto dark:bg-gray-900">
+      <h1 className="text-3xl font-bold mb-8 dark:text-gray-100">Restock Requests Management</h1>
 
       <Card>
         <div className="p-6">

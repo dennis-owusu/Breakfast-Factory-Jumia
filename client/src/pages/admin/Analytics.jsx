@@ -274,7 +274,7 @@ const Analytics = () => {
   // Render loading state
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen dark:bg-gray-900">
         <Loader size="lg" />
       </div>
     );
@@ -283,9 +283,9 @@ const Analytics = () => {
   // Render error or no data state
   if (error || !data) {
     return (
-      <div className="bg-gray-50 min-h-screen py-8">
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
+          <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
             <div className="flex items-center text-red-500">
               <AlertTriangle className="h-6 w-6 mr-2" />
               <p>{error || 'No data available. Please try again later.'}</p>

@@ -181,35 +181,35 @@ const OrdersManagement = () => {
     }
   };
   
-  // Helper function to get status badge color
+  // Helper function to get status badge color with dark mode
   const getStatusBadgeColor = (status) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200';
       case 'processing':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200';
       case 'shipped':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200';
       case 'delivered':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
   
-  // Helper function to get payment status badge color
+  // Helper function to get payment status badge color with dark mode
   const getPaymentStatusBadgeColor = (status) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200';
       case 'refunded':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
   
@@ -227,32 +227,32 @@ const OrdersManagement = () => {
   
   if (isLoading && orders.length === 0) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen dark:bg-gray-900">
         <Loader size="lg" />
       </div>
     );
   }
   
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+          <h1 className="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:text-3xl sm:truncate">
             Orders Management
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Manage all orders on the platform
           </p>
         </div>
         
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 p-4 mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
                 <AlertTriangle className="h-5 w-5 text-red-500" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">
+                <p className="text-sm text-red-700 dark:text-red-200">
                   {error}
                 </p>
               </div>
@@ -261,21 +261,21 @@ const OrdersManagement = () => {
         )}
         
         {/* Filters and Search */}
-        <div className="bg-white shadow rounded-lg mb-6">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {/* Search */}
               <div className="md:col-span-2">
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 sr-only">Search</label>
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 sr-only">Search</label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
+                    <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     type="text"
                     name="search"
                     id="search"
-                    className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                    className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
                     placeholder="Search by order #, customer, or product"
                     value={search}
                     onChange={handleSearchChange}
