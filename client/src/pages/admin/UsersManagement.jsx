@@ -232,12 +232,12 @@ const UsersManagement = () => {
         </div>
         
         <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-          {isLoading && !users.length ? (
+          {loading && !users.length ? (
             <div className="px-4 py-12 text-center">
               <Loader size="lg" />
               <p className="mt-4 text-gray-500 dark:text-gray-400">Loading users...</p>
             </div>
-          ) : !isLoading && !users.length ? (
+          ) : !loading && !users.length ? (
             <div className="px-4 py-12 text-center">
               <p className="text-gray-500 dark:text-gray-400">No users found. Try a different search or add a new user.</p>
             </div>
