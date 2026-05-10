@@ -5,26 +5,30 @@ import {
   cancelSubscription,
   renewSubscription,
   upgradeSubscription,
-  getAllSubscriptions
+  getAllSubscriptions,
+  checkSubscriptionStatus
 } from '../controllers/subscription.controller.js';
 import { verifyToken, verifyAdmin } from '../utils/verifyUser.js';
 
 const router = express.Router();
 
 // Create a new subscription
-router.post('/subscription', createSubscription);
+router.post('/subscription', verifyToken, createSubscription);
 
-// Get subscription by user ID
-router.get('/subscription/user/:userId', getSubscriptionByUserId);
+// Get subscription by user ID - real-time check (OPTIONAL - doesn't block)
+router.get('/subscription/user/:userId', verifyToken, getSubscriptionByUserId);
+
+// Check subscription status (real-time endpoint) (OPTIONAL - doesn't block)
+router.get('/subscription/check/:userId', verifyToken, checkSubscriptionStatus);
 
 // Cancel subscription
-router.put('/subscription/cancel/:subscriptionId', cancelSubscription);
+router.put('/subscription/cancel/:subscriptionId', verifyToken, cancelSubscription);
 
 // Renew subscription
-router.put('/subscription/renew', renewSubscription);
+router.put('/subscription/renew', verifyToken, renewSubscription);
 
 // Upgrade subscription from free to pro
-router.put('/subscription/upgrade', upgradeSubscription);
+router.put('/subscription/upgrade', verifyToken, upgradeSubscription);
 
 // Get all subscriptions (admin only)
 router.get('/subscriptions', verifyAdmin, getAllSubscriptions);

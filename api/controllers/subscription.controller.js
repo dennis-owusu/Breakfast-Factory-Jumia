@@ -1,66 +1,35 @@
 import Subscription from '../models/subscription.model.js';
 import Payment from '../models/payment.model.js';
 import { errorHandler } from '../utils/error.js';
+import {
+  checkActiveSubscription,
+  checkAndUpdateExpiredSubscription,
+  createSubscription as createSubscriptionService,
+  renewSubscription as renewSubscriptionService
+} from '../services/subscription.service.js';
 
 // Create a new subscription
 export const createSubscription = async (req, res, next) => {
   try {
     const { userId, plan, paymentId } = req.body;
-    
-    const startDate = new Date(); // Use UTC
-    startDate.setUTCHours(0, 0, 0, 0);
-    let endDate = new Date(startDate);
-    
-    if (plan === 'free') {
-      endDate.setUTCDate(endDate.getUTCDate() + 14);
-    } else if (plan === 'monthly') {
-      endDate.setUTCMonth(endDate.getUTCMonth() + 1); 
-    } else if (plan === 'bimonthly') {
-      endDate.setUTCMonth(endDate.getUTCMonth() + 2);
+
+    // Check if user already has an active subscription using the service
+    const existingCheck = await checkActiveSubscription(userId);
+    if (existingCheck.hasActiveSubscription) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already has an active subscription',
+        subscription: existingCheck.subscription
+      });
     }
-    
-    // Set features based on plan
-    let features = [];
-    let price = 0;
-    
-    if (plan === 'free') {
-      features = ['Basic Analytics', 'Limited Product Listings', 'Standard Support'];
-      price = 0;
-    } else if (plan === 'monthly') {
-      features = ['Advanced Analytics', 'Unlimited Product Listings', 'Priority Support', 'Featured Listings', 'Custom Branding'];
-      price = 150; // 150 GHS per month
-    } else if (plan === 'bimonthly') {
-      features = ['Advanced Analytics', 'Unlimited Product Listings', 'Priority Support', 'Featured Listings', 'Custom Branding'];
-      price = 300; // 300 GHS for 2 months
-    }
-    
-    // Check if user already has an active subscription
-    const existingSubscription = await Subscription.findOne({ 
-      userId, 
-      status: 'active',
-      endDate: { $gt: new Date() }
-    });
-    
-    if (existingSubscription) {
-      return next(errorHandler(400, 'User already has an active subscription'));
-    }
-    
-    // Create new subscription
-    const newSubscription = new Subscription({
+
+    // Create subscription using the service
+    const newSubscription = await createSubscriptionService({
       userId,
       plan,
-      startDate,
-      endDate,
-      status: 'active',
-      paymentId,
-      features,
-      price,
-      currency: 'GHS',
-      history: [{ action: 'created' }]
+      paymentId
     });
-    
-    await newSubscription.save();
-    
+
     res.status(201).json({
       success: true,
       message: `Successfully subscribed to ${plan} plan`,
@@ -71,35 +40,40 @@ export const createSubscription = async (req, res, next) => {
   }
 };
 
-// Get subscription by user ID
+// Get subscription by user ID - ALWAYS checks fresh status
 export const getSubscriptionByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    
-    let subscription = await Subscription.findOne({ userId });
-    
-    if (subscription) {
-      const now = new Date();
-      now.setUTCHours(0, 0, 0, 0);
-      if (subscription.status === 'active' && subscription.endDate <= now) {
-        subscription.status = 'expired';
-        subscription.history.push({ action: 'expired' });
-        await subscription.save();
+
+    // Use the service to check active subscription (real-time check)
+    const subscriptionCheck = await checkActiveSubscription(userId);
+
+    // If no active subscription found, also check for expired ones
+    if (!subscriptionCheck.hasActiveSubscription) {
+      const expiredSubscription = await Subscription.findOne({
+        userId,
+        status: { $in: ['expired', 'cancelled'] }
+      }).sort({ endDate: -1 });
+
+      if (expiredSubscription) {
+        return res.status(200).json({
+          success: true,
+          hasActiveSubscription: false,
+          subscription: expiredSubscription,
+          isExpired: true,
+          message: 'Your subscription has expired'
+        });
       }
     }
-    
-    
-    if (!subscription) {
-      return res.status(200).json({
-        success: true,
-        hasActiveSubscription: false
-      });
-    }
-    
+
+    // Return the active subscription check result
     res.status(200).json({
       success: true,
-      hasActiveSubscription: true,
-      subscription
+      hasActiveSubscription: subscriptionCheck.hasActiveSubscription,
+      subscription: subscriptionCheck.subscription,
+      isExpired: subscriptionCheck.isExpired || false,
+      isExpiringSoon: subscriptionCheck.subscription?.isExpiringSoon || false,
+      daysUntilExpiry: subscriptionCheck.subscription?.daysUntilExpiry || 0
     });
   } catch (error) {
     next(error);
@@ -110,17 +84,22 @@ export const getSubscriptionByUserId = async (req, res, next) => {
 export const cancelSubscription = async (req, res, next) => {
   try {
     const { subscriptionId } = req.params;
-    
+
     const subscription = await Subscription.findById(subscriptionId);
-    
+
     if (!subscription) {
       return next(errorHandler(404, 'Subscription not found'));
     }
-    
+
     // Update subscription status
     subscription.status = 'cancelled';
+    subscription.history.push({
+      action: 'cancelled',
+      date: new Date(),
+      reason: 'User cancelled'
+    });
     await subscription.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'Subscription cancelled successfully'
@@ -134,33 +113,10 @@ export const cancelSubscription = async (req, res, next) => {
 export const renewSubscription = async (req, res, next) => {
   try {
     const { subscriptionId, paymentId } = req.body;
-    
-    const subscription = await Subscription.findById(subscriptionId);
-    
-    if (!subscription) {
-      return next(errorHandler(404, 'Subscription not found'));
-    }
-    
-    // Calculate new end date
-    const startDate = new Date();
-    let endDate = new Date(startDate);
-    
-    if (subscription.plan === 'free') {
-      endDate.setDate(endDate.getDate() + 14);
-    } else if (subscription.plan === 'monthly') {
-      endDate.setMonth(endDate.getMonth() + 1);
-    } else if (subscription.plan === 'bimonthly') {
-      endDate.setMonth(endDate.getMonth() + 2);
-    }
-    
-    // Update subscription
-    subscription.startDate = startDate;
-    subscription.endDate = endDate;
-    subscription.status = 'active';
-    subscription.paymentId = paymentId;
-    
-    await subscription.save();
-    
+
+    // Use the service to renew
+    const subscription = await renewSubscriptionService(subscriptionId, paymentId);
+
     res.status(200).json({
       success: true,
       message: 'Subscription renewed successfully',
@@ -175,13 +131,13 @@ export const renewSubscription = async (req, res, next) => {
 export const upgradeSubscription = async (req, res, next) => {
   try {
     const { subscriptionId, paymentId } = req.body;
-    
+
     const subscription = await Subscription.findById(subscriptionId);
-    
+
     if (!subscription) {
       return next(errorHandler(404, 'Subscription not found'));
     }
-    
+
     // For simplicity, assuming upgrade is to a specified plan in req.body
     const { newPlan } = req.body;
     if (!['monthly', 'bimonthly'].includes(newPlan)) {
@@ -190,7 +146,7 @@ export const upgradeSubscription = async (req, res, next) => {
     if (subscription.plan === newPlan) {
       return next(errorHandler(400, `Subscription is already on ${newPlan} plan`));
     }
-    
+
     // Calculate new end date
     const startDate = new Date();
     let endDate = new Date(startDate);
@@ -199,11 +155,11 @@ export const upgradeSubscription = async (req, res, next) => {
     } else if (newPlan === 'bimonthly') {
       endDate.setMonth(endDate.getMonth() + 2);
     }
-    
+
     // Set features and price
     let features = ['Advanced Analytics', 'Unlimited Product Listings', 'Priority Support', 'Featured Listings', 'Custom Branding'];
     let price = newPlan === 'monthly' ? 150 : 300;
-    
+
     // Update subscription
     subscription.plan = newPlan;
     subscription.startDate = startDate;
@@ -212,9 +168,14 @@ export const upgradeSubscription = async (req, res, next) => {
     subscription.paymentId = paymentId;
     subscription.features = features;
     subscription.price = price;
-    
+    subscription.history.push({
+      action: 'upgraded',
+      date: new Date(),
+      details: { fromPlan: subscription.plan, toPlan: newPlan }
+    });
+
     await subscription.save();
-    
+
     res.status(200).json({
       success: true,
       message: `Subscription upgraded to ${newPlan} successfully`,
@@ -229,11 +190,44 @@ export const upgradeSubscription = async (req, res, next) => {
 export const getAllSubscriptions = async (req, res, next) => {
   try {
     const subscriptions = await Subscription.find().sort({ createdAt: -1 });
-    
+
+    // Check and update expired subscriptions in real-time
+    const now = new Date();
+    const updatedSubscriptions = await Promise.all(
+      subscriptions.map(async (sub) => {
+        if (sub.status === 'active' && sub.endDate <= now) {
+          sub.status = 'expired';
+          sub.history.push({
+            action: 'auto_expired',
+            date: now,
+            reason: 'Subscription period ended'
+          });
+          await sub.save();
+        }
+        return sub;
+      })
+    );
+
     res.status(200).json({
       success: true,
-      count: subscriptions.length,
-      subscriptions
+      count: updatedSubscriptions.length,
+      subscriptions: updatedSubscriptions
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Check subscription status (real-time check endpoint)
+export const checkSubscriptionStatus = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await checkActiveSubscription(userId);
+
+    res.status(200).json({
+      success: true,
+      ...result
     });
   } catch (error) {
     next(error);

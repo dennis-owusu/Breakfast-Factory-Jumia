@@ -74,25 +74,25 @@ const AdminDashboard = () => {
   const getStatusBadgeColor = (status) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200';
       case 'processing':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200';
       case 'shipped':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200';
       case 'delivered':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200';
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen dark:bg-gray-900">
         <Loader size="lg" />
       </div>
     );
@@ -100,15 +100,15 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="bg-gray-50 min-h-screen py-8">
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 p-4 mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
                 <AlertTriangle className="h-5 w-5 text-red-500" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">
+                <p className="text-sm text-red-700 dark:text-red-200">
                   {error}
                 </p>
               </div>
@@ -120,21 +120,21 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+          <h1 className="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:text-3xl sm:truncate">
             Admin Dashboard
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Welcome back, {user?.name || 'Admin'}! Here's what's happening with your store today.
           </p>
         </div>
 
         {/* AI Query Section */}
-        <div className="bg-white overflow-hidden shadow rounded-lg mb-8">
+        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg mb-8">
           <div className="p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Ask AI Assistant</h2>
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Ask AI Assistant</h2>
             <AIQuery />
           </div>
         </div>
@@ -142,25 +142,25 @@ const AdminDashboard = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           {/* Total Sales */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                  <DollarSign className="h-6 w-6 text-orange-600" />
+                <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-md p-3">
+                  <DollarSign className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Sales</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Sales</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{formatPrice(stats.totalSales)}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{formatPrice(stats.totalSales)}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
               <div className="text-sm">
-                <Link to="/admin/sales" className="font-medium text-orange-600 hover:text-orange-500">
+                <Link to="/admin/sales" className="font-medium text-orange-600 dark:text-orange-400 hover:text-orange-500">
                   View all sales
                 </Link>
               </div>
@@ -168,25 +168,25 @@ const AdminDashboard = () => {
           </div>
 
           {/* Total Orders */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                  <ShoppingBag className="h-6 w-6 text-blue-600" />
+                <div className="flex-shrink-0 bg-blue-100 dark:bg-blue-900/30 rounded-md p-3">
+                  <ShoppingBag className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Orders</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Orders</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.totalOrders.toLocaleString()}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{stats.totalOrders.toLocaleString()}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
               <div className="text-sm">
-                <Link to="/admin/orders" className="font-medium text-orange-600 hover:text-orange-500">
+                <Link to="/admin/orders" className="font-medium text-orange-600 dark:text-orange-400 hover:text-orange-500">
                   View all orders
                 </Link>
               </div>
@@ -194,25 +194,25 @@ const AdminDashboard = () => {
           </div>
 
           {/* Total Users */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                  <Users className="h-6 w-6 text-green-600" />
+                <div className="flex-shrink-0 bg-green-100 dark:bg-green-900/30 rounded-md p-3">
+                  <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Users</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.totalUsers.toLocaleString()}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{stats.totalUsers.toLocaleString()}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
               <div className="text-sm">
-                <Link to="/admin/users" className="font-medium text-orange-600 hover:text-orange-500">
+                <Link to="/admin/users" className="font-medium text-orange-600 dark:text-orange-400 hover:text-orange-500">
                   View all users
                 </Link>
               </div>
@@ -220,25 +220,25 @@ const AdminDashboard = () => {
           </div>
 
           {/* Total Outlets */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-purple-100 rounded-md p-3">
-                  <Store className="h-6 w-6 text-purple-600" />
+                <div className="flex-shrink-0 bg-purple-100 dark:bg-purple-900/30 rounded-md p-3">
+                  <Store className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Outlets</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Outlets</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.totalOutlets.toLocaleString()}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{stats.totalOutlets.toLocaleString()}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
               <div className="text-sm">
-                <Link to="/admin/outlets" className="font-medium text-orange-600 hover:text-orange-500">
+                <Link to="/admin/outlets" className="font-medium text-orange-600 dark:text-orange-400 hover:text-orange-500">
                   View all outlets
                 </Link>
               </div>
@@ -246,25 +246,25 @@ const AdminDashboard = () => {
           </div>
 
           {/* Total Products */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-indigo-100 rounded-md p-3">
-                  <Package className="h-6 w-6 text-indigo-600" />
+                <div className="flex-shrink-0 bg-indigo-100 dark:bg-indigo-900/30 rounded-md p-3">
+                  <Package className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Products</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Products</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.totalProducts.toLocaleString()}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{stats.totalProducts.toLocaleString()}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
               <div className="text-sm">
-                <Link to="/admin/products" className="font-medium text-orange-600 hover:text-orange-500">
+                <Link to="/admin/products" className="font-medium text-orange-600 dark:text-orange-400 hover:text-orange-500">
                   View all products
                 </Link>
               </div>
@@ -272,25 +272,25 @@ const AdminDashboard = () => {
           </div>
 
           {/* Pending Orders */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                  <ShoppingCart className="h-6 w-6 text-yellow-600" />
+                <div className="flex-shrink-0 bg-yellow-100 dark:bg-yellow-900/30 rounded-md p-3">
+                  <ShoppingCart className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Pending Orders</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Pending Orders</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.pendingOrders.toLocaleString()}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{stats.pendingOrders.toLocaleString()}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
               <div className="text-sm">
-                <Link to="/admin/orders?status=pending" className="font-medium text-orange-600 hover:text-orange-500">
+                <Link to="/admin/orders?status=pending" className="font-medium text-orange-600 dark:text-orange-400 hover:text-orange-500">
                   View pending orders
                 </Link>
               </div>
@@ -298,25 +298,25 @@ const AdminDashboard = () => {
           </div>
 
           {/* Pending Outlets */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
-                  <UserCheck className="h-6 w-6 text-red-600" />
+                <div className="flex-shrink-0 bg-red-100 dark:bg-red-900/30 rounded-md p-3">
+                  <UserCheck className="h-6 w-6 text-red-600 dark:text-red-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Pending Outlets</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Pending Outlets</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{stats.pendingOutlets.toLocaleString()}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{stats.pendingOutlets.toLocaleString()}</div>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-5 py-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
               <div className="text-sm">
-                <Link to="/admin/outlets?status=pending" className="font-medium text-orange-600 hover:text-orange-500">
+                <Link to="/admin/outlets?status=pending" className="font-medium text-orange-600 dark:text-orange-400 hover:text-orange-500">
                   View pending outlets
                 </Link>
               </div>
@@ -325,270 +325,145 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Links */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-8">
-          <Link to="/admin/products" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Link to="/admin/products" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                <Package className="h-6 w-6 text-orange-500" />
+              <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-md p-3">
+                <Package className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Manage Products</h3>
-                <p className="text-sm text-gray-500">Add, edit, or remove products</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Manage Products</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Add, edit, or remove products</p>
               </div>
               <div className="ml-auto">
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
             </div>
           </Link>
           
-          <Link to="/admin/orders" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+          <Link to="/admin/orders" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                <ShoppingBag className="h-6 w-6 text-orange-500" />
+              <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-md p-3">
+                <ShoppingBag className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Manage Orders</h3>
-                <p className="text-sm text-gray-500">View and update order status</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Manage Orders</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">View and update order status</p>
               </div>
               <div className="ml-auto">
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
             </div>
           </Link>
           
-          <Link to="/admin/analytics" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+          <Link to="/admin/analytics" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                <BarChart2 className="h-6 w-6 text-orange-500" />
+              <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-md p-3">
+                <BarChart2 className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Analytics</h3>
-                <p className="text-sm text-gray-500">View sales and performance data</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Analytics</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">View sales and performance data</p>
               </div>
               <div className="ml-auto">
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
             </div>
           </Link>
           
-          <Link to="/admin/sales" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+          <Link to="/admin/sales" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                <DollarSign className="h-6 w-6 text-orange-500" />
+              <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-md p-3">
+                <DollarSign className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Sales Reports</h3>
-                <p className="text-sm text-gray-500">View and download sales reports</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Sales Reports</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">View and download sales reports</p>
               </div>
               <div className="ml-auto">
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
             </div>
           </Link>
           
-          <Link to="/admin/categories" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+          <Link to="/admin/categories" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                <Package className="h-6 w-6 text-orange-500" />
+              <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-md p-3">
+                <Package className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Manage Categories</h3>
-                <p className="text-sm text-gray-500">Add, edit, or remove categories</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Manage Categories</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Add, edit, or remove categories</p>
               </div>
               <div className="ml-auto">
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
             </div>
           </Link>
           
-          <Link to="/admin/users" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+          <Link to="/admin/users" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                <Users className="h-6 w-6 text-orange-500" />
+              <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-md p-3">
+                <Users className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Manage Users</h3>
-                <p className="text-sm text-gray-500">View and manage user accounts</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Manage Users</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">View and manage user accounts</p>
               </div>
               <div className="ml-auto">
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
             </div>
           </Link>
           
-          <Link to="/admin/outlets" className="bg-white overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50">
+          <Link to="/admin/outlets" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                <Store className="h-6 w-6 text-orange-500" />
+              <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-md p-3">
+                <Store className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Manage Outlets</h3>
-                <p className="text-sm text-gray-500">View and manage outlets</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Manage Outlets</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">View and manage outlets</p>
               </div>
               <div className="ml-auto">
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
             </div>
           </Link>
         </div>
 
-        {/* Recent Orders and New Outlets */}
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          {/* Recent Orders */}
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-              <div>
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Recent Orders</h3>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">Latest orders across all outlets</p>
-              </div>
-              <Link to="/admin/orders" className="text-sm font-medium text-orange-600 hover:text-orange-500">
-                View all
-              </Link>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Order
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {stats.recentOrders.map((order) => (
-                    <tr key={order._id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600 hover:text-orange-500">
-                        <Link to={`/admin/orders/${order._id}`}>
-                          {order.orderNumber}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.customer.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatPrice(order.totalAmount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(order.createdAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* New Outlets */}
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-              <div>
-                <h3 className="text-lg leading-6 font-medium text-gray-900">New Outlets</h3>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">Recently registered outlets</p>
-              </div>
-              <Link to="/admin/outlets" className="text-sm font-medium text-orange-600 hover:text-orange-500">
-                View all
-              </Link>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Outlet
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Owner
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Products
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {stats.newOutlets.map((outlet) => (
-                    <tr key={outlet._id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600 hover:text-orange-500">
-                        <Link to={`/admin/outlets/${outlet._id}`}>
-                          {outlet.name}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {outlet.owner.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(outlet.status)}`}>
-                          {outlet.status.charAt(0).toUpperCase() + outlet.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {outlet.productsCount}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(outlet.createdAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Sales by Product */}
-        <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Sales by Product</h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">Top selling products by revenue</p>
+        {/* Recent Activity */}
+        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
+              Quick Actions
+            </h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+              Common tasks you can perform right now
+            </p>
           </div>
           <div className="px-4 py-5 sm:p-6">
-            <div className="space-y-4">
-              {stats.salesByProduct && stats.salesByProduct.map((product, index) => (
-                <div key={index}>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-gray-500">{product.units} units</span>
-                      <span className="text-sm font-medium text-gray-500">{formatPrice(product.value)}</span>
-                    </div>
-                  </div>
-                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-orange-500 h-2.5 rounded-full" 
-                      style={{ width: `${(product.value / stats.totalSales) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <div className="text-sm">
-              <Link to="/admin/analytics" className="font-medium text-orange-600 hover:text-orange-500 flex items-center">
-                <BarChart2 className="h-4 w-4 mr-1" />
-                View detailed analytics
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Link 
+                to="/admin/products/new" 
+                className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+              >
+                <Package className="h-5 w-5 mr-2" />
+                Add New Product
+              </Link>
+              <Link 
+                to="/admin/orders" 
+                className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+              >
+                <ShoppingBag className="h-5 w-5 mr-2" />
+                View Orders
+              </Link>
+              <Link 
+                to="/admin/users" 
+                className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+              >
+                <Users className="h-5 w-5 mr-2" />
+                Manage Users
               </Link>
             </div>
           </div>

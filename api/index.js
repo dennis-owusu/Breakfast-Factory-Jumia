@@ -25,6 +25,7 @@ import jwt from 'jsonwebtoken';
 import searchRoute from './routes/search.route.js';
 import paystackRoute from './routes/paystack.route.js';
 import Feedback from './models/feedback.js';
+import { initializeSubscriptionJobs } from './jobs/subscription.jobs.js';
  
 dotenv.config();
 
@@ -262,4 +263,7 @@ server.listen(PORT, () => {
   if (process.env.CLIENT_URL) {
     console.log(`🌐 Client URL: ${process.env.CLIENT_URL}`);
   }
+
+  // Initialize subscription background jobs
+  initializeSubscriptionJobs();
 });

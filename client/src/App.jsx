@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 
 // Components
-import SubscriptionModal from './components/SubscriptionModal';
 
 // Layout Components
 import Navbar from './components/Navbar';
@@ -97,12 +96,6 @@ const AppContent = () => {
     }
   }, [currentUser, location.pathname, navigate]);
   
-  // Determine if subscription modal should be shown
-  // This will ensure the modal is displayed for outlet and admin users
-  // The modal itself will check if the subscription is active or expired
-  const shouldShowSubscriptionModal = currentUser && 
-    (currentUser.usersRole === 'outlet' || currentUser.usersRole === 'admin');
-
   return (
     <div className="flex flex-col min-h-screen">
 
@@ -135,7 +128,6 @@ const AppContent = () => {
           }}
         />
         <Navbar />
-        {shouldShowSubscriptionModal && <SubscriptionModal />}
         <main className="flex-grow">
           <React.Suspense fallback={<LoadingFallback />}>
             <Routes>
