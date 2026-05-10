@@ -23,6 +23,7 @@ import { Server } from 'socket.io';
 import http from 'http';
 import jwt from 'jsonwebtoken';
 import searchRoute from './routes/search.route.js';
+import paystackRoute from './routes/paystack.route.js';
 import Feedback from './models/feedback.js';
  
 dotenv.config();
@@ -212,6 +213,7 @@ app.use('/api/route', subscriptionRoute);
 app.use('/api/route', restockRoute);
 app.use('/api/ai', aiRoute);
 app.use('/api/route', searchRoute);
+app.use('/api/paystack', paystackRoute);
 
 // Global error handler
 app.use((err, req, res, next) => {
