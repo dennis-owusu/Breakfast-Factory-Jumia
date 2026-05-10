@@ -147,7 +147,7 @@ const UsersManagement = () => {
     }
   };
 
-  if (isLoading && users.length === 0) {
+  if (loading && users.length === 0) {
     return (
       <div className="flex justify-center items-center min-h-screen dark:bg-gray-900">
         <Loader size="lg" />
