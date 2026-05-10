@@ -290,14 +290,14 @@ const CategoriesManagement = () => {
   };
   
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            <h1 className="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:text-3xl sm:truncate">
               Categories Management
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Manage product categories for your e-commerce store
             </p>
           </div>
@@ -313,26 +313,26 @@ const CategoriesManagement = () => {
         </div>
         
         {successMessage && (
-          <div className="mb-4 bg-green-50 border-l-4 border-green-400 p-4">
+          <div className="mb-4 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-400 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
                 <CheckCircle className="h-5 w-5 text-green-400" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-green-700">{successMessage}</p>
+                <p className="text-sm text-green-700 dark:text-green-200">{successMessage}</p>
               </div>
             </div>
           </div>
         )}
         
         {error && (
-          <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
+          <div className="mb-4 bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
                 <AlertTriangle className="h-5 w-5 text-red-400" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
+                <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
               </div>
             </div>
           </div>
