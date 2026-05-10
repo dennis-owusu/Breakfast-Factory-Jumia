@@ -13,7 +13,7 @@ import orderRoute from './routes/order.route.js';
 import categoryRoute from './routes/categories.route.js';
 import feedbackRoute from './routes/feedbackRoutes.js';
 import paymentRoute from './routes/payment.route.js';
-import dashboardRoute from './routes/dashboard.route.js';
+import dashboardRoute from './routes/dashboard.route.js';  
 import subscriptionRoute from './routes/subscription.route.js';
 import restockRoute from './routes/restock.route.js'
 import aiRoute from './routes/ai.route.js';
@@ -31,6 +31,8 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 const app = express();
 const server = http.createServer(app);
+
+// CORS Configuration
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -39,18 +41,44 @@ const allowedOrigins = [
   'http://localhost:5177',
   'https://breakfast-factory-jumia-1.onrender.com',
 ];
+
+// Add CLIENT_URL from environment variable if set (for production)
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
+// Allow all origins in development if specified
+if (process.env.NODE_ENV === 'development' && process.env.ALLOW_ALL_ORIGINS === 'true') {
+  console.log('⚠️  CORS: Allowing all origins in development mode');
+}
+// Production settings
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1); // Trust first proxy (required for Render)
+}
+
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) {
       return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // In production, log rejected origins for debugging
+    if (process.env.NODE_ENV === 'production') {
+      console.log(`⚠️  CORS rejected origin: ${origin}`);
     }
 
     return callback(new Error(`Origin ${origin} is not allowed by CORS`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true,
   optionsSuccessStatus: 204,
+  maxAge: 86400, // 24 hours
 };
 
 const io = new Server(server, {
@@ -228,5 +256,10 @@ app.use((err, req, res, next) => {
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`Server is running at ${PORT}`);
+  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Allowed Origins: ${allowedOrigins.join(', ')}`);
+  if (process.env.CLIENT_URL) {
+    console.log(`🌐 Client URL: ${process.env.CLIENT_URL}`);
+  }
 });
