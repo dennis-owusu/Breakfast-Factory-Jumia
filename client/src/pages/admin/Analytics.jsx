@@ -243,8 +243,8 @@ const Analytics = () => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded-md">
-          <p className="font-medium text-gray-900">{label}</p>
+        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 shadow-md rounded-md">
+          <p className="font-medium text-gray-900 dark:text-gray-100">{label}</p>
           {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {entry.name === 'sales' ? formatPrice(entry.value) : entry.value}
@@ -260,8 +260,8 @@ const Analytics = () => {
   const CustomPieTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded-md">
-          <p className="font-medium text-gray-900">{payload[0].name}</p>
+        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 shadow-md rounded-md">
+          <p className="font-medium text-gray-900 dark:text-gray-100">{payload[0].name}</p>
           <p style={{ color: payload[0].color }} className="text-sm">
             {formatPrice(payload[0].value)}
           </p>
@@ -297,27 +297,27 @@ const Analytics = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+          <h1 className="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:text-3xl sm:truncate">
             {outlet.name || 'Outlet'} Analytics
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             View sales, orders, and product statistics for your outlet
           </p>
         </div>
 
         {/* Period selector */}
-        <div className="bg-white shadow rounded-lg mb-6">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center">
-              <Calendar className="h-5 w-5 text-gray-400 mr-2" />
-              <label htmlFor="period" className="block text-sm font-medium text-gray-700 mr-4">Time Period</label>
+              <Calendar className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-2" />
+              <label htmlFor="period" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mr-4">Time Period</label>
               <select
                 id="period"
                 name="period"
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
                 value={period}
                 onChange={handlePeriodChange}
                 aria-label="Select time period"
@@ -333,17 +333,17 @@ const Analytics = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <DollarSign className="h-6 w-6 text-orange-600" />
+                  <DollarSign className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Sales</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Sales</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{formatPrice(data.summaryData.totalSales)}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{formatPrice(data.summaryData.totalSales)}</div>
                     </dd>
                   </dl>
                 </div>
@@ -351,17 +351,17 @@ const Analytics = () => {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <ShoppingBag className="h-6 w-6 text-orange-600" />
+                  <ShoppingBag className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Orders</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Orders</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{data.summaryData.totalOrders.toLocaleString()}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{data.summaryData.totalOrders.toLocaleString()}</div>
                     </dd>
                   </dl>
                 </div>
@@ -369,17 +369,17 @@ const Analytics = () => {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <TrendingUp className="h-6 w-6 text-orange-600" />
+                  <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Avg. Order Value</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Avg. Order Value</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{formatPrice(data.summaryData.averageOrderValue)}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{formatPrice(data.summaryData.averageOrderValue)}</div>
                     </dd>
                   </dl>
                 </div>
@@ -387,19 +387,19 @@ const Analytics = () => {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg className="h-6 w-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Products</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Products</dt>
                     <dd>
-                      <div className="text-lg font-medium text-gray-900">{data.summaryData.totalProducts.toLocaleString()}</div>
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{data.summaryData.totalProducts.toLocaleString()}</div>
                     </dd>
                   </dl>
                 </div>
@@ -409,10 +409,10 @@ const Analytics = () => {
         </div>
 
         {/* Sales and Orders Chart */}
-        <div className="bg-white shadow rounded-lg mb-6">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
           <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Sales & Orders</h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Sales & Orders</h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
               {period === 'daily' ? 'Last 7 days' : period === 'weekly' ? 'Last 4 weeks' : period === 'monthly' ? 'Last 6 months' : 'Last 12 months'}
             </p>
           </div>
@@ -424,8 +424,8 @@ const Analytics = () => {
                   data={data.salesData}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                  <XAxis dataKey="date" stroke="#9CA3AF" />
                   <YAxis yAxisId="left" orientation="left" stroke="#FF6B3D" />
                   <YAxis yAxisId="right" orientation="right" stroke="#3D9BFF" />
                   <Tooltip content={<CustomTooltip />} />
@@ -440,9 +440,9 @@ const Analytics = () => {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
           {/* Sales by Product */}
-          <div className="bg-white shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Sales by Product</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Sales by Product</h3>
             </div>
 
             <div className="px-4 pb-5">
@@ -473,9 +473,9 @@ const Analytics = () => {
           </div>
 
           {/* Monthly Sales Trend */}
-          <div className="bg-white shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Monthly Sales Trend</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Monthly Sales Trend</h3>
             </div>
 
             <div className="px-4 pb-5">
@@ -485,9 +485,9 @@ const Analytics = () => {
                     data={data.salesData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                    <XAxis dataKey="date" stroke="#9CA3AF" />
+                    <YAxis stroke="#9CA3AF" />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend />
                     <Bar dataKey="sales" name="Sales (₵)" fill="#FF6B3D" />
@@ -499,43 +499,43 @@ const Analytics = () => {
         </div>
 
         {/* Top Products */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-6">
           <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Top Selling Products</h3>
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Top Selling Products</h3>
           </div>
 
-          <div className="border-t border-gray-200">
+          <div className="border-t border-gray-200 dark:border-gray-700">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Product
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Category
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Sales
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Units Sold
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {data.topProducts.map((product) => (
-                    <tr key={product.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {data.topProducts.map((product, index) => (
+                    <tr key={product._id || product.id || index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                         {product.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {product.name || product.category || 'Uncategorized'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                         {formatPrice(product.sales)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {product.units.toLocaleString()}
                       </td>
                     </tr>

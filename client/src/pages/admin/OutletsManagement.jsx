@@ -216,13 +216,13 @@ const OutletsManagement = () => {
   const getStatusBadgeColor = (status) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
   
@@ -238,14 +238,14 @@ const OutletsManagement = () => {
   
   if (isLoading && outlets.length === 0) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen dark:bg-gray-900">
         <Loader size="lg" />
       </div>
     );
   }
   
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:text-3xl sm:truncate">
@@ -292,16 +292,16 @@ const OutletsManagement = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               {/* Search */}
               <div className="md:col-span-2">
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 sr-only">Search</label>
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 sr-only">Search</label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
+                    <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     type="text"
                     name="search"
                     id="search"
-                    className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                    className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Search by outlet name, description, or owner"
                     value={search}
                     onChange={handleSearchChange}
@@ -311,11 +311,11 @@ const OutletsManagement = () => {
               
               {/* Status Filter */}
               <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                 <select
                   id="status"
                   name="status"
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
                   value={status}
                   onChange={handleStatusChange}
                 >
@@ -328,11 +328,11 @@ const OutletsManagement = () => {
               
               {/* Category Filter */}
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
                 <select
                   id="category"
                   name="category"
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
                   value={category}
                   onChange={handleCategoryChange}
                 >
@@ -347,69 +347,69 @@ const OutletsManagement = () => {
         </div>
         
         {/* Outlets Table */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
           {isLoading && outlets.length > 0 && (
-            <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
               <div className="flex justify-center">
                 <Loader size="sm" />
-                <span className="ml-2 text-sm text-gray-500">Refreshing data...</span>
+                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Refreshing data...</span>
               </div>
             </div>
           )}
           
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Outlet
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Owner
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Status
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Products
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Orders
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Sales
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Rating
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {outlets.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                       No outlets found matching your criteria
                     </td>
                   </tr>
                 ) : (
                   outlets.map((outlet) => (
-                    <tr key={outlet._id}>
+                    <tr key={outlet._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
-                              <Store className="h-5 w-5 text-orange-600" />
+                            <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                              <Store className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{outlet.name}</div>
-                            <div className="text-xs text-gray-500 max-w-xs truncate">{outlet.description}</div>
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{outlet.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate">{outlet.description}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                               {outlet.categories.map((cat, index) => (
-                                <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mr-1">
+                                <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 mr-1">
                                   {cat}
                                 </span>
                               ))}
@@ -418,21 +418,21 @@ const OutletsManagement = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{outlet.owner.name}</div>
-                        <div className="text-sm text-gray-500">{outlet.owner.email}</div>
+                        <div className="text-sm text-gray-900 dark:text-gray-100">{outlet.owner.name}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{outlet.owner.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(outlet.status)}`}>
                           {outlet.status.charAt(0).toUpperCase() + outlet.status.slice(1)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {outlet.productsCount}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {outlet.ordersCount}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {formatSales(outlet.totalSales)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -440,14 +440,14 @@ const OutletsManagement = () => {
                           <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                           </svg>
-                          <span className="ml-1 text-sm text-gray-600">{outlet.rating}</span>
+                          <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">{outlet.rating}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <Link 
                             to={`/admin/outlets/${outlet._id}`} 
-                            className="text-orange-600 hover:text-orange-900"
+                            className="text-orange-600 dark:text-orange-400 hover:text-orange-900 dark:hover:text-orange-300"
                             title="View Details"
                           >
                             <Eye className="h-5 w-5" />
@@ -459,7 +459,7 @@ const OutletsManagement = () => {
                                 type="button"
                                 onClick={() => handleStatusUpdate(outlet._id, 'active')}
                                 disabled={actionLoading}
-                                className={`text-green-600 hover:text-green-900 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 title="Approve Outlet"
                               >
                                 <CheckCircle className="h-5 w-5" />
@@ -468,7 +468,7 @@ const OutletsManagement = () => {
                                 type="button"
                                 onClick={() => handleStatusUpdate(outlet._id, 'rejected')}
                                 disabled={actionLoading}
-                                className={`text-red-600 hover:text-red-900 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 title="Reject Outlet"
                               >
                                 <XCircle className="h-5 w-5" />
@@ -481,7 +481,7 @@ const OutletsManagement = () => {
                               type="button"
                               onClick={() => handleStatusUpdate(outlet._id, 'inactive')}
                               disabled={actionLoading}
-                              className={`text-red-600 hover:text-red-900 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              className={`text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                               title="Deactivate Outlet"
                             >
                               <XCircle className="h-5 w-5" />
@@ -493,7 +493,7 @@ const OutletsManagement = () => {
                               type="button"
                               onClick={() => handleStatusUpdate(outlet._id, 'active')}
                               disabled={actionLoading}
-                              className={`text-green-600 hover:text-green-900 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              className={`text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                               title="Approve Outlet"
                             >
                               <CheckCircle className="h-5 w-5" />
@@ -510,10 +510,10 @@ const OutletsManagement = () => {
           
           {/* Pagination */}
           {pagination.totalPages > 1 && (
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
                     Showing <span className="font-medium">{((page - 1) * limit) + 1}</span> to <span className="font-medium">{Math.min(page * limit, pagination.total)}</span> of{' '}
                     <span className="font-medium">{pagination.total}</span> results
                   </p>
@@ -523,7 +523,7 @@ const OutletsManagement = () => {
                     <button
                       onClick={handlePreviousPage}
                       disabled={page === 1}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium ${page === 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                     >
                       <span className="sr-only">Previous</span>
                       <ChevronLeft className="h-5 w-5" aria-hidden="true" />
@@ -534,7 +534,7 @@ const OutletsManagement = () => {
                       <button
                         key={pageNum}
                         onClick={() => setPage(pageNum)}
-                        className={`relative inline-flex items-center px-4 py-2 border ${pageNum === page ? 'z-10 bg-orange-50 border-orange-500 text-orange-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'} text-sm font-medium`}
+                        className={`relative inline-flex items-center px-4 py-2 border ${pageNum === page ? 'z-10 bg-orange-50 dark:bg-orange-900/30 border-orange-500 text-orange-600 dark:text-orange-400' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'} text-sm font-medium`}
                       >
                         {pageNum}
                       </button>
@@ -543,7 +543,7 @@ const OutletsManagement = () => {
                     <button
                       onClick={handleNextPage}
                       disabled={page === pagination.totalPages}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${page === pagination.totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium ${page === pagination.totalPages ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                     >
                       <span className="sr-only">Next</span>
                       <ChevronRight className="h-5 w-5" aria-hidden="true" />

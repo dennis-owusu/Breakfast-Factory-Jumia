@@ -186,9 +186,9 @@ const AdminSales = () => {
   if (isLoading && sales.length === 0) return <Loader />;
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Sales Management</h1>
+        <h1 className="text-2xl font-bold dark:text-gray-100">Sales Management</h1>
         <div className="flex space-x-2">
           <Button 
             onClick={() => handleDownloadReport('excel')} 
@@ -202,7 +202,7 @@ const AdminSales = () => {
             onClick={() => handleDownloadReport('csv')} 
             disabled={isDownloading}
             variant="outline"
-            className="border-green-600 text-green-600 hover:bg-green-50"
+            className="border-green-600 text-green-600 hover:bg-green-50 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-900/30"
           >
             <Download className="mr-2 h-4 w-4" />
             CSV
@@ -211,36 +211,36 @@ const AdminSales = () => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-lg p-3">
-              <DollarSign className="h-8 w-8 text-orange-500" />
+            <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-lg p-3">
+              <DollarSign className="h-8 w-8 text-orange-500 dark:text-orange-400" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-600">Total Sales</p>
-              <p className="text-2xl font-semibold text-gray-900">{formatPrice(summary.totalSales)}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Sales</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{formatPrice(summary.totalSales)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-lg p-3">
-              <TrendingUp className="h-8 w-8 text-orange-500" />
+            <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-lg p-3">
+              <TrendingUp className="h-8 w-8 text-orange-500 dark:text-orange-400" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-600">Average Sale</p>
-              <p className="text-2xl font-semibold text-gray-900">{formatPrice(summary.averageSale)}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Sale</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{formatPrice(summary.averageSale)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-lg p-3">
-              <ShoppingBag className="h-8 w-8 text-orange-500" />
+            <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900/30 rounded-lg p-3">
+              <ShoppingBag className="h-8 w-8 text-orange-500 dark:text-orange-400" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-600">Sale Count</p>
-              <p className="text-2xl font-semibold text-gray-900">{summary.saleCount}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Sale Count</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{summary.saleCount}</p>
             </div>
           </div>
         </div>
@@ -248,78 +248,99 @@ const AdminSales = () => {
       
       <form onSubmit={handleSearch} className="mb-6">
         <div className="flex gap-4">
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search sales..."
-            className="flex-1 p-2 border rounded"
-          />
-          <Button type="submit"><Search size={20} /></Button>
-          <Button type="button" onClick={() => setShowFilters(!showFilters)}><Filter size={20} /></Button>
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+            </div>
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search sales by ID, customer..."
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-colors"
+            />
+          </div>
+          <Button type="submit" className="bg-orange-600 hover:bg-orange-700">Search</Button>
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`${showFilters ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+          >
+            <Filter size={20} className="mr-2" />
+            Filters
+          </Button>
         </div>
         {showFilters && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <select name="period" value={filters.period} onChange={handleFilterChange} className="p-2 border rounded">
-              <option value="all">All Periods</option>
-              <option value="daily">Today</option>
-              <option value="weekly">Last 7 Days</option>
-              <option value="monthly">Last 30 Days</option>
-              <option value="yearly">Last Year</option>
-            </select>
+          <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-inner grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 border border-gray-100 dark:border-gray-700 animate-in fade-in slide-in-from-top-2">
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Period</label>
+              <select 
+                name="period" 
+                value={filters.period} 
+                onChange={handleFilterChange} 
+                className="block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+              >
+                <option value="all">All Periods</option>
+                <option value="daily">Today</option>
+                <option value="weekly">Last 7 Days</option>
+                <option value="monthly">Last 30 Days</option>
+                <option value="yearly">Last Year</option>
+              </select>
+            </div>
             
             <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-1">Min Amount</label>
+              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Min Amount</label>
               <input 
                 name="minAmount" 
                 value={filters.minAmount} 
                 onChange={handleFilterChange} 
-                placeholder="Min Amount" 
-                className="p-2 border rounded" 
+                placeholder="0.00" 
+                className="block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-orange-500 focus:border-orange-500 sm:text-sm" 
                 type="number"
               />
             </div>
             
             <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-1">Max Amount</label>
+              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Max Amount</label>
               <input 
                 name="maxAmount" 
                 value={filters.maxAmount} 
                 onChange={handleFilterChange} 
-                placeholder="Max Amount" 
-                className="p-2 border rounded" 
+                placeholder="1000.00" 
+                className="block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-orange-500 focus:border-orange-500 sm:text-sm" 
                 type="number"
               />
             </div>
             
             <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-1">Start Date</label>
+              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Start Date</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Calendar className="h-5 w-5 text-gray-400" />
+                  <Calendar className="h-4 w-4 text-gray-400" />
                 </div>
                 <input
                   type="date"
                   name="startDate"
                   value={filters.startDate}
                   onChange={handleFilterChange}
-                  className="pl-10 p-2 border rounded w-full"
+                  className="block w-full pl-10 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                 />
               </div>
             </div>
             
             <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-1">End Date</label>
+              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">End Date</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Calendar className="h-5 w-5 text-gray-400" />
+                  <Calendar className="h-4 w-4 text-gray-400" />
                 </div>
                 <input
                   type="date"
                   name="endDate"
                   value={filters.endDate}
                   onChange={handleFilterChange}
-                  className="pl-10 p-2 border rounded w-full"
+                  className="block w-full pl-10 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -329,41 +350,41 @@ const AdminSales = () => {
       
       {error && <div className="text-red-500 mb-4">{error}</div>}
       
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
         {/* Desktop Table View */}
         <div className="hidden sm:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Order ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Customer</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Items</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {sales.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                     No sales found matching your criteria
                   </td>
                 </tr>
               ) : (
                 sales.map((sale) => (
-                  <tr key={sale._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(sale.date)}</td>
+                  <tr key={sale._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{formatDate(sale.date)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-orange-600">{sale._id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.customer?.name || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatPrice(sale.amount)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.items}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{sale.customer?.name || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{formatPrice(sale.amount)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{sale.items}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={`${
-                        sale.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                        sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        sale.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
+                        sale.status === 'delivered' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' :
+                        sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200' :
+                        sale.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200' :
+                        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                       }`}>{sale.status}</Badge>
                     </td>
                   </tr>
@@ -377,45 +398,45 @@ const AdminSales = () => {
         <div className="sm:hidden p-4">
           <div className="grid grid-cols-1 gap-4">
             {sales.length === 0 ? (
-              <div className="text-center text-sm text-gray-500 p-4">
+              <div className="text-center text-sm text-gray-500 dark:text-gray-400 p-4">
                 No sales found matching your criteria
               </div>
             ) : (
               sales.map((sale) => (
-                <div key={sale._id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
+                <div key={sale._id} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow hover:shadow-md transition-shadow">
                   <div className="flex flex-col space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-gray-500">Date</span>
-                      <span className="text-xs font-semibold">{formatDate(sale.date)}</span>
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Date</span>
+                      <span className="text-xs font-semibold dark:text-gray-200">{formatDate(sale.date)}</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-gray-500">Order ID</span>
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Order ID</span>
                       <span className="text-xs font-semibold text-orange-600">{sale._id}</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-gray-500">Customer</span>
-                      <span className="text-xs font-semibold">{sale.customer?.name || 'N/A'}</span>
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Customer</span>
+                      <span className="text-xs font-semibold dark:text-gray-200">{sale.customer?.name || 'N/A'}</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-gray-500">Amount</span>
-                      <span className="text-xs font-semibold">{formatPrice(sale.amount)}</span>
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Amount</span>
+                      <span className="text-xs font-semibold dark:text-gray-200">{formatPrice(sale.amount)}</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-gray-500">Items</span>
-                      <span className="text-xs font-semibold">{sale.items}</span>
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Items</span>
+                      <span className="text-xs font-semibold dark:text-gray-200">{sale.items}</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-gray-500">Status</span>
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Status</span>
                       <Badge className={`text-xs ${
-                        sale.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                        sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        sale.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
+                        sale.status === 'delivered' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' :
+                        sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200' :
+                        sale.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200' :
+                        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                       }`}>{sale.status}</Badge>
                     </div>
                   </div>
@@ -435,7 +456,7 @@ const AdminSales = () => {
           >
             <ChevronLeft />
           </Button>
-          <span>Page {pagination.page} of {pagination.totalPages}</span>
+          <span className="dark:text-gray-300">Page {pagination.page} of {pagination.totalPages}</span>
           <Button 
             onClick={() => handlePageChange(pagination.page + 1)} 
             disabled={pagination.page === pagination.totalPages}

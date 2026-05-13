@@ -16,6 +16,46 @@ import { formatDate } from '../../utils/helpers';
 import Loader from '../../components/ui/Loader';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
+import api from '../../utils/api';
+
+// API helper functions
+const fetchUsers = async (params) => {
+  const queryParams = new URLSearchParams({
+    search: params.search || '',
+    role: params.role !== 'all' ? params.role : '',
+    status: params.status !== 'all' ? params.status : '',
+    page: params.page.toString(),
+    limit: (params.limit || 10).toString()
+  });
+
+  const response = await api.get(`/api/auth/get-all-users?${queryParams.toString()}`);
+  const data = response.data;
+  
+  return {
+    users: data.allUsers || data.users || [],
+    pagination: data.pagination || {
+      total: data.totalUsers || data.length || 0,
+      totalPages: Math.ceil((data.totalUsers || data.length || 0) / (params.limit || 10)),
+      currentPage: params.page,
+      limit: params.limit || 10
+    }
+  };
+};
+
+const updateUserStatus = async (userId, status) => {
+  const response = await api.put(`/api/auth/user/update/${userId}`, { status });
+  return response.data;
+};
+
+const updateUserRole = async (userId, usersRole) => {
+  const response = await api.put(`/api/auth/user/update/${userId}`, { usersRole });
+  return response.data;
+};
+
+const deleteUser = async (userId) => {
+  const response = await api.delete(`/api/auth/user/${userId}`);
+  return response.data;
+};
 
 const UsersManagement = () => {
   // ... (keep all the existing state and functions)
@@ -214,7 +254,7 @@ const UsersManagement = () => {
                     type="text"
                     name="search"
                     id="search"
-                    className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 sm:text-sm border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Search by name or email"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -222,8 +262,8 @@ const UsersManagement = () => {
                 </div>
               </div>
               <button
-                type="submit"
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                onClick={handleSearch}
+                className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 dark:focus:ring-offset-gray-900"
               >
                 Search
               </button>

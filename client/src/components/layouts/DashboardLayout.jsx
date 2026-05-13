@@ -70,16 +70,16 @@ const DashboardLayout = ({ children }) => {
     const fetchSubscription = async () => {
       if (role === 'outlet' || role === 'admin') {
         try {
-          const res = await api.get(`/api/route/subscription/user/${currentUser._id}`, {
-            headers: { Authorization: `Bearer ${currentUser.token}` }
-          });
+          const res = await api.get(`/api/route/subscription/user/${currentUser._id}`);
           setSubscription(res.data.subscription);
         } catch (err) {
           console.error('Failed to fetch subscription', err);
         }
       }
     };
-    fetchSubscription();
+    if (currentUser?._id) {
+      fetchSubscription();
+    }
   }, [role, currentUser]);
 
   useEffect(() => {
